@@ -69,3 +69,35 @@ def test_add_osint_nothing_new_changes_nothing():
             "_people": [], "_emails": ["jobs@acme.com"]}
     add_osint(lead, _FakeOsint({"coldreach": ["jobs@acme.com"], "theharvester": []}))
     assert lead["email_source"] == "role-address" and lead["notes"] == ""
+
+
+def test_website_matching_and_blocklists():
+    from bd.websites import WebsiteFinder, domain_matches, pick_website
+
+    assert domain_matches("northwind.co.uk", "Northwind Retail Ltd")
+    assert domain_matches("iquw.com", "IQUW Group")
+    assert domain_matches("hss-uk.com", "Hyland Support Services")          # acronym
+    assert not domain_matches("jobs-guide.com", "Purpose Group")
+    results = [
+        {"href": "https://uk.indeed.com/cmp/Purpose-Group"},
+        {"href": "https://www.linkedin.com/company/purpose-group"},
+        {"href": "https://find-and-update.company-information.service.gov.uk/company/123"},
+        {"href": "https://www.purposegroup.co.uk/about"},
+    ]
+    assert pick_website(results, "Purpose Group") == "purposegroup.co.uk"
+    assert pick_website(results[:3], "Purpose Group") == ""
+    f = WebsiteFinder({"websites": {"max_lookups_per_run": 1}}, search=lambda q: results)
+    assert f.find("Purpose Group", "UK") == "purposegroup.co.uk"
+    assert f.find("Another Co", "UK") == ""          # cap reached
+    boom = WebsiteFinder({}, search=lambda q: 1 / 0)
+    assert boom.find("Acme", "UK") == ""             # search errors never stop the run
+
+
+def test_public_sector_excluded():
+    from bd.config import load_config
+    from bd.intake_jobs import is_excluded
+
+    ex = load_config()["filters"]["exclude"]
+    assert is_excluded("Regulator of Social Housing", "", ex)
+    assert is_excluded("Kent County Council", "", ex)
+    assert not is_excluded("Purpose Group", "purposegroup.co.uk", ex)

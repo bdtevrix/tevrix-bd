@@ -19,6 +19,7 @@ from pathlib import Path
 
 from .config import headers, load_config
 from .osint import Osint
+from .websites import WebsiteFinder
 
 log = logging.getLogger("bd")
 
@@ -67,6 +68,19 @@ def enrich(leads: list[dict], cfg: dict, keys: dict, find_contacts: bool = True)
     if find_contacts:
         crawler = Crawler(cfg)
         osint = Osint(cfg)
+        finder = WebsiteFinder(cfg)
+        kept = []
+        for lead in leads:
+            if not lead.get("domain"):
+                d = finder.find(lead.get("company", ""), lead.get("country", ""))
+                if d and (d in keys["domains"] or d in keys["dnc_domains"]):
+                    log.info("skip %s: %s already in Leads or Do not contact", lead["company"], d)
+                    continue
+                if d:
+                    lead["domain"], lead["website"] = d, f"https://{d}"
+                    lead["notes"] = "; ".join(x for x in (lead.get("notes", ""), "website found by search") if x)
+            kept.append(lead)
+        leads = kept
         for i, lead in enumerate(leads, 1):
             if not lead.get("domain"):
                 lead["email_source"] = "none"

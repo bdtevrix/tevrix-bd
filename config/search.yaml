@@ -75,6 +75,20 @@ filters:
     - council
     - ministry
     - university
+    - college
+    - school
+    - academy trust
+    - regulator
+    - authority
+    - police
+    - fire and rescue
+    - ombudsman
+    - commission
+    - borough
+    - county council
+    - civil service
+    - armed forces
+    - ministry of defence
 
 agency_keywords: [recruitment, staffing, talent, resourcing, search, personnel, recruiting, recruiters]
 
@@ -93,6 +107,12 @@ maps:
     - {city: Melbourne,  country: Australia}
     - {city: Auckland,   country: New Zealand}
   max_new_leads_per_run: 60
+
+# Look up a company's own website when the job board gives none (web search, no API key).
+websites:
+  enabled: true
+  max_lookups_per_run: 80
+  pause_seconds: [1.5, 3.0]
 
 contacts:
   user_agent: "TevrixBDBot/1.0 (+https://hireminds.tevrixai.com)"
