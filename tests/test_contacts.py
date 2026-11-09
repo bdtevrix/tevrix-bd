@@ -1,5 +1,5 @@
 from bd.contacts import (build_email, extract_emails, extract_people, infer_pattern, page_text, pick_contact,
-                         title_rank)
+                         title_rank, works_elsewhere)
 
 HTML = """
 <html><body>
@@ -117,3 +117,15 @@ def test_crawler_respects_robots_and_stays_on_site():
     assert not any("other.com" in u for u in s.calls)         # other domains
     assert "https://acme.ie/shop" not in s.calls              # not an about/team/contact page
     assert (c["contact_name"], c["email"], c["email_source"]) == ("Tom Brennan", "tom@acme.ie", "published")
+
+
+def test_works_elsewhere_skips_testimonials_investors_alumni():
+    # Seen on alaan.com in the 9 Nov test: a customer quote was picked as the contact.
+    assert works_elsewhere("Managing Partner & Founder, Alpha Pro Partners", "Alaan")
+    assert works_elsewhere("Partner at Sequoia", "Encord")
+    assert works_elsewhere("Former Head of HR", "Acme")
+    assert works_elsewhere("Ex-Google, CTO", "Acme")
+    for title in ("Head of People, UK & Ireland", "Head of Talent at Acme", "HR Advisor", "Customer Success Lead",
+                  "Co-Founder", "Director, Talent Acquisition", "Client Services Director"):
+        assert not works_elsewhere(title, "Acme"), title
+    assert not works_elsewhere("CEO, Acme Group", "Acme Ltd")

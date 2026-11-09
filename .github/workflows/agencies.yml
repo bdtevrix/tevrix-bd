@@ -25,7 +25,7 @@ concurrency:
 jobs:
   agencies:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 100   # 44 Maps queries incl. India; about 60-90 minutes
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -34,19 +34,11 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
       - uses: astral-sh/setup-uv@v6
-      - name: Install ColdReach and theHarvester (optional email finders)
+      # theHarvester is off (osint.harvester_enabled: false), so only ColdReach is installed.
+      - name: Install ColdReach (optional email finder)
         continue-on-error: true
-        env:
-          THEHARVESTER_REF: master   # pin to a release tag or commit once you have tested one
         run: |
           pipx install "coldreach==0.1.0"
-          git clone --depth 1 --branch "$THEHARVESTER_REF" https://github.com/laramies/theHarvester.git "$RUNNER_TEMP/theHarvester"
-          (cd "$RUNNER_TEMP/theHarvester" && uv sync)
-          mkdir -p "$HOME/.local/bin"
-          printf '#!/bin/sh\nexec uv run --project "%s" theHarvester "$@"\n' "$RUNNER_TEMP/theHarvester" > "$HOME/.local/bin/theHarvester"
-          chmod +x "$HOME/.local/bin/theHarvester"
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-          "$HOME/.local/bin/theHarvester" -h | head -3 || true
           coldreach --version || true
       - name: Build the Maps queries
         run: python -m bd.main maps-queries --out queries.txt

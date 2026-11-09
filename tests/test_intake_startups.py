@@ -90,3 +90,11 @@ def test_collect_combines_sources_and_caps():
     leads = collect(CFG, NO_KEYS, limit=4, session=_Session())
     assert [l["source"] for l in leads] == ["yc", "yc", "hn_whoishiring", "hn_whoishiring"]
     assert len({l["company"] for l in leads}) == 4
+
+
+def test_india_startups():
+    yc = [{"name": "GroMo", "website": "https://gromo.in", "team_size": 100, "regions": ["South Asia", "India"],
+           "status": "Active", "isHiring": True, "batch": "Winter 2022"}]
+    assert [(l["company"], l["country"]) for l in parse_yc(yc, CFG, NO_KEYS, 5)] == [("GroMo", "India")]
+    assert hn_country("Acme | Ops Lead | Bengaluru, India | ONSITE") == "India"
+    assert hn_country("Acme | Engineer | Gurugram") == "India"

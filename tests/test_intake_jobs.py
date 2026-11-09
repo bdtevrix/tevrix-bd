@@ -1,7 +1,8 @@
 import pandas as pd
 
 from bd.config import load_config
-from bd.intake_jobs import aggregate, classify_segment, filter_candidates, parse_size, signal_text, size_ok
+from bd.intake_jobs import (aggregate, classify_segment, filter_candidates, parse_size, signal_text, size_ok,
+                            terms_for)
 
 CFG = load_config()
 
@@ -123,3 +124,42 @@ def test_aggregate_handles_missing_columns():
     out = aggregate(df, CFG)
     assert out[0]["company"] == "Alt Cols Ltd" and out[0]["open_roles"] == 1
     assert aggregate(pd.DataFrame(), CFG) == []
+
+
+def test_india_terms_and_default_terms():
+    india = terms_for(CFG, "IN")
+    assert "telecaller" in india and "walk-in interview" in india and "recruiter" in india
+    assert "care assistant" not in india                       # UK wording stays out of India searches
+    assert "care assistant" in terms_for(CFG, "UK")
+
+
+def _company(name, n, cc, title="Telecaller", size=None):
+    return [{"site": "naukri", "title": title, "company": name, "job_url": f"https://n/{name}/{i}",
+             "company_num_employees": size, "country_code": cc} for i in range(n)]
+
+
+def test_per_country_cap_and_india_size_override():
+    rows = []
+    for i in range(30):
+        rows += _company(f"Bharat Voice {i}", 5, "IN")
+    for i in range(3):
+        rows += _company(f"Northwind {i}", 3, "UK", "Sales Executive")
+    rows += _company("Large BPO", 4, "IN", "Customer Support Executive", "1001 to 5000")   # kept in India
+    rows += _company("Large UK Co", 4, "UK", "Sales Executive", "1001 to 5000")            # too big for the UK
+    leads = filter_candidates(aggregate(pd.DataFrame(rows), CFG), CFG)
+    countries = [l["country"] for l in leads]
+    assert countries.count("India") == 20                      # country_overrides.IN.max_leads
+    assert countries.count("UK") == 3                          # still reached despite India's volume
+    assert "Large UK Co" not in [l["company"] for l in leads]
+    big = filter_candidates(aggregate(pd.DataFrame(_company("Large BPO", 4, "IN", "Customer Support Executive",
+                                                            "1001 to 5000")), CFG), CFG)
+    assert [l["company"] for l in big] == ["Large BPO"]
+
+
+def test_walk_in_signal_and_india_exclusions():
+    rec = {"titles": ["Walk-in Drive for Voice Process", "Telecaller"], "open_roles": 2, "high_intent_titles": []}
+    assert signal_text(rec).endswith("; running walk-in interview drives")
+    rows = _company("Teleperformance Global Services", 6, "IN") + _company("Shree Manpower Consultants", 2, "IN",
+                                                                           "Recruiter")
+    leads = filter_candidates(aggregate(pd.DataFrame(rows), CFG), CFG)
+    assert [(l["company"], l["segment"]) for l in leads] == [("Shree Manpower Consultants", "agency")]

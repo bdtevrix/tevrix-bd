@@ -1,6 +1,6 @@
 """CLI.
 
-  python -m bd.main jobs [--dry-run] [--limit N] [--searches N] [--no-contacts]
+  python -m bd.main jobs [--dry-run] [--limit N] [--searches N] [--countries IN,UK] [--no-contacts]
   python -m bd.main maps results.csv [--dry-run] [--limit N] [--no-contacts]
   python -m bd.main maps-queries [--out queries.txt]
   python -m bd.main check-sheet
@@ -146,6 +146,10 @@ def cmd_jobs(args, cfg):
     from .intake_jobs import aggregate, filter_candidates, scrape
 
     sh, keys = _keys(args.dry_run)
+    if args.countries:
+        wanted = {c.strip().upper() for c in args.countries.split(",") if c.strip()}
+        cfg = dict(cfg, countries=[c for c in cfg["countries"] if c["code"] in wanted])
+        log.info("countries: %s", ", ".join(c["code"] for c in cfg["countries"]) or "none matched")
     df = scrape(cfg, limit_searches=args.searches)
     log.info("JobSpy returned %d job rows", len(df))
     companies = aggregate(df, cfg)
@@ -213,6 +217,7 @@ def main(argv=None):
         sp.add_argument("--no-contacts", action="store_true", help="skip the website contact finder")
         if name == "jobs":
             sp.add_argument("--searches", type=int, default=None, help="max JobSpy calls (testing)")
+            sp.add_argument("--countries", default="", help="only these country codes, e.g. IN or UK,IE")
     sq = sub.add_parser("maps-queries")
     sq.add_argument("--out")
     sub.add_parser("check-sheet")

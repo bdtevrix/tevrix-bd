@@ -161,6 +161,33 @@ def infer_pattern(emails: list[str], people: list[tuple[str, str]] | list[str]) 
     return None
 
 
+# Titles that are not current staff of the company whose site we crawled (testimonials, investors, alumni).
+# ('HR Advisor', 'Customer Success Lead' and 'Client Services Director' are staff, so those words are not here.)
+NOT_STAFF_RE = re.compile(r"(?<![a-z])(?:ex-|(?:former|previously|investor|angel|advisory board|board member|"
+                          r"non-executive|guest|speaker)(?![a-z]))", re.I)
+ORG_WORDS_RE = re.compile(r"\b(partners?|capital|ventures?|group|ltd|limited|inc|llc|llp|plc|holdings|fund|"
+                          r"investments?|bank|consulting|associates|pvt|private)\b", re.I)
+
+
+def works_elsewhere(title: str, company: str) -> bool:
+    """True for 'Managing Partner & Founder, Alpha Pro Partners' quoted on alaan.com, or 'Partner at Sequoia'.
+
+    'Head of People, UK & Ireland' and 'CEO, Acme Group' (on Acme's own site) stay.
+    """
+    from .websites import name_tokens
+
+    t = title or ""
+    if NOT_STAFF_RE.search(t):
+        return True
+    m = re.search(r"(?:,|\s@\s|\bat\b)\s*(.+)$", t, flags=re.I)
+    if not m or not company:
+        return False
+    org = m.group(1).strip().lower()
+    if any(tok in org for tok in name_tokens(company)):
+        return False
+    return bool(ORG_WORDS_RE.search(org)) or bool(re.search(r"\bat\b", t, flags=re.I))
+
+
 def pick_contact(people: list[tuple[str, str]], emails: list[str], domain: str, ceo_name: str = "") -> dict:
     """Choose the best person and email; set email_source as the build spec defines."""
     ranked = sorted(
@@ -281,6 +308,8 @@ def find_contact(lead: dict, crawler: Crawler, extra_emails: list[str] | None = 
     people = []
     for t in texts:
         for p in extract_people(t):
+            if works_elsewhere(p[1], lead.get("company", "")):
+                continue  # a customer quote, investor or alumnus on their site, not someone to email
             if p[0].lower() not in {x[0].lower() for x in people}:
                 people.append(p)
     out = pick_contact(people, emails, domain, lead.get("ceo_name", ""))

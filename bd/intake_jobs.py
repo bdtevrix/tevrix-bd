@@ -113,14 +113,20 @@ def is_excluded(company: str, domain: str, exclude: list[str]) -> bool:
 
 # ---------------------------------------------------------------- scraping
 
+def terms_for(cfg: dict, code: str) -> list[str]:
+    """High-intent terms plus the country's own volume terms (search_terms.by_country), else the default list."""
+    st = cfg["search_terms"]
+    return list(st["high_intent"]) + list((st.get("by_country") or {}).get(code, st["volume"]))
+
+
 def scrape(cfg: dict, limit_searches: int | None = None) -> pd.DataFrame:
     """Run JobSpy for every country x board x term. Errors are caught per call."""
     from jobspy import scrape_jobs  # imported here so tests do not need jobspy
 
     js = cfg["jobspy"]
-    terms = cfg["search_terms"]["high_intent"] + cfg["search_terms"]["volume"]
     frames, done = [], 0
     for c in cfg["countries"]:
+        terms = terms_for(cfg, c["code"])
         for board in c["boards"]:
             for term in terms:
                 if limit_searches is not None and done >= limit_searches:
@@ -141,6 +147,8 @@ def scrape(cfg: dict, limit_searches: int | None = None) -> pd.DataFrame:
                     kwargs["location"] = c["country_indeed"]
                 elif board == "google":
                     kwargs["google_search_term"] = f"{term} jobs in {c['linkedin_location']} since last week"
+                elif board == "naukri" and c.get("naukri_location"):
+                    kwargs["location"] = c["naukri_location"]   # blank = all of India
                 try:
                     df = scrape_jobs(**kwargs)
                     if df is not None and len(df):
@@ -207,6 +215,9 @@ def aggregate(df: pd.DataFrame, cfg: dict) -> list[dict]:
     return out
 
 
+WALK_IN_RE = re.compile(r"walk[\s-]*in", re.I)
+
+
 def signal_text(rec: dict) -> str:
     """'5 open roles in 7 days (Sales Executive, Customer Service…); hiring a recruiter'."""
     uniq = list(dict.fromkeys(rec["titles"]))
@@ -217,6 +228,8 @@ def signal_text(rec: dict) -> str:
         t = rec["high_intent_titles"][0].lower()
         what = "a recruiter" if "recruit" in t or "talent" in t else "HR / people"
         s += f"; hiring {what}"
+    if any(WALK_IN_RE.search(t or "") for t in rec["titles"]):
+        s += "; running walk-in interview drives"
     return s
 
 
@@ -244,7 +257,8 @@ def filter_candidates(
         )
         if not keep:
             continue
-        if not size_ok(rec["size"], f["size_min"], f["size_max"]):
+        ov = (f.get("country_overrides") or {}).get(rec["country_code"], {})
+        if not size_ok(rec["size"], ov.get("size_min", f["size_min"]), ov.get("size_max", f["size_max"])):
             continue
         if is_excluded(rec["company"], rec["domain"], f.get("exclude", [])):
             continue
@@ -258,7 +272,15 @@ def filter_candidates(
     cap = min(limit or f["max_new_leads_per_run"], f["max_new_leads_per_run"])
     now = datetime.now(timezone.utc).astimezone().strftime("%Y-%m-%d %H:%M")
     leads = []
-    for rec in kept[:cap]:
+    per_country: Counter = Counter()
+    for rec in kept:
+        if len(leads) >= cap:
+            break
+        cc = rec["country_code"]
+        cc_cap = (f.get("country_overrides") or {}).get(cc, {}).get("max_leads", f.get("max_per_country"))
+        if cc_cap is not None and per_country[cc] >= cc_cap:
+            continue  # keep room for the other markets
+        per_country[cc] += 1
         uniq = list(dict.fromkeys(rec["titles"]))
         notes = []
         if rec["industry"]:

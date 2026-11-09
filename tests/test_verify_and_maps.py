@@ -52,7 +52,27 @@ def test_verify_without_token_is_risky():
 def test_maps_queries():
     q = queries(CFG)
     assert "recruitment agency in London" in q and "staffing agency in Auckland" in q
-    assert len(q) == 20
+    # India cities use their own categories (placement consultancies, Gulf recruiters).
+    assert "placement consultancy in Mumbai" in q and "overseas recruitment agency in Kochi" in q
+    assert "recruitment agency in Mumbai" not in q
+    assert len(q) == len(set(q)) == 44
+
+
+def test_parse_gosom_csv_india_and_country_cap(tmp_path):
+    p = tmp_path / "results.csv"
+    rows = [{"title": f"Shree Placement {i} Pvt Ltd", "website": f"https://shree{i}.in", "review_count": str(100 - i),
+             "timezone": "Asia/Kolkata"} for i in range(30)]
+    rows.append({"title": "Harbour Recruitment", "website": "https://harbourrec.co.nz", "review_count": "1",
+                 "timezone": "Pacific/Auckland"})
+    with open(p, "w", newline="", encoding="utf-8") as fh:
+        w = csv.DictWriter(fh, fieldnames=["title", "website", "review_count", "timezone"])
+        w.writeheader()
+        w.writerows(rows)
+    leads = parse_csv(str(p), CFG)
+    india = [l for l in leads if l["country"] == "India"]
+    assert len(india) == CFG["maps"]["max_per_country"] == 25          # capped, leaves room for others
+    assert leads[-1]["company"] == "Harbour Recruitment"               # still reached
+    assert india[0]["domain"] == "shree0.in" and india[0]["segment"] == "agency"
 
 
 def test_parse_gosom_csv(tmp_path):

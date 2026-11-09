@@ -14,13 +14,14 @@ TZ_TO_COUNTRY = {
     "Europe/London": "UK", "Europe/Dublin": "Ireland", "Asia/Dubai": "UAE", "Asia/Singapore": "Singapore",
     "Australia/Sydney": "Australia", "Australia/Melbourne": "Australia", "Australia/Brisbane": "Australia",
     "Australia/Perth": "Australia", "Australia/Adelaide": "Australia", "Pacific/Auckland": "New Zealand",
+    "Asia/Kolkata": "India", "Asia/Calcutta": "India",
 }
 
 
 def queries(cfg: dict) -> list[str]:
-    """One query per category x city, e.g. 'recruitment agency in London'."""
+    """One query per category x city, e.g. 'recruitment agency in London'. A city can list its own categories."""
     m = cfg["maps"]
-    return [f"{cat} in {c['city']}" for c in m["cities"] for cat in m["categories"]]
+    return [f"{cat} in {c['city']}" for c in m["cities"] for cat in (c.get("categories") or m["categories"])]
 
 
 def _emails(value: str) -> list[str]:
@@ -45,7 +46,8 @@ def _country(row: dict, cfg: dict) -> str:
     for c in cfg["maps"]["cities"]:
         if c["city"].lower() in hay:
             return c["country"]
-    for name in ("United Kingdom", "Ireland", "United Arab Emirates", "Singapore", "Australia", "New Zealand"):
+    for name in ("United Kingdom", "Ireland", "United Arab Emirates", "Singapore", "Australia", "New Zealand",
+                 "India"):
         if name.lower() in hay:
             return {"United Kingdom": "UK", "United Arab Emirates": "UAE"}.get(name, name)
     return ""
@@ -58,6 +60,8 @@ def parse_csv(path: str, cfg: dict, existing_domains=frozenset(), existing_names
     now = datetime.now(timezone.utc).astimezone().strftime("%Y-%m-%d %H:%M")
     exclude = cfg["filters"].get("exclude", [])
     seen_domains, seen_names, out = set(), set(), []
+    per_country: dict[str, int] = {}
+    cc_cap = cfg["maps"].get("max_per_country")
     with open(path, newline="", encoding="utf-8") as fh:
         rows = list(csv.DictReader(fh))
     # Most-reviewed first: a rough proxy for an established agency.
@@ -73,6 +77,10 @@ def parse_csv(path: str, cfg: dict, existing_domains=frozenset(), existing_names
         if (domain and (domain in existing_domains or domain in dnc_domains or domain in seen_domains)) \
                 or key in existing_names or key in seen_names:
             continue
+        country = _country(row, cfg)
+        if cc_cap and per_country.get(country, 0) >= cc_cap:
+            continue  # keep room for the other markets
+        per_country[country] = per_country.get(country, 0) + 1
         seen_names.add(key)
         if domain:
             seen_domains.add(domain)
@@ -90,7 +98,7 @@ def parse_csv(path: str, cfg: dict, existing_domains=frozenset(), existing_names
             "company": title,
             "domain": domain,
             "website": website_url(row.get("website", "")),
-            "country": _country(row, cfg),
+            "country": country,
             "signal": f"Recruitment / staffing agency on Google Maps ({reviews or 0} reviews)",
             "status": "new",
             "notes": "; ".join(n for n in notes if n.split(": ", 1)[-1]),

@@ -26,7 +26,7 @@ HN_ITEM = "https://hn.algolia.com/api/v1/items/{id}"
 # YC region names -> the country labels used in the Sheet.
 YC_REGIONS = {
     "United Kingdom": "UK", "Ireland": "Ireland", "Australia": "Australia", "New Zealand": "New Zealand",
-    "Singapore": "Singapore", "United Arab Emirates": "UAE",
+    "Singapore": "Singapore", "United Arab Emirates": "UAE", "India": "India",
 }
 
 # Place names in an HN post's first line -> country label. Matched as whole words.
@@ -37,6 +37,9 @@ HN_PLACES = {
     "sydney": "Australia", "melbourne": "Australia", "brisbane": "Australia", "perth": "Australia",
     "australia": "Australia", "auckland": "New Zealand", "wellington": "New Zealand", "new zealand": "New Zealand",
     "singapore": "Singapore", "dubai": "UAE", "abu dhabi": "UAE", "uae": "UAE",
+    "india": "India", "bangalore": "India", "bengaluru": "India", "mumbai": "India", "delhi": "India",
+    "gurgaon": "India", "gurugram": "India", "noida": "India", "pune": "India", "hyderabad": "India",
+    "chennai": "India", "kolkata": "India", "ahmedabad": "India", "jaipur": "India",
 }
 
 

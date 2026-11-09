@@ -24,12 +24,17 @@ BLOCKED_DOMAINS = {
     "facebook.com", "instagram.com", "twitter.com", "x.com", "youtube.com", "tiktok.com",
     "google.com", "goo.gl", "bit.ly", "wix.com", "wixsite.com", "squarespace.com", "wordpress.com",
     "linktr.ee", "about.me", "yell.com", "yelp.com", "trustpilot.com",
+    # India: job boards, directories and free site builders
+    "foundit.in", "monsterindia.com", "shine.com", "timesjobs.com", "apna.co", "workindia.in", "internshala.com",
+    "instahyre.com", "hirist.tech", "iimjobs.com", "cutshort.io", "wellfound.com", "justdial.com", "indiamart.com",
+    "sulekha.com", "ambitionbox.com", "business.site", "blogspot.com", "godaddysites.com", "webnode.page",
+    "zohorecruit.com", "zohorecruit.in", "keka.com", "darwinbox.in", "freshteam.com",
 }
 
 _LEGAL_SUFFIXES = {
     "ltd", "limited", "llc", "l.l.c", "inc", "incorporated", "plc", "pty", "pte", "fze", "fzco", "fzllc",
     "fz", "dmcc", "gmbh", "bv", "nv", "sa", "sarl", "co", "corp", "corporation", "company", "uk", "group",
-    "holdings", "the", "lp", "llp", "nz", "au", "sg", "ie", "uae",
+    "holdings", "the", "lp", "llp", "nz", "au", "sg", "ie", "uae", "pvt", "private", "opc", "india",
 }
 
 

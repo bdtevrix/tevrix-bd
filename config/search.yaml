@@ -10,7 +10,7 @@ sheet_id: 1cDZcswzXjaxnZSlheKE-OulPlAy2Yzj3sPAlrv-qM7k
 #   bayt      Gulf coverage (UAE)
 #   google    Google Jobs; add it to a country's boards to try it (uses location below)
 #   glassdoor, zip_recruiter  left off: frequent 400/403 errors in 2026 tests; zip_recruiter is US/Canada only
-#   naukri    India only: switch on with Wave 3
+#   naukri    India only (searches all of India unless naukri_location is set)
 countries:
   - {code: UK,  country_indeed: UK,                     linkedin_location: United Kingdom,       boards: [indeed, linkedin]}
   - {code: IE,  country_indeed: Ireland,                linkedin_location: Ireland,              boards: [indeed, linkedin]}
@@ -21,8 +21,8 @@ countries:
   # Wave 2 (uncomment when US sending is ready: POSTAL_ADDRESS must be filled):
   # - {code: US, country_indeed: USA,    linkedin_location: United States, boards: [indeed, linkedin]}
   # - {code: CA, country_indeed: Canada, linkedin_location: Canada,        boards: [indeed, linkedin]}
-  # Wave 3:
-  # - {code: IN, country_indeed: India,  linkedin_location: India,         boards: [indeed, linkedin, naukri]}
+  # India (from 9 Nov 2026): the AI interviewer runs in Hinglish. Own search terms below (search_terms.by_country).
+  - {code: IN,  country_indeed: India,                  linkedin_location: India,                boards: [naukri, indeed, linkedin]}
 
 # The country label written to the Sheet (matches the Apps Script time-zone table).
 country_labels:
@@ -50,6 +50,21 @@ search_terms:
     - retail assistant
     - warehouse operative
     - hospitality
+  by_country:         # replaces the volume list above for that country
+    IN:
+      - telecaller
+      - customer support executive
+      - voice process
+      - BPO
+      - field sales executive
+      - relationship manager
+      - business development executive
+      - inside sales
+      - walk-in interview
+      - delivery executive
+      - retail sales associate
+      - machine operator
+      - staff nurse
 
 jobspy:
   hours_old: 168
@@ -66,10 +81,16 @@ filters:
     nurse, healthcare assistant, support worker, warehouse, operative, picker, packer, driver, delivery,
     courier, retail, store, shop, cashier, barista, waiter, waitress, bartender, chef, cook, kitchen,
     housekeep, cleaner, cleaning, security, receptionist, front desk, hospitality, crew, team member,
-    fitness, trainer, membership, attendant, recruitment consultant]
+    fitness, trainer, membership, attendant, recruitment consultant,
+    telecaller, telecalling, tele sales, tele-sales, voice process, bpo, relationship manager, relationship officer,
+    field sales, field executive, field officer, counsellor, counselor, process associate, agent, operator,
+    technician, trainee, data entry, fresher, walk-in, walk in, loan, promoter, nursing]
   size_min: 20
   size_max: 500
-  max_new_leads_per_run: 30
+  max_new_leads_per_run: 40
+  max_per_country: 12          # room for every market each night
+  country_overrides:
+    IN: {size_max: 5000, max_leads: 20}   # India: BPOs and BFSI sales teams of 500-5,000 staff hire in bulk
   # Companies never to add (lower-case substrings of the name or domain).
   exclude:
     - tevrix
@@ -113,7 +134,10 @@ filters:
     - robert half
     - adecco
     - randstad
-    - manpower
+    - manpowergroup
+    - manpower group
+    - manpower uk
+    - experis
     - kelly services
     - allegis
     - hudson
@@ -131,8 +155,71 @@ filters:
     - civil service
     - armed forces
     - ministry of defence
+    # India: IT services and BPO giants, big banks and conglomerates, staffing giants (enterprise buying cycles)
+    - tata consultancy
+    - tcs
+    - infosys
+    - wipro
+    - hcl
+    - tech mahindra
+    - cognizant
+    - capgemini
+    - ltimindtree
+    - genpact
+    - teleperformance
+    - concentrix
+    - foundever
+    - sutherland
+    - firstsource
+    - startek
+    - hinduja global
+    - wns
+    - exl
+    - taskus
+    - reliance
+    - state bank
+    - sbi
+    - hdfc
+    - icici
+    - axis bank
+    - kotak
+    - bajaj
+    - flipkart
+    - swiggy
+    - zomato
+    - zepto
+    - blinkit
+    - paytm
+    - phonepe
+    - teamlease
+    - quess
+    # India: public sector
+    - govt
+    - railway
+    - municipal
+    - nagar nigam
+    - aiims
+    - indian army
+    - indian navy
+    - air force
+    # Job boards and hiring-assessment vendors (competitors, not buyers)
+    - naukri
+    - info edge
+    - foundit
+    - apna
+    - workindia
+    - internshala
+    - vahan
+    - weekday
+    - hirepro
+    - talview
+    - mettl
+    - imocha
+    - intervue
+    - hirequotient
 
-agency_keywords: [recruit, staffing, talent, resourcing, personnel, employment agency, headhunt, workforce]
+agency_keywords: [recruit, staffing, talent, resourcing, personnel, employment agency, headhunt, workforce,
+  placement, manpower, hr consult, hr solution, hr service]
 
 # Google Maps agency intake (gosom/google-maps-scraper). One line per query.
 maps:
@@ -148,7 +235,21 @@ maps:
     - {city: Sydney,     country: Australia}
     - {city: Melbourne,  country: Australia}
     - {city: Auckland,   country: New Zealand}
-  max_new_leads_per_run: 60
+    # India: placement consultancies place BPO, sales, retail and logistics staff in bulk.
+    # Overseas recruitment agencies (Gulf jobs) screen thousands of candidates per employer demand.
+    - {city: Delhi,     country: India, categories: [placement consultancy, staffing agency, overseas recruitment agency]}
+    - {city: Gurugram,  country: India, categories: [placement consultancy, staffing agency]}
+    - {city: Noida,     country: India, categories: [placement consultancy, staffing agency]}
+    - {city: Mumbai,    country: India, categories: [placement consultancy, staffing agency, overseas recruitment agency]}
+    - {city: Pune,      country: India, categories: [placement consultancy, staffing agency]}
+    - {city: Bengaluru, country: India, categories: [placement consultancy, staffing agency]}
+    - {city: Hyderabad, country: India, categories: [placement consultancy, staffing agency, overseas recruitment agency]}
+    - {city: Chennai,   country: India, categories: [placement consultancy, staffing agency]}
+    - {city: Kolkata,   country: India, categories: [placement consultancy, staffing agency]}
+    - {city: Ahmedabad, country: India, categories: [placement consultancy, staffing agency]}
+    - {city: Kochi,     country: India, categories: [overseas recruitment agency]}
+  max_new_leads_per_run: 80
+  max_per_country: 25
 
 # Startup sources (beta-customer segment): YC hiring list and Hacker News "Who is hiring?".
 startups:
@@ -156,7 +257,7 @@ startups:
   hacker_news: true
   team_min: 15
   team_max: 200
-  max_new_leads_per_run: 10
+  max_new_leads_per_run: 15
 
 # Look up a company's own website when the job board gives none (web search, no API key).
 websites:
