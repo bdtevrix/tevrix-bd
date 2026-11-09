@@ -106,9 +106,18 @@ def is_high_intent(title: str, high_intent_terms: list[str]) -> bool:
 
 def is_excluded(company: str, domain: str, exclude: list[str]) -> bool:
     """Exclude-list entries match at the start of a word: 'reed' blocks 'Reed Specialist
-    Recruitment' and reed.co.uk, but not 'Breedon' or 'Freedom'."""
-    hay = f"{normalise_company(company)} {domain}".lower()
-    return any(re.search(r"(?<![a-z0-9])" + re.escape(x.lower()), hay) for x in exclude)
+    Recruitment' and reed.co.uk, but not 'Breedon' or 'Freedom'. An entry starting with '='
+    matches the whole company name only: '=tp' blocks 'TP' (Teleperformance) but not 'TPS Logistics'."""
+    name = normalise_company(company)
+    hay = f"{name} {domain}".lower()
+    for x in exclude:
+        x = x.lower()
+        if x.startswith("="):
+            if name == x[1:].strip():
+                return True
+        elif re.search(r"(?<![a-z0-9])" + re.escape(x), hay):
+            return True
+    return False
 
 
 # ---------------------------------------------------------------- scraping

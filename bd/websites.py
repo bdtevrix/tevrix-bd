@@ -86,12 +86,17 @@ class WebsiteFinder:
         if not self.enabled or self.used >= self.max_lookups or not company:
             return ""
         self.used += 1
-        query = f"{ascii_fold(company)} {country} official website".strip()
-        try:
-            domain = pick_website(self._results(query), company)
-        except Exception as exc:  # search blocked or rate-limited: carry on without it
-            log.info("website search failed for %r: %s", company, str(exc)[:150])
-            domain = ""
-        if not self._search:
-            time.sleep(random.uniform(*self.pause))
+        domain = ""
+        # A second, plainer query when the first finds nothing or the search engine refuses it
+        # ("No results found" is what a rate-limited search returns).
+        for query in (f"{ascii_fold(company)} {country} official website".strip(), f"{ascii_fold(company)} {country}".strip()):
+            try:
+                domain = pick_website(self._results(query), company)
+            except Exception as exc:  # search blocked or rate-limited: carry on without it
+                log.info("website search failed for %r: %s", query, str(exc)[:150])
+                domain = ""
+            if not self._search:
+                time.sleep(random.uniform(*self.pause))
+            if domain:
+                break
         return domain

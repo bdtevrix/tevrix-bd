@@ -193,6 +193,15 @@ filters:
     - phonepe
     - teamlease
     - quess
+    # Large Indian employers seen in the 9 Nov India test (Naukri gives no company size)
+    - "=tp"
+    - 24 7 ai
+    - asian paints
+    - policybazaar
+    - max healthcare
+    - eclerx
+    - access healthcare
+    - ags health
     # India: public sector
     - govt
     - railway

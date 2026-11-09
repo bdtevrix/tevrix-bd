@@ -163,3 +163,10 @@ def test_walk_in_signal_and_india_exclusions():
                                                                            "Recruiter")
     leads = filter_candidates(aggregate(pd.DataFrame(rows), CFG), CFG)
     assert [(l["company"], l["segment"]) for l in leads] == [("Shree Manpower Consultants", "agency")]
+
+
+def test_exact_name_exclusions():
+    from bd.intake_jobs import is_excluded
+    assert is_excluded("TP", "", CFG["filters"]["exclude"])                 # Teleperformance's short name
+    assert not is_excluded("TPS Logistics", "tpslogistics.in", CFG["filters"]["exclude"])
+    assert is_excluded("24/7.ai", "", CFG["filters"]["exclude"])
