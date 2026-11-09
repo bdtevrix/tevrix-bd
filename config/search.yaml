@@ -75,6 +75,19 @@ filters:
     - council
     - ministry
     - university
+    # Very large agencies: long buying cycles, global tooling
+    - michael page
+    - page group
+    - pagegroup
+    - reed
+    - hays
+    - robert half
+    - adecco
+    - randstad
+    - manpower
+    - kelly services
+    - allegis
+    - hudson
     - college
     - school
     - academy trust
@@ -125,9 +138,10 @@ osint:
   enabled: true
   coldreach_cmd: [coldreach]          # pipx install coldreach (MIT). Always run with --quick --no-reacher (no port 25)
   coldreach_timeout: 60
+  harvester_enabled: false           # timed out on every domain in the 9 Nov test; switch on to retry
   harvester_cmd: [theHarvester]       # wrapper installed by the workflow (uv + the GitHub repo, Python 3.14)
   harvester_sources: duckduckgo,yahoo,mojeek,commoncrawl,urlscan,otx   # no API keys needed
-  harvester_timeout: 120
+  harvester_timeout: 60
   max_domains_per_run: 20
   budget_minutes: 10                  # total per run: GitHub Free gives private repos 2,000 minutes a month
 

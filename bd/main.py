@@ -19,6 +19,7 @@ from pathlib import Path
 
 from .config import headers, load_config
 from .osint import Osint
+from .intake_jobs import is_excluded
 from .websites import WebsiteFinder
 
 log = logging.getLogger("bd")
@@ -75,6 +76,9 @@ def enrich(leads: list[dict], cfg: dict, keys: dict, find_contacts: bool = True)
                 d = finder.find(lead.get("company", ""), lead.get("country", ""))
                 if d and (d in keys["domains"] or d in keys["dnc_domains"]):
                     log.info("skip %s: %s already in Leads or Do not contact", lead["company"], d)
+                    continue
+                if d and is_excluded(lead.get("company", ""), d, cfg["filters"].get("exclude", [])):
+                    log.info("skip %s: website %s matches the exclude list", lead["company"], d)
                     continue
                 if d:
                     lead["domain"], lead["website"] = d, f"https://{d}"
@@ -185,6 +189,8 @@ def cmd_check_sheet(args, cfg):
 
 def main(argv=None):
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    for noisy in ("ddgs", "primp", "httpx", "httpcore", "urllib3"):
+        logging.getLogger(noisy).setLevel(logging.WARNING)
     p = argparse.ArgumentParser(prog="bd")
     sub = p.add_subparsers(dest="cmd", required=True)
     for name in ("jobs", "maps"):

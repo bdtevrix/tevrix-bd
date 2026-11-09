@@ -101,3 +101,12 @@ def test_public_sector_excluded():
     assert is_excluded("Regulator of Social Housing", "", ex)
     assert is_excluded("Kent County Council", "", ex)
     assert not is_excluded("Purpose Group", "purposegroup.co.uk", ex)
+
+
+def test_exclude_matches_word_starts_only():
+    from bd.intake_jobs import is_excluded
+
+    assert is_excluded("Reed Specialist Recruitment", "reed.co.uk", ["reed"])
+    assert not is_excluded("Breedon Group", "breedongroup.com", ["reed"])
+    assert not is_excluded("Freedom Ltd", "", ["reed"])
+    assert is_excluded("Hawkwood", "hawkwoodcollege.co.uk", ["college"]) is False  # 'college' is mid-word in the domain

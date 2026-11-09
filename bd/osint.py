@@ -80,7 +80,7 @@ class Osint:
         self.enabled = o.get("enabled", True)
         self.cr_cmd = o.get("coldreach_cmd", ["coldreach"])
         self.cr_timeout = o.get("coldreach_timeout", 60)
-        self.th_cmd = o.get("harvester_cmd", ["theHarvester"])
+        self.th_cmd = o.get("harvester_cmd", ["theHarvester"]) if o.get("harvester_enabled", True) else []
         self.th_sources = o.get("harvester_sources", "duckduckgo,yahoo,mojeek,commoncrawl,urlscan,otx")
         self.th_timeout = o.get("harvester_timeout", 120)
         self.max_domains = o.get("max_domains_per_run", 25)
