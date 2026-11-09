@@ -169,6 +169,12 @@ ORG_WORDS_RE = re.compile(r"\b(partners?|capital|ventures?|group|ltd|limited|inc
                           r"investments?|bank|consulting|associates|pvt|private)\b", re.I)
 
 
+# A 'title' that is really a sentence from a press release or a quoted expert ('… unveil Zuddl',
+# 'Dr. Lora Shahine, MD, FACOG'): seen in the 9 Nov startup test.
+JUNK_TITLE_RE = re.compile(r"\b(unveil\w*|announc\w*|said|says|joined|introduc\w*)\b|"
+                           r"\bdr\.|\b(mbbs|facog|phd|frcs|mrcp|ms ortho)\b", re.I)
+
+
 def works_elsewhere(title: str, company: str) -> bool:
     """True for 'Managing Partner & Founder, Alpha Pro Partners' quoted on alaan.com, or 'Partner at Sequoia'.
 
@@ -177,7 +183,7 @@ def works_elsewhere(title: str, company: str) -> bool:
     from .websites import name_tokens
 
     t = title or ""
-    if NOT_STAFF_RE.search(t):
+    if NOT_STAFF_RE.search(t) or JUNK_TITLE_RE.search(t):
         return True
     m = re.search(r"(?:,|\s@\s|\bat\b)\s*(.+)$", t, flags=re.I)
     if not m or not company:

@@ -129,3 +129,8 @@ def test_works_elsewhere_skips_testimonials_investors_alumni():
                   "Co-Founder", "Director, Talent Acquisition", "Client Services Director"):
         assert not works_elsewhere(title, "Acme"), title
     assert not works_elsewhere("CEO, Acme Group", "Acme Ltd")
+    # Press-release sentences and quoted doctors are not contacts (9 Nov startup test).
+    assert works_elsewhere("CEO and co-founder and, Vedha Sayyaparaju, CTO and co-founder, unveil Zuddl", "Zuddl")
+    assert works_elsewhere("Dr. Lora Shahine, MD, FACOG", "Inito")
+    assert not works_elsewhere("MD", "Acme")                    # managing director
+    assert not works_elsewhere("Product Launch Manager", "Acme")
