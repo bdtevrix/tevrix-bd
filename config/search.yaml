@@ -22,7 +22,9 @@ countries:
   # - {code: US, country_indeed: USA,    linkedin_location: United States, boards: [indeed, linkedin]}
   # - {code: CA, country_indeed: Canada, linkedin_location: Canada,        boards: [indeed, linkedin]}
   # India (from 9 Nov 2026): the AI interviewer runs in Hinglish. Own search terms below (search_terms.by_country).
-  - {code: IN,  country_indeed: India,                  linkedin_location: India,                boards: [naukri, indeed, linkedin]}
+  # LinkedIn left out for India: Naukri and Indeed cover it, and LinkedIn blocked 9 of 17 India searches
+  # in the 9 Nov test (it also costs the most GitHub minutes). Founders' LinkedIn outreach is unaffected.
+  - {code: IN,  country_indeed: India,                  linkedin_location: India,                boards: [naukri, indeed]}
 
 # The country label written to the Sheet (matches the Apps Script time-zone table).
 country_labels:

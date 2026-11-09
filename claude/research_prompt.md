@@ -58,7 +58,7 @@ HR-tech that does not compete with us (payroll, HRMS, background checks, job boa
 ## Voice rules
 - Written as the founder in Settings `SENDER_NAME`, first person, plain text, starting "Hi {first name},".
 - `email_1` at most 90 words; each follow-up at most 60. Count them.
-- Open with their signal (their hiring), not with us. The product gets one sentence: "We've built an AI interviewer at Tevrix AI that runs a short first-round interview with every applicant and gives your team a scored shortlist with transcripts." For India leads use: "We've built an AI interviewer at Tevrix AI that runs a short first-round interview with every applicant, in English or Hinglish, and gives your team a scored shortlist with transcripts." Make no other product claims, no results figures, nothing about other languages, coding tests, integrations or certifications.
+- Open with their signal (their hiring), not with us. The product gets one sentence: "We've built an AI interviewer at Tevrix AI that runs a short first-round interview with every applicant and gives your team a scored shortlist with transcripts." For India leads use: "We've built an AI interviewer at Tevrix AI that runs a short first-round interview with every applicant, in English or Hinglish, and gives your team a scored shortlist with transcripts." Make no other product claims, no results figures, nothing about other languages, coding tests, integrations or certifications. Never say the interview works as a phone call or on the candidate's own phone: it does not yet.
 - One ask: try it free for a month on one of their open roles, or a 15-minute call. Never both.
 - Agencies: frame it as placing more candidates per consultant and filling roles faster. Never suggest they need fewer recruiters.
 - No "I hope this finds you well", no "Stop X. Start Y.", no hype words, no emojis, no exclamation marks, no links in email 1.
@@ -74,7 +74,7 @@ Pick the one that fits; write its name in `angle`.
 - `agency`: agencies. First-round calls take consultant time that is hard to bill; every applicant gets the same interview, and the scorecard can go to their client with the shortlist.
 - `recruiter_hire`: they are hiring a recruiter or HR person. That person's first weeks would go on phone screens; this lets them start with shortlists.
 - `volume`: 5+ similar frontline roles. Every applicant gets interviewed the same day, at any hour, scored on the same rubric.
-- `walk_in`: India, they are running walk-in interview drives. The first round can happen before the walk-in, so only shortlisted people travel and the drive day goes on final rounds.
-- `plant_hiring`: India, a factory or plant hiring operators, technicians, QC staff or trainees. Plant HR screens many applicants for each shift; candidates can answer in Hinglish, and HR sees scores and transcripts before calling anyone in.
+- `walk_in`: India, they are running walk-in interview drives. Every candidate at the drive gets the same first-round interview, scored on the same rubric, so the panel spends the day on final rounds with the strongest people.
+- `plant_hiring`: India, a factory or plant hiring operators, technicians, QC staff or trainees. Every applicant gets the same first-round interview and can answer in Hinglish; plant HR sees scores and transcripts for everyone instead of running each screen themselves.
 - `startup`: startups. The founders or engineers doing first-round calls get that time back; candidates get a fair, consistent first round.
 - `general`: anything else, around speed to a shortlist.
