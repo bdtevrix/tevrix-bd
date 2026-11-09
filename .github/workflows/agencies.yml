@@ -16,6 +16,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write   # lets the run prove to Google it is this repo (no key stored anywhere)
 
 concurrency:
   group: bd-agencies
@@ -56,10 +57,13 @@ jobs:
             gosom/google-maps-scraper -input /queries -results /results.csv \
             -depth 1 -email -exit-on-inactivity 3m
           echo "rows: $(($(wc -l < results.csv) - 1))"
+      - name: Sign in to Google (keyless, Workload Identity Federation)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: __PROVIDER__
+          service_account: __SA__
       - name: Write agency leads
         env:
-          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
-          SHEET_ID: ${{ secrets.SHEET_ID }}
           APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
           DRY_RUN: ${{ inputs.dry_run }}
           LIMIT: ${{ inputs.limit }}

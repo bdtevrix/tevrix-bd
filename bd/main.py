@@ -52,7 +52,7 @@ def _keys(dry_run: bool):
     """Existing Leads / Do-not-contact keys, or empty sets in a dry run without credentials."""
     from . import sheets
 
-    if dry_run and not os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON"):
+    if dry_run and not sheets.has_credentials():
         log.info("dry run without Sheet credentials: skipping dedupe")
         return None, {"domains": set(), "names": set(), "dnc_emails": set(), "dnc_domains": set()}
     sh = sheets.open_sheet()

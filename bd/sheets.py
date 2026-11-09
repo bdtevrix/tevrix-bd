@@ -13,19 +13,35 @@ log = logging.getLogger(__name__)
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
 
+def has_credentials() -> bool:
+    return bool(os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON") or os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"))
+
+
+def credentials():
+    """A service-account key in GOOGLE_SERVICE_ACCOUNT_JSON if set; otherwise Application Default
+    Credentials (keyless: in GitHub Actions, google-github-actions/auth sets them up via
+    Workload Identity Federation)."""
+    raw = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "")
+    if raw:
+        from google.oauth2.service_account import Credentials
+
+        info = json.loads(raw) if raw.lstrip().startswith("{") else json.load(open(raw, encoding="utf-8"))
+        return Credentials.from_service_account_info(info, scopes=SCOPES)
+    import google.auth
+
+    creds, _ = google.auth.default(scopes=SCOPES)
+    return creds
+
+
 def open_sheet(sheet_id: str | None = None):
     import gspread
-    from google.oauth2.service_account import Credentials
 
-    raw = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "")
-    if not raw:
-        raise RuntimeError("GOOGLE_SERVICE_ACCOUNT_JSON is not set")
-    info = json.loads(raw) if raw.lstrip().startswith("{") else json.load(open(raw, encoding="utf-8"))
-    creds = Credentials.from_service_account_info(info, scopes=SCOPES)
-    sid = sheet_id or os.environ.get("SHEET_ID", "")
+    from .config import load_config
+
+    sid = sheet_id or os.environ.get("SHEET_ID", "") or load_config().get("sheet_id", "")
     if not sid:
-        raise RuntimeError("SHEET_ID is not set")
-    return gspread.authorize(creds).open_by_key(sid)
+        raise RuntimeError("No Sheet ID: set SHEET_ID or sheet_id in config/search.yaml")
+    return gspread.authorize(credentials()).open_by_key(sid)
 
 
 def records(ws) -> list[dict]:
