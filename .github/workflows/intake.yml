@@ -1,0 +1,74 @@
+# Nightly hiring-signal intake. Started by the Apps Script at 01:00 IST through the
+# workflow_dispatch API (scheduled runs on private Free-plan repos have been unreliable).
+name: intake
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (no Sheet writes)"
+        type: boolean
+        default: false
+      limit:
+        description: "Max new leads (blank = config default)"
+        required: false
+        default: ""
+      searches:
+        description: "Max JobSpy calls (blank = all)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bd-intake
+  cancel-in-progress: false
+
+jobs:
+  intake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - uses: astral-sh/setup-uv@v6
+      - name: Install ColdReach and theHarvester (optional email finders)
+        continue-on-error: true
+        env:
+          THEHARVESTER_REF: master   # pin to a release tag or commit once you have tested one
+        run: |
+          pipx install "coldreach==0.1.0"
+          git clone --depth 1 --branch "$THEHARVESTER_REF" https://github.com/laramies/theHarvester.git "$RUNNER_TEMP/theHarvester"
+          (cd "$RUNNER_TEMP/theHarvester" && uv sync)
+          mkdir -p "$HOME/.local/bin"
+          printf '#!/bin/sh\nexec uv run --project "%s" theHarvester "$@"\n' "$RUNNER_TEMP/theHarvester" > "$HOME/.local/bin/theHarvester"
+          chmod +x "$HOME/.local/bin/theHarvester"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/theHarvester" -h | head -3 || true
+          coldreach --version || true
+      - name: Run intake
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          SHEET_ID: ${{ secrets.SHEET_ID }}
+          APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          LIMIT: ${{ inputs.limit }}
+          SEARCHES: ${{ inputs.searches }}
+        run: |
+          args="jobs"
+          [ "$DRY_RUN" = "true" ] && args="$args --dry-run"
+          [ -n "$LIMIT" ] && args="$args --limit $LIMIT"
+          [ -n "$SEARCHES" ] && args="$args --searches $SEARCHES"
+          python -m bd.main $args
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: intake-${{ github.run_id }}
+          path: out/*.csv
+          if-no-files-found: ignore
+          retention-days: 14

@@ -1,0 +1,113 @@
+# tevrix-bd search configuration. Edit freely; the code reads everything from here.
+
+# Wave 1 markets. country_indeed must be the exact name JobSpy expects.
+# Boards JobSpy supports: indeed, linkedin, bayt, google, glassdoor, zip_recruiter, naukri.
+#   indeed    most reliable, no rate limit; gives company size and revenue
+#   linkedin  starts rate-limiting around page 10 per IP; no login used
+#   bayt      Gulf coverage (UAE)
+#   google    Google Jobs; add it to a country's boards to try it (uses location below)
+#   glassdoor, zip_recruiter  left off: frequent 400/403 errors in 2026 tests; zip_recruiter is US/Canada only
+#   naukri    India only: switch on with Wave 3
+countries:
+  - {code: UK,  country_indeed: UK,                     linkedin_location: United Kingdom,       boards: [indeed, linkedin]}
+  - {code: IE,  country_indeed: Ireland,                linkedin_location: Ireland,              boards: [indeed, linkedin]}
+  - {code: AE,  country_indeed: United Arab Emirates,   linkedin_location: United Arab Emirates, boards: [indeed, linkedin, bayt]}
+  - {code: SG,  country_indeed: Singapore,              linkedin_location: Singapore,            boards: [indeed, linkedin]}
+  - {code: AU,  country_indeed: Australia,              linkedin_location: Australia,            boards: [indeed, linkedin]}
+  - {code: NZ,  country_indeed: New Zealand,            linkedin_location: New Zealand,          boards: [indeed, linkedin]}
+  # Wave 2 (uncomment when US sending is ready: POSTAL_ADDRESS must be filled):
+  # - {code: US, country_indeed: USA,    linkedin_location: United States, boards: [indeed, linkedin]}
+  # - {code: CA, country_indeed: Canada, linkedin_location: Canada,        boards: [indeed, linkedin]}
+  # Wave 3:
+  # - {code: IN, country_indeed: India,  linkedin_location: India,         boards: [indeed, linkedin, naukri]}
+
+# The country label written to the Sheet (matches the Apps Script time-zone table).
+country_labels:
+  UK: UK
+  IE: Ireland
+  AE: UAE
+  SG: Singapore
+  AU: Australia
+  NZ: New Zealand
+  US: United States
+  CA: Canada
+  IN: India
+
+search_terms:
+  high_intent:        # one of these alone is enough to keep a company
+    - talent acquisition
+    - recruiter
+    - HR manager
+    - people operations
+  volume:             # need 3+ roles in 7 days
+    - sales executive
+    - customer service
+    - account manager
+
+jobspy:
+  hours_old: 168
+  results_wanted: 35        # 30-40 per search
+  pause_seconds: [3, 6]     # random pause between calls
+  linkedin_fetch_description: false
+
+filters:
+  min_roles: 3
+  size_min: 20
+  size_max: 500
+  max_new_leads_per_run: 60
+  # Companies never to add (lower-case substrings of the name or domain).
+  exclude:
+    - tevrix
+    - hireminds
+    - amazon
+    - google
+    - microsoft
+    - deloitte
+    - pwc
+    - kpmg
+    - ernst & young
+    - accenture
+    - nhs
+    - government
+    - council
+    - ministry
+    - university
+
+agency_keywords: [recruitment, staffing, talent, resourcing, search, personnel, recruiting, recruiters]
+
+# Google Maps agency intake (gosom/google-maps-scraper). One line per query.
+maps:
+  categories: [recruitment agency, staffing agency]
+  cities:
+    - {city: London,     country: UK}
+    - {city: Manchester, country: UK}
+    - {city: Birmingham, country: UK}
+    - {city: Dublin,     country: Ireland}
+    - {city: Dubai,      country: UAE}
+    - {city: Abu Dhabi,  country: UAE}
+    - {city: Singapore,  country: Singapore}
+    - {city: Sydney,     country: Australia}
+    - {city: Melbourne,  country: Australia}
+    - {city: Auckland,   country: New Zealand}
+  max_new_leads_per_run: 60
+
+contacts:
+  user_agent: "TevrixBDBot/1.0 (+https://hireminds.tevrixai.com)"
+  timeout_seconds: 12
+  max_pages: 6
+  page_keywords: [about, team, people, leadership, company, contact, careers]
+
+# Extra email finders, used only when the website crawl found no published or pattern-confirmed address.
+osint:
+  enabled: true
+  coldreach_cmd: [coldreach]          # pipx install coldreach (MIT). Always run with --quick --no-reacher (no port 25)
+  coldreach_timeout: 60
+  harvester_cmd: [theHarvester]       # wrapper installed by the workflow (uv + the GitHub repo, Python 3.14)
+  harvester_sources: duckduckgo,yahoo,mojeek,commoncrawl,urlscan,otx   # no API keys needed
+  harvester_timeout: 120
+  max_domains_per_run: 20
+  budget_minutes: 10                  # total per run: GitHub Free gives private repos 2,000 minutes a month
+
+verify:
+  apify_actor: pnda~email-finder   # keep the actor ID here; it is new and may move
+  batch_size: 10                   # first 10 persons per run are free on the free plan

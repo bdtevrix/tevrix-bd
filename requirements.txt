@@ -1,0 +1,10 @@
+python-jobspy
+gspread>=6.0
+google-auth>=2.30
+requests>=2.31
+beautifulsoup4>=4.12
+dnspython>=2.6
+tldextract>=5.1
+pyyaml>=6.0
+pandas>=2.0
+pytest>=8.0
