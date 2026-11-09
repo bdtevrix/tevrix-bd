@@ -55,8 +55,8 @@ jobs:
       - name: Sign in to Google (keyless, Workload Identity Federation)
         uses: google-github-actions/auth@v2
         with:
-          workload_identity_provider: __PROVIDER__
-          service_account: __SA__
+          workload_identity_provider: projects/753658526719/locations/global/workloadIdentityPools/github/providers/github
+          service_account: tevrix-bd-bot@tevrix-bd.iam.gserviceaccount.com
       - name: Run intake
         env:
           APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
