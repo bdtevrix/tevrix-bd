@@ -46,6 +46,10 @@ search_terms:
     - sales executive
     - customer service
     - account manager
+    - care assistant
+    - retail assistant
+    - warehouse operative
+    - hospitality
 
 jobspy:
   hours_old: 168
@@ -55,9 +59,17 @@ jobspy:
 
 filters:
   min_roles: 3
+  agency_min_roles: 2
+  # A role counts as "volume" when its title starts a word with one of these.
+  volume_keywords: [sales, customer, support, service, advisor, adviser, account manager, account executive,
+    business development, representative, telesales, call centre, contact centre, collections, care, carer,
+    nurse, healthcare assistant, support worker, warehouse, operative, picker, packer, driver, delivery,
+    courier, retail, store, shop, cashier, barista, waiter, waitress, bartender, chef, cook, kitchen,
+    housekeep, cleaner, cleaning, security, receptionist, front desk, hospitality, crew, team member,
+    fitness, trainer, membership, attendant, recruitment consultant]
   size_min: 20
   size_max: 500
-  max_new_leads_per_run: 60
+  max_new_leads_per_run: 30
   # Companies never to add (lower-case substrings of the name or domain).
   exclude:
     - tevrix
@@ -75,6 +87,23 @@ filters:
     - council
     - ministry
     - university
+    # Big tech and executive search: low applicant volume per role, own systems
+    - executive search
+    - datadog
+    - figma
+    - anthropic
+    - openai
+    - salesforce
+    - stripe
+    - atlassian
+    - canva
+    - revolut
+    - monzo
+    - deliveroo
+    - uber
+    - airbnb
+    - oracle
+    - ibm
     # Very large agencies: long buying cycles, global tooling
     - michael page
     - page group
@@ -103,7 +132,7 @@ filters:
     - armed forces
     - ministry of defence
 
-agency_keywords: [recruitment, staffing, talent, resourcing, search, personnel, recruiting, recruiters]
+agency_keywords: [recruit, staffing, talent, resourcing, personnel, employment agency, headhunt, workforce]
 
 # Google Maps agency intake (gosom/google-maps-scraper). One line per query.
 maps:
@@ -120,6 +149,14 @@ maps:
     - {city: Melbourne,  country: Australia}
     - {city: Auckland,   country: New Zealand}
   max_new_leads_per_run: 60
+
+# Startup sources (beta-customer segment): YC hiring list and Hacker News "Who is hiring?".
+startups:
+  yc: true
+  hacker_news: true
+  team_min: 15
+  team_max: 200
+  max_new_leads_per_run: 10
 
 # Look up a company's own website when the job board gives none (web search, no API key).
 websites:

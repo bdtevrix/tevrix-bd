@@ -39,7 +39,8 @@ def test_apps_script_headers_match_schema():
 def test_python_leads_fields_exist_in_schema():
     import pandas as pd
 
-    df = pd.DataFrame([{"company": "Acme", "title": "Recruiter", "job_url": "u", "country_code": "UK"}])
+    df = pd.DataFrame([{"company": "Acme", "title": t, "job_url": f"u{i}", "country_code": "UK"}
+                       for i, t in enumerate(["Sales Executive", "Customer Service Advisor", "Barista"])])
     lead = filter_candidates(aggregate(df, load_config()), load_config())[0]
     lead.update({"contact_name": "", "contact_title": "", "email": "", "email_source": "", "email_status": "",
                  "pattern": "", "people_found": ""})
@@ -59,7 +60,8 @@ def test_prompts_only_mention_real_columns():
     for p in (ROOT / "claude").glob("*_prompt.md"):
         cols = set(re.findall(r"`([a-z]+_[a-z_0-9]+)`", p.read_text(encoding="utf-8")))
         settings = {c for c in cols if c.isupper()}
-        assert cols - settings <= allc, (p.name, cols - allc)
+        values = {"hn_whoishiring", "recruiter_hire"}   # cell values (a source, an angle), not columns
+        assert cols - settings - values <= allc, (p.name, cols - allc - values)
 
 
 @needs_node

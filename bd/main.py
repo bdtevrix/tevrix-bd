@@ -177,6 +177,17 @@ def cmd_maps_queries(args, cfg):
         sys.stdout.write(text)
 
 
+def cmd_startups(args, cfg):
+    from .intake_startups import collect
+
+    sh, keys = _keys(args.dry_run)
+    leads = collect(cfg, keys, args.limit)
+    log.info("%d new startup candidates", len(leads))
+    leads = enrich(leads, cfg, keys, not args.no_contacts)
+    print(summary(leads), "| csv:", write_csv(leads, "startups"))
+    save(sh, leads, args.dry_run)
+
+
 def cmd_check_sheet(args, cfg):
     from . import sheets
 
@@ -193,7 +204,7 @@ def main(argv=None):
         logging.getLogger(noisy).setLevel(logging.WARNING)
     p = argparse.ArgumentParser(prog="bd")
     sub = p.add_subparsers(dest="cmd", required=True)
-    for name in ("jobs", "maps"):
+    for name in ("jobs", "maps", "startups"):
         sp = sub.add_parser(name)
         if name == "maps":
             sp.add_argument("csv")
@@ -207,7 +218,7 @@ def main(argv=None):
     sub.add_parser("check-sheet")
     args = p.parse_args(argv)
     cfg = load_config()
-    {"jobs": cmd_jobs, "maps": cmd_maps, "maps-queries": cmd_maps_queries,
+    {"jobs": cmd_jobs, "maps": cmd_maps, "startups": cmd_startups, "maps-queries": cmd_maps_queries,
      "check-sheet": cmd_check_sheet}[args.cmd](args, cfg)
 
 

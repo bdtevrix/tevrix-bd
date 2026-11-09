@@ -77,7 +77,25 @@ def size_ok(label: str, size_min: int, size_max: int) -> bool:
 
 def classify_segment(company: str, agency_keywords: list[str]) -> str:
     name = normalise_company(company)
-    return "agency" if any(re.search(rf"\b{re.escape(k)}\b", name) for k in agency_keywords) else "smb"
+    return "agency" if any(re.search(rf"\b{re.escape(k)}", name) for k in agency_keywords) else "smb"
+
+
+def segment_for(company: str, industry: str, agency_keywords: list[str]) -> str:
+    """Agency if the name says so or the job board files it under staffing / recruiting."""
+    ind = (industry or "").lower()
+    if "staffing" in ind or "recruit" in ind:
+        return "agency"
+    return classify_segment(company, agency_keywords)
+
+
+def count_volume_roles(titles: list[str], volume_keywords: list[str]) -> int:
+    """Roles where many people apply and a first-round screen is the bottleneck."""
+    n = 0
+    for t in titles:
+        low = (t or "").lower()
+        if any(re.search(rf"(?<![a-z]){re.escape(k.lower())}", low) for k in volume_keywords):
+            n += 1
+    return n
 
 
 def is_high_intent(title: str, high_intent_terms: list[str]) -> bool:
@@ -214,8 +232,17 @@ def filter_candidates(
     f = cfg["filters"]
     labels = cfg.get("country_labels", {})
     kept = []
+    vol_kw = f.get("volume_keywords", [])
     for rec in companies:
-        if not (rec["open_roles"] >= f["min_roles"] or rec["high_intent_titles"]):
+        rec["segment"] = segment_for(rec["company"], rec.get("industry", ""), cfg["agency_keywords"])
+        rec["volume_roles"] = count_volume_roles(rec["titles"], vol_kw) if vol_kw else rec["open_roles"]
+        keep = (
+            rec["volume_roles"] >= f["min_roles"]                                   # hiring volume
+            or (rec["high_intent_titles"] and rec["open_roles"] >= f["min_roles"]
+                and rec["volume_roles"] >= 1)                                       # recruiter + volume roles
+            or (rec["segment"] == "agency" and rec["open_roles"] >= f.get("agency_min_roles", 2))
+        )
+        if not keep:
             continue
         if not size_ok(rec["size"], f["size_min"], f["size_max"]):
             continue
@@ -226,8 +253,8 @@ def filter_candidates(
         if rec["key"] in existing_names:
             continue
         kept.append(rec)
-    # Most roles first, high-intent breaks ties.
-    kept.sort(key=lambda r: (r["open_roles"], bool(r["high_intent_titles"])), reverse=True)
+    # Most volume roles first, then most roles, high-intent breaks ties.
+    kept.sort(key=lambda r: (r["volume_roles"], r["open_roles"], bool(r["high_intent_titles"])), reverse=True)
     cap = min(limit or f["max_new_leads_per_run"], f["max_new_leads_per_run"])
     now = datetime.now(timezone.utc).astimezone().strftime("%Y-%m-%d %H:%M")
     leads = []
@@ -244,7 +271,7 @@ def filter_candidates(
             "lead_id": lead_id(rec["domain"], rec["company"]),
             "found_at": now,
             "source": "jobspy",
-            "segment": classify_segment(rec["company"], cfg["agency_keywords"]),
+            "segment": rec["segment"],
             "company": rec["company"],
             "domain": rec["domain"],
             "website": rec["website"],

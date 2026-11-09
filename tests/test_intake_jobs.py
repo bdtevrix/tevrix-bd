@@ -25,10 +25,24 @@ def test_size_ok():
 
 
 def test_classify_segment():
+    from bd.intake_jobs import segment_for
+
     kw = CFG["agency_keywords"]
     assert classify_segment("Hays Recruitment Ltd", kw) == "agency"
     assert classify_segment("Blue Talent Partners", kw) == "agency"
+    assert classify_segment("Recruit Expert Pte. Ltd.", kw) == "agency"
     assert classify_segment("Northwind Retail", kw) == "smb"
+    assert segment_for("Morgan McKinley", "Human Resources And Staffing", kw) == "agency"
+    assert segment_for("Northwind Retail", "Retail", kw) == "smb"
+
+
+def test_volume_roles():
+    from bd.intake_jobs import count_volume_roles
+
+    kw = CFG["filters"]["volume_keywords"]
+    assert count_volume_roles(["Sales Executive", "Barista", "Care Assistant (Nights)"], kw) == 3
+    assert count_volume_roles(["Technical Recruiter", "Staff Engineer", "Applied AI Architect"], kw) == 0
+    assert count_volume_roles(["Customer Success Manager"], kw) == 1
 
 
 def _df():
@@ -40,9 +54,18 @@ def _df():
                      "company_industry": "Retail", "country_code": "UK"})
     rows.append({"site": "linkedin", "title": "Sales Executive", "company": "NORTHWIND LIMITED",
                  "job_url": "https://uk.indeed.com/j/0", "country_code": "UK"})  # duplicate URL
-    # One high-intent role at a small company with no website.
-    rows.append({"site": "linkedin", "title": "Talent Acquisition Partner", "company": "Kiwi Logistics",
-                 "job_url": "https://linkedin.com/jobs/1", "company_num_employees": None, "country_code": "NZ"})
+    # Hiring a recruiter plus two warehouse roles at a company with no website: kept (recruiter + volume).
+    for i, t in enumerate(["Talent Acquisition Partner", "Warehouse Operative", "Warehouse Operative - Nights"]):
+        rows.append({"site": "linkedin", "title": t, "company": "Kiwi Logistics",
+                     "job_url": f"https://linkedin.com/jobs/{i}", "company_num_employees": None, "country_code": "NZ"})
+    # Big-tech style: one recruiter and two engineers, no volume roles: dropped.
+    for i, t in enumerate(["Technical Recruiter", "Software Engineer", "Staff Engineer"]):
+        rows.append({"site": "linkedin", "title": t, "company": "Cloudly Inc",
+                     "job_url": f"https://linkedin.com/jobs/c{i}", "country_code": "UK"})
+    # A staffing agency (by industry) with two roles: kept as an agency.
+    for i, t in enumerate(["Recruitment Consultant", "Resourcer"]):
+        rows.append({"site": "indeed", "title": t, "company": "Morgan & Co", "job_url": f"https://ag/{i}",
+                     "company_industry": "Human Resources And Staffing", "country_code": "IE"})
     # Two ordinary roles: dropped (under 3, no high intent).
     for i in range(2):
         rows.append({"site": "indeed", "title": "Account Manager", "company": "Small Co", "job_url": f"https://x/{i}",
@@ -67,23 +90,26 @@ def test_aggregate_groups_and_dedupes():
     assert nw["country_code"] == "UK"
     assert set(nw["boards"]) == {"indeed", "linkedin"}
     assert companies["kiwi logistics"]["high_intent_titles"] == ["Talent Acquisition Partner"]
+    assert companies["kiwi logistics"]["open_roles"] == 3
 
 
 def test_filter_candidates_rules_and_dedupe():
     companies = aggregate(_df(), CFG)
     leads = filter_candidates(companies, CFG)
     names = [l["company"] for l in leads]
-    assert names == ["Northwind Ltd", "Kiwi Logistics"]
+    assert names == ["Northwind Ltd", "Kiwi Logistics", "Morgan & Co"]
+    assert "Cloudly Inc" not in names                      # recruiter + engineers only
+    assert leads[2]["segment"] == "agency"
     nw = leads[0]
     assert nw["status"] == "new" and nw["segment"] == "smb" and nw["country"] == "UK"
     assert nw["signal"].startswith("4 open roles in 7 days (Sales Executive, Account Manager, Customer Service Advisor)")
     assert leads[1]["country"] == "New Zealand"
     assert "hiring a recruiter" in leads[1]["signal"]
     # Existing domain / name in Leads removes them.
-    assert filter_candidates(companies, CFG, existing_domains={"northwind.co.uk"},
-                             existing_names={"kiwi logistics"}) == []
+    assert [l["company"] for l in filter_candidates(companies, CFG, existing_domains={"northwind.co.uk"},
+                             existing_names={"kiwi logistics"})] == ["Morgan & Co"]
     # Do not contact @domain removes the company too.
-    assert [l["company"] for l in filter_candidates(companies, CFG, dnc_domains={"northwind.co.uk"})] == ["Kiwi Logistics"]
+    assert [l["company"] for l in filter_candidates(companies, CFG, dnc_domains={"northwind.co.uk"})] == ["Kiwi Logistics", "Morgan & Co"]
     assert len(filter_candidates(companies, CFG, limit=1)) == 1
 
 

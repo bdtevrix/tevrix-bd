@@ -28,6 +28,14 @@ concurrency:
 
 jobs:
   intake:
+    # Two sources, one after the other (so they never add the same company twice):
+    #   jobs     = hiring signals from job boards (volume roles, agencies)
+    #   startups = YC companies that are hiring + Hacker News "Who is hiring?"
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        source: [jobs, startups]
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -60,19 +68,20 @@ jobs:
       - name: Run intake
         env:
           APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
+          SOURCE: ${{ matrix.source }}
           DRY_RUN: ${{ inputs.dry_run }}
           LIMIT: ${{ inputs.limit }}
           SEARCHES: ${{ inputs.searches }}
         run: |
-          args="jobs"
+          args="$SOURCE"
           [ "$DRY_RUN" = "true" ] && args="$args --dry-run"
           [ -n "$LIMIT" ] && args="$args --limit $LIMIT"
-          [ -n "$SEARCHES" ] && args="$args --searches $SEARCHES"
+          [ -n "$SEARCHES" ] && [ "$SOURCE" = "jobs" ] && args="$args --searches $SEARCHES"
           python -m bd.main $args
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: intake-${{ github.run_id }}
+          name: intake-${{ matrix.source }}-${{ github.run_id }}
           path: out/*.csv
           if-no-files-found: ignore
           retention-days: 14
