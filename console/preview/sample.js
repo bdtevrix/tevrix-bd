@@ -134,8 +134,8 @@
   for (i = 0; i < 38; i++) makeRow(n++, 'finished', { sent1: 15 + i % 14 });
 
   var r1 = makeRow(n++, 'replied', { sent1: 5, replied_at: ago(0, 2), reply_label: 'interested',
-    reply_text: 'Hi, timing is good actually. We have 12 care assistant roles open and my two coordinators are drowning in applications. What does this cost for a group our size, and can it handle phone-only candidates?',
-    reply_draft: 'Thanks for the quick reply. For a group your size it is $250 a month, and the first month is free while we are in beta.\n\nOn phone-only candidates: yes, they can do the first interview from a phone browser, no app needed.\n\nWould Thursday or Friday suit for a 20-minute walkthrough on one of the care assistant roles?' });
+    reply_text: 'Hi, timing is good actually. We have 12 care assistant roles open and my two coordinators are drowning in applications. What does this cost for a group our size, and can candidates answer in Hinglish?',
+    reply_draft: 'Thanks for the quick reply. The first month is free on one of your roles, and I will walk you through pricing for a group your size on the call.\n\nOn Hinglish: yes, candidates can answer in English or Hinglish, and your coordinators get the scores and transcripts.\n\nWould Thursday or Friday suit for a 20-minute walkthrough on one of the care assistant roles?' });
   var r2 = makeRow(n++, 'replied', { sent1: 9, sent2: true, replied_at: ago(0, 7), reply_label: 'wrong_person',
     reply_text: 'Not me, I left the hiring side in September. Try Ana Duarte, she runs talent now.',
     reply_draft: 'Thanks for pointing me the right way, much appreciated. I will reach out to Ana directly.' });
@@ -147,7 +147,15 @@
   var bt = makeRow(n++, 'beta', { sent1: 26, replied_at: ago(22, 2), reply_label: 'interested', reply_text: 'Happy to try the free month.', reply_draft: 'Brilliant. Setting you up today.', reply_sent_at: ago(22, 1), cio_synced_at: ago(19, 0) });
   makeRow(n++, 'lost', { sent1: 20, replied_at: ago(17, 0), reply_label: 'not_now', reply_text: 'We just signed with another tool, sorry.' });
   makeRow(n++, 'bounced', { sent1: 8, bounced_at: ago(8, 0) });
-  makeRow(n++, 'skipped'); makeRow(n++, 'skipped');
+  // skips with the reason the founder picked, so the Playbook has something to learn from
+  ['size', 'size', 'size', 'size', 'size', 'wrong_person', 'wrong_person', 'weak_hook', 'weak_hook', 'weak_hook', 'wrong_country', 'not_a_fit', ''].forEach(function (r) {
+    makeRow(n++, 'skipped', { skip_reason: r });
+  });
+  // drafts a founder rewrote before approving: Claude's version is kept in original_email
+  [0, 1, 2].forEach(function (k) {
+    var o = out[10 + k], col = H.Outreach.indexOf('original_email'), e1 = H.Outreach.indexOf('email_1');
+    o[col] = JSON.stringify({ subject: o[H.Outreach.indexOf('subject')], email_1: o[e1] + '\n\nI hope this is useful and look forward to hearing from you at a time that suits you.', follow_up_1: '', follow_up_2: '' });
+  });
   [dm1, dm2].forEach(function (o, k) { log.push(row('Log', { time: k ? ago(6, 3) : ago(13, 0), mailbox: 'founder@tevrix.example', action: 'stage', lead_id: o.lead_id, detail: 'demo' })); });
   log.push(row('Log', { time: ago(19, 0), mailbox: 'founder@tevrix.example', action: 'stage', lead_id: bt.lead_id, detail: 'beta' }));
   [r1, r2, r3].forEach(function (o) { log.push(row('Log', { time: o.replied_at, mailbox: MB, action: 'reply_in', lead_id: o.lead_id, detail: o.company + ' · ' + o.reply_label })); });
@@ -208,6 +216,11 @@
       row('Playbook', { id: 'P-261102-1', added_at: ago(8, 0), type: 'segment', rule: 'Favour placement agencies with 20 to 200 staff in India', evidence: '3 replies from 22 sends (14%) against 4% for everyone else', source: 'monday report', status: 'proposed' }),
       row('Playbook', { id: 'P-261102-2', added_at: ago(8, 0), type: 'writing', rule: 'Keep the first email under 70 words', evidence: 'Founders cut 9 of the last 12 approved drafts to under 70 words', source: 'edits', status: 'proposed' }),
       row('Playbook', { id: 'F-261020-101500', added_at: ago(20, 0), type: 'country', rule: 'No UK companies with fewer than 50 staff', evidence: 'Founder', source: 'founder', status: 'approved', decided_at: ago(20, 0), decided_by: 'founder@tevrix.example' }),
+      row('Playbook', { id: 'P-261109-1', added_at: ago(1, 0), type: 'contact', rule: 'Only email a person if their address is published on the company site; otherwise use the HR or careers inbox, or LinkedIn', evidence: '4 of 5 bounces this month were email-finder addresses; 0 of 41 published addresses bounced', source: 'monday report', status: 'proposed' }),
+      row('Playbook', { id: 'P-261109-2', added_at: ago(1, 0), type: 'segment', rule: 'Park companies with fewer than 30 staff', evidence: "5 of 13 skips in 28 days were 'Too big or too small', all under 30 staff", source: 'skips', status: 'proposed' }),
+      row('Playbook', { id: 'P-261026-2', added_at: ago(14, 0), type: 'writing', rule: 'Never end email 1 with \'I hope this is useful\' or a closing pleasantry; end on the question', evidence: 'Founders deleted the closing line in 3 of 3 edited drafts', source: 'edits', status: 'approved', decided_at: ago(13, 0), decided_by: 'panshul@tevrix.example' }),
+      row('Playbook', { id: 'P-261019-1', added_at: ago(21, 0), type: 'angle', rule: 'Use the walk_in angle for any India BPO running walk-in drives', evidence: '4 replies from 34 sends (12%) against 3% for the volume angle', source: 'monday report', status: 'approved', decided_at: ago(20, 0), decided_by: 'founder@tevrix.example' }),
+      row('Playbook', { id: 'P-261012-1', added_at: ago(28, 0), type: 'country', rule: 'Skip New Zealand agencies until we have a local case study', evidence: '0 replies from 30 sends', source: 'monday report', status: 'retired', decided_at: ago(7, 0), decided_by: 'founder@tevrix.example' }),
       row('Playbook', { id: 'P-261026-1', added_at: ago(14, 0), type: 'angle', rule: 'Drop the recruiter_hire angle in Australia', evidence: '0 replies from 31 sends', source: 'monday report', status: 'rejected', decided_at: ago(13, 0), decided_by: 'founder@tevrix.example' })
     ]),
     Waitlist: [H.Waitlist].concat([
