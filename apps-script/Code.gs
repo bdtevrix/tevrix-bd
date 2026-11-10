@@ -255,6 +255,7 @@ function sendSequence_(t, r, kind, S, dnc, testMode, ignoreWindow) {
     to: testMode ? S.TEST_RECIPIENT : email,
     subject: (testMode ? '[TEST] ' : '') + subject,
     body: withSignature_(String(body), S),
+    html: htmlEmail_(String(body), S, { first: kind === 'first' }),
     S: S,
     threadId: kind === 'first' ? null : threadId,
     inReplyTo: kind === 'first' ? null : String(t.get(r, 'message_id'))
@@ -282,6 +283,7 @@ function sendReply_(t, r, S, dnc, testMode) {
     to: testMode ? S.TEST_RECIPIENT : to,
     subject: (testMode ? '[TEST] ' : '') + subject,
     body: withSignature_(String(t.get(r, 'reply_draft')), S, true),
+    html: htmlEmail_(String(t.get(r, 'reply_draft')), S, { reply: true }),
     S: S,
     threadId: threadId || null,
     inReplyTo: them ? them.messageId : String(t.get(r, 'message_id')),
@@ -294,10 +296,12 @@ function sendReply_(t, r, S, dnc, testMode) {
 }
 
 function withSignature_(body, S, isReply) {
-  var lines = [String(body).replace(/\s+$/, ''), ''];
+  var lines = [String(body).replace(/\s+$/, ''), '', 'Best regards,', ''];
   lines.push(perAccount_(S.SENDER_NAME));
   if (perAccount_(S.SENDER_TITLE)) lines.push(perAccount_(S.SENDER_TITLE));
   if (S.COMPANY_LINE) lines.push(S.COMPANY_LINE);
+  var sigEmail = perAccount_(S.SIG_EMAIL) || perAccount_(S.SEND_AS);
+  if (sigEmail) lines.push('Email: ' + sigEmail);
   if (!isReply) {
     lines.push('');
     lines.push("Not relevant? Reply 'no thanks' and I won't write again.");
@@ -306,12 +310,65 @@ function withSignature_(body, S, isReply) {
   return lines.join('\n');
 }
 
+/**
+ * HTML version of the same email: plain-looking body plus a branded signature.
+ * Optional Settings (each can be per-account, "bd@x.com=value, raj@x.com=value"):
+ *   SIG_LINKEDIN (URL), SIG_WHATSAPP (number with country code, e.g. +91 98xxxxxx), SIG_LOCATION,
+ *   SIG_EMAIL (defaults to SEND_AS), SIG_WEBSITE (defaults to www.tevrixai.com),
+ *   LOGO_URL (a public https PNG; blank = no logo), LOGO_ON_FIRST_EMAIL (FALSE = logo on follow-ups and replies only).
+ */
+function htmlEmail_(body, S, opt) {
+  opt = opt || {};
+  var font = 'font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5;color:#222222;';
+  var orange = 'color:#e8890c;';
+  var link = 'color:#1155cc;text-decoration:underline;';
+  var name = esc_(perAccount_(S.SENDER_NAME));
+  var title = esc_(perAccount_(S.SENDER_TITLE));
+  var linkedin = perAccount_(S.SIG_LINKEDIN);
+  var whatsapp = String(perAccount_(S.SIG_WHATSAPP) || '').replace(/[^\d]/g, '');
+  var location = esc_(perAccount_(S.SIG_LOCATION));
+  var email = perAccount_(S.SIG_EMAIL) || perAccount_(S.SEND_AS) || me_();
+  var site = perAccount_(S.SIG_WEBSITE) || 'www.tevrixai.com';
+  var siteUrl = /^https?:\/\//i.test(site) ? site : 'https://' + site;
+  var logo = perAccount_(S.LOGO_URL);
+  var showLogo = /^https:\/\//i.test(logo) && !(opt.first && String(S.LOGO_ON_FIRST_EMAIL).toUpperCase() === 'FALSE');
+
+  var html = '<div style="' + font + '">' + esc_(String(body).replace(/\s+$/, '')).replace(/\r?\n/g, '<br>') + '</div>';
+  var sig = [];
+  sig.push('<div style="' + font + 'margin-top:16px;">Best regards,</div>');
+  sig.push('<div style="' + font + 'color:#888888;">--</div>');
+  if (showLogo) {
+    sig.push('<div style="margin:4px 0 6px 0;"><a href="' + escAttr_(siteUrl) + '"><img src="' + escAttr_(logo) +
+      '" alt="Tevrix AI" width="120" style="display:block;width:120px;height:auto;border:0;"></a></div>');
+  }
+  if (name) sig.push('<div style="font-family:Georgia,\'Times New Roman\',serif;font-size:20px;color:#1a5fa8;">' + name + '</div>');
+  if (title) sig.push('<div style="' + font + '">' + title + '</div>');
+  var social = [];
+  if (/^https?:\/\//i.test(linkedin)) social.push('<a href="' + escAttr_(linkedin) + '" style="' + link + '">LinkedIn</a>');
+  if (whatsapp) social.push('<a href="https://wa.me/' + whatsapp + '" style="' + link + '">WhatsApp</a>');
+  if (social.length) sig.push('<div style="' + font + '">' + social.join(' - ') + '</div>');
+  if (location) sig.push('<div style="' + font + orange + '">' + location + '</div>');
+  if (email) sig.push('<div style="' + font + orange + '">Email: <a href="mailto:' + escAttr_(email) + '" style="' + link + '">' + esc_(email) + '</a></div>');
+  sig.push('<div style="' + font + orange + '">Website: <a href="' + escAttr_(siteUrl) + '" style="' + link + '">' + esc_(site.replace(/^https?:\/\//i, '')) + '</a></div>');
+  var foot = [];
+  if (!opt.reply) foot.push("Not relevant? Reply 'no thanks' and I won't write again.");
+  if (String(S.POSTAL_ADDRESS).trim()) foot.push(esc_(String(S.POSTAL_ADDRESS).trim()));
+  var footer = foot.length ? '<div style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#888888;margin-top:14px;">' +
+    foot.join('<br>') + '</div>' : '';
+  return '<!doctype html><html><body>' + html + sig.join('') + footer + '</body></html>';
+}
+
+function esc_(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function escAttr_(s) { return esc_(s).replace(/"/g, '&quot;'); }
+
 /** Gmail API send with a raw RFC 822 message. Returns {id, threadId, messageId}. */
 function sendRaw_(o) {
   var from = perAccount_(o.S.SEND_AS) || me_();
   var name = perAccount_(o.S.SENDER_NAME);
   var raw = buildRaw_({
-    from: from, fromName: name, to: o.to, subject: o.subject, body: o.body,
+    from: from, fromName: name, to: o.to, subject: o.subject, body: o.body, html: o.html,
     inReplyTo: o.inReplyTo, references: o.references
   });
   var req = { raw: Utilities.base64EncodeWebSafe(raw, Utilities.Charset.UTF_8) };
@@ -329,15 +386,25 @@ function buildRaw_(o) {
   h.push('To: ' + o.to);
   h.push('Subject: ' + encodeHeader_(o.subject));
   h.push('MIME-Version: 1.0');
-  h.push('Content-Type: text/plain; charset=UTF-8');
-  h.push('Content-Transfer-Encoding: base64');
   h.push('List-Unsubscribe: <mailto:' + unsubTo + '?subject=unsubscribe>');
   if (o.inReplyTo) {
     h.push('In-Reply-To: ' + o.inReplyTo);
     h.push('References: ' + ((o.references ? o.references + ' ' : '') + o.inReplyTo).trim());
   }
-  var b64 = Utilities.base64Encode(o.body, Utilities.Charset.UTF_8).replace(/(.{76})/g, '$1\r\n');
-  return h.join('\r\n') + '\r\n\r\n' + b64;
+  function part(text) {
+    return Utilities.base64Encode(text, Utilities.Charset.UTF_8).replace(/(.{76})/g, '$1\r\n');
+  }
+  if (!o.html) {
+    h.push('Content-Type: text/plain; charset=UTF-8');
+    h.push('Content-Transfer-Encoding: base64');
+    return h.join('\r\n') + '\r\n\r\n' + part(o.body);
+  }
+  var b = 'tevrix_' + Utilities.getUuid().replace(/-/g, '');
+  h.push('Content-Type: multipart/alternative; boundary="' + b + '"');
+  return h.join('\r\n') + '\r\n\r\n' +
+    '--' + b + '\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n' + part(o.body) + '\r\n' +
+    '--' + b + '\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n' + part(o.html) + '\r\n' +
+    '--' + b + '--';
 }
 
 function encodeHeader_(s) {
@@ -617,7 +684,8 @@ function sendTestEmail() {
   for (var r = 2; r <= t.lastRow; r++) {
     if (t.get(r, 'email_1') && t.get(r, 'subject')) { subject = t.get(r, 'subject'); body = t.get(r, 'email_1'); break; }
   }
-  var res = sendRaw_({ to: to, subject: '[TEST] ' + subject, body: withSignature_(String(body), S), S: S });
+  var res = sendRaw_({ to: to, subject: '[TEST] ' + subject, body: withSignature_(String(body), S),
+    html: htmlEmail_(String(body), S, { first: true }), S: S });
   log_('test_email', '', to + ' thread ' + res.threadId);
   toast_('Test email sent to ' + to + ' from ' + (perAccount_(S.SEND_AS) || me_()) + '.');
 }
@@ -823,5 +891,6 @@ function toast_(msg) {
 // For tests under Node (ignored by Apps Script).
 if (typeof module !== 'undefined') {
   module.exports = { HEADERS: HEADERS, COUNTRY_TZ: COUNTRY_TZ, stripQuoted_: stripQuoted_, OOO_RE: OOO_RE,
-    UNSUB_RE: UNSUB_RE, addr_: addr_, list_: list_, isDnc_: isDnc_, encodeHeader_: encodeHeader_ };
+    UNSUB_RE: UNSUB_RE, addr_: addr_, list_: list_, isDnc_: isDnc_, encodeHeader_: encodeHeader_,
+    htmlEmail_: htmlEmail_, withSignature_: withSignature_ };
 }
