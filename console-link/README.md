@@ -1,7 +1,8 @@
 # console-link
 
-A redirect-only Vercel project: console.tevrixai.com sends people to the HireMinds BD Console
-(the Apps Script web app). The console itself still asks for a tevrixai.com Google sign-in.
+A small branded page on Vercel (project hireminds-bd-console): console.tevrixai.com shows the Tevrix AI logo for a
+moment, then opens the HireMinds BD Console (the Apps Script web app). The console itself still asks for a
+tevrixai.com Google sign-in. Link previews (WhatsApp, Slack) use og.jpg.
 
 If the web app URL ever changes (a brand-new deployment rather than "Manage deployments → New version"),
-update the URL in vercel.json and index.html.
+update the URL in index.html (three places).
