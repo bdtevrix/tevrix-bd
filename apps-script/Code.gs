@@ -224,7 +224,7 @@ function sendSequence_(t, r, kind, S, dnc, testMode, ignoreWindow) {
   if (String(t.get(r, 'email_status')) !== 'safe') return false;
   if (isDnc_(email, dnc)) { t.set(r, 'stage', 'dnc'); log_('dnc_block', lid, email); return false; }
   if (NO_AUTO_SEND.indexOf(country) >= 0) return skip_(t, r, 'Germany / Austria / Netherlands: email by hand only.');
-  if (US_COUNTRIES.indexOf(country) >= 0 && !String(S.POSTAL_ADDRESS).trim()) {
+  if (US_COUNTRIES.indexOf(country) >= 0 && !String(S.POSTAL_ADDRESS || '').trim()) {
     return skip_(t, r, 'US lead: fill POSTAL_ADDRESS in Settings before sending (CAN-SPAM).');
   }
   var tz = COUNTRY_TZ[country];
@@ -306,14 +306,15 @@ function withSignature_(body, S, isReply) {
     lines.push('');
     lines.push("Not relevant? Reply 'no thanks' and I won't write again.");
   }
-  if (String(S.POSTAL_ADDRESS).trim()) lines.push(String(S.POSTAL_ADDRESS).trim());
+  if (String(S.POSTAL_ADDRESS || '').trim()) lines.push(String(S.POSTAL_ADDRESS || '').trim());
   return lines.join('\n');
 }
 
 /**
  * HTML version of the same email: plain-looking body plus a branded signature.
  * Optional Settings (each can be per-account, "bd@x.com=value, raj@x.com=value"):
- *   SIG_LINKEDIN (URL), SIG_WHATSAPP (number with country code, e.g. +91 98xxxxxx), SIG_LOCATION,
+ *   SIG_LINKEDIN (URL), SIG_WHATSAPP (number with country code, e.g. +91 98xxxxxx; shown in replies only,
+ *   unless WHATSAPP_ON_ALL_EMAILS = TRUE), SIG_LOCATION,
  *   SIG_EMAIL (defaults to SEND_AS), SIG_WEBSITE (defaults to www.tevrixai.com),
  *   LOGO_URL (a public https PNG; blank = no logo), LOGO_ON_FIRST_EMAIL (FALSE = logo on follow-ups and replies only).
  */
@@ -326,6 +327,7 @@ function htmlEmail_(body, S, opt) {
   var title = esc_(perAccount_(S.SENDER_TITLE));
   var linkedin = perAccount_(S.SIG_LINKEDIN);
   var whatsapp = String(perAccount_(S.SIG_WHATSAPP) || '').replace(/[^\d]/g, '');
+  if (!opt.reply && String(S.WHATSAPP_ON_ALL_EMAILS).toUpperCase() !== 'TRUE') whatsapp = '';
   var location = esc_(perAccount_(S.SIG_LOCATION));
   var email = perAccount_(S.SIG_EMAIL) || perAccount_(S.SEND_AS) || me_();
   var site = perAccount_(S.SIG_WEBSITE) || 'www.tevrixai.com';
@@ -352,7 +354,7 @@ function htmlEmail_(body, S, opt) {
   sig.push('<div style="' + font + orange + '">Website: <a href="' + escAttr_(siteUrl) + '" style="' + link + '">' + esc_(site.replace(/^https?:\/\//i, '')) + '</a></div>');
   var foot = [];
   if (!opt.reply) foot.push("Not relevant? Reply 'no thanks' and I won't write again.");
-  if (String(S.POSTAL_ADDRESS).trim()) foot.push(esc_(String(S.POSTAL_ADDRESS).trim()));
+  if (String(S.POSTAL_ADDRESS || '').trim()) foot.push(esc_(String(S.POSTAL_ADDRESS || '').trim()));
   var footer = foot.length ? '<div style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#888888;margin-top:14px;">' +
     foot.join('<br>') + '</div>' : '';
   return '<!doctype html><html><body>' + html + sig.join('') + footer + '</body></html>';
