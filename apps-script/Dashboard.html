@@ -1,0 +1,2128 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter+Tight:wght@400;500;600;700;800&display=swap">
+<style>
+  :root {
+    --bg: #F5F3EE; --surface: #FBFAF7; --sunken: #ECE9E1; --hover: #E9E6DE;
+    --ink: #0B0B12; --ink-soft: #3E3C4A; --muted: #5A5866;
+    --line: #DAD6CC; --line-strong: #0B0B12;
+    --accent: #4004D4; --on-accent: #FFFFFF; --accent-text: #4004D4;
+    --accent-tint: #E9E4FD; --accent-tint-text: #3A06B8;
+    --coral: #E8794A; --warn-text: #C2410C; --warn-tint: #FDE8DC;
+    --good-text: #146B50; --good-tint: #DCF4EC;
+    --bar-track: #E3DFD5; --focus: #4004D4; --scroll-thumb: #C8C3B7; --scroll-thumb-hover: #8F8B80;
+    color-scheme: light;
+    --scrim: rgba(11, 11, 18, 0.42); --toast-bg: #0B0B12; --toast-fg: #F5F3EE;
+    --font: 'Inter Tight', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+    --mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+    --ease: cubic-bezier(0.2, 0, 0, 1); --fast: 240ms;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0B0B12; --surface: #12121B; --sunken: #181823; --hover: #1E1E2A;
+      --ink: #F5F3EE; --ink-soft: #CFCDD9; --muted: #A9A7B8;
+      --line: #2B2A37; --line-strong: #F5F3EE;
+      --accent: #5B24F0; --on-accent: #FFFFFF; --accent-text: #B9A8FA;
+      --accent-tint: #1F1840; --accent-tint-text: #D3C9FB;
+      --warn-text: #FDBA74; --warn-tint: #33190D; --good-text: #7FD8B4; --good-tint: #0F2A20;
+      --bar-track: #262533; --focus: #B9A8FA; --scroll-thumb: #34333F; --scroll-thumb-hover: #5A5868;
+      --scrim: rgba(0, 0, 0, 0.6); --toast-bg: #F5F3EE; --toast-fg: #0B0B12;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0B0B12; --surface: #12121B; --sunken: #181823; --hover: #1E1E2A;
+    --ink: #F5F3EE; --ink-soft: #CFCDD9; --muted: #A9A7B8;
+    --line: #2B2A37; --line-strong: #F5F3EE;
+    --accent: #5B24F0; --on-accent: #FFFFFF; --accent-text: #B9A8FA;
+    --accent-tint: #1F1840; --accent-tint-text: #D3C9FB;
+    --warn-text: #FDBA74; --warn-tint: #33190D; --good-text: #7FD8B4; --good-tint: #0F2A20;
+    --bar-track: #262533; --focus: #B9A8FA; --scroll-thumb: #34333F; --scroll-thumb-hover: #5A5868;
+    --scrim: rgba(0, 0, 0, 0.6); --toast-bg: #F5F3EE; --toast-fg: #0B0B12;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  /* Thin scrollbars in the theme's colours, instead of the heavy system ones */
+  html { scrollbar-color: var(--scroll-thumb) transparent; }
+  html, .side, .queue-list, .detail, .drawer, .table-wrap, .board-wrap, .modal-card, textarea { scrollbar-width: thin; }
+  .queue-list:hover, .detail:hover, .drawer:hover, .table-wrap:hover, .board-wrap:hover, textarea:hover { scrollbar-color: var(--scroll-thumb-hover) transparent; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--font); -webkit-font-smoothing: antialiased; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  a { color: var(--accent-text); text-underline-offset: 3px; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  ::selection { background: var(--accent); color: var(--on-accent); }
+
+  .mono, .label { font-family: var(--mono); }
+  .label { font-size: 11px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); line-height: 1.3; }
+  .muted { color: var(--muted); }
+  .soft { color: var(--ink-soft); }
+  .num { font-variant-numeric: tabular-nums; }
+  .h1 { font-weight: 800; font-size: clamp(32px, 4.4vw, 52px); line-height: 0.98; letter-spacing: -0.045em; margin: 0; text-wrap: balance; }
+  .h2 { font-weight: 800; font-size: clamp(22px, 2.4vw, 28px); line-height: 1.05; letter-spacing: -0.035em; margin: 0; text-wrap: balance; }
+  .h3 { font-weight: 700; font-size: 17px; letter-spacing: -0.015em; margin: 0; }
+  .lede { font-size: 17px; color: var(--ink-soft); max-width: 62ch; margin: 0; }
+  .pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+  /* ---------- shell */
+  .preview-bar { position: relative; z-index: 35; background: var(--accent); color: var(--on-accent); font: 500 12px/1.4 var(--mono); letter-spacing: 0.06em; padding: 8px 16px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; text-align: center; }
+  .app { display: grid; grid-template-columns: 236px minmax(0, 1fr); min-height: 100vh; }
+  .side { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; gap: 22px; padding: 22px 14px 18px 18px; border-right: 1px solid var(--line); background: var(--bg); overflow-y: auto; }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); }
+  .brand-mark { width: 34px; height: 34px; background: var(--ink); color: var(--bg); display: grid; place-items: center; font-weight: 800; letter-spacing: -0.04em; font-size: 15px; flex: none; }
+  .brand-text { display: grid; line-height: 1.1; }
+  .brand-text b { font-weight: 800; letter-spacing: -0.03em; font-size: 16px; }
+  .brand-text span { font: 500 10px/1.4 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  .side-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .mobile-state { display: none; }
+  .nav { display: flex; flex-direction: column; gap: 2px; }
+  .nav-item { display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 10px; border: 0; background: transparent; cursor: pointer; text-align: left; font-weight: 600; font-size: 15px; color: var(--ink-soft); transition: background var(--fast) var(--ease), color var(--fast) var(--ease); white-space: nowrap; }
+  .nav-item:hover { background: var(--hover); color: var(--ink); }
+  .nav-item.on { background: var(--ink); color: var(--bg); }
+  .nav-item .nav-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .nav-item .badge { font: 500 11px/1 var(--mono); padding: 4px 7px; border-radius: 999px; background: var(--accent); color: var(--on-accent); }
+  .nav-item .nav-k { font: 500 10px/1 var(--mono); opacity: 0.5; width: 12px; text-align: right; }
+  .ico { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: square; stroke-linejoin: miter; }
+  .side-toggle { width: 30px; height: 30px; flex: none; display: grid; place-items: center; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; transition: border-color var(--fast) var(--ease), color var(--fast) var(--ease); }
+  .side-toggle:hover { border-color: var(--ink); color: var(--ink); }
+  .side-toggle .ico { width: 16px; height: 16px; transition: transform var(--fast) var(--ease); }
+  .state-block .state-title { display: flex; align-items: center; gap: 8px; }
+  @media (min-width: 861px) {
+    .app { transition: grid-template-columns 320ms var(--ease); }
+    .app.collapsed { grid-template-columns: 72px minmax(0, 1fr); }
+    .app.collapsed .side { padding: 18px 12px; align-items: center; overflow-x: hidden; }
+    .app.collapsed .side-top { flex-direction: column; gap: 12px; }
+    .app.collapsed .brand-text, .app.collapsed .nav-label, .app.collapsed .nav-k,
+    .app.collapsed .side-links, .app.collapsed .who, .app.collapsed .state-text { display: none; }
+    .app.collapsed .nav { width: 100%; }
+    .app.collapsed .nav-item { justify-content: center; padding: 11px 0; position: relative; }
+    .app.collapsed .nav-item .badge { position: absolute; top: 2px; right: 2px; padding: 3px 5px; font-size: 9.5px; }
+    .app.collapsed .side-foot { width: 100%; }
+    .app.collapsed .state-block { padding: 12px 0; justify-items: center; }
+    .app.collapsed .side-toggle .ico { transform: scaleX(-1); }
+  }
+  .qtabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--line-strong); }
+  .qtabs button { border: 0; border-right: 1px solid var(--line-strong); background: transparent; padding: 8px 6px; cursor: pointer; font: 500 10.5px/1.2 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); white-space: nowrap; }
+  .qtabs button:last-child { border-right: 0; }
+  .qtabs button.on { background: var(--ink); color: var(--bg); }
+  .qtabs button:not(.on):hover { background: var(--hover); }
+  .col-head .sub { display: block; font: 400 11px/1.3 var(--font); color: var(--muted); letter-spacing: 0; text-transform: none; margin-top: 3px; }
+  @keyframes flash { 0%, 55% { outline-color: var(--accent); } 100% { outline-color: transparent; } }
+  .pcard.flash { outline: 2px solid var(--accent); outline-offset: 2px; animation: flash 2.8s var(--ease) forwards; }
+  .side-foot { margin-top: auto; display: grid; gap: 14px; }
+  .state-block { border: 1px solid var(--line); padding: 12px; display: grid; gap: 6px; background: var(--surface); }
+  .state-block strong { font-weight: 800; letter-spacing: -0.02em; font-size: 17px; display: flex; align-items: center; gap: 8px; }
+  .dot { width: 8px; height: 8px; border-radius: 999px; background: var(--muted); flex: none; display: inline-block; }
+  .dot.test { background: var(--coral); }
+  .dot.live { background: var(--good-text); }
+  .dot.paused { background: var(--ink); }
+  .side-links { display: flex; flex-wrap: wrap; gap: 6px; }
+  .who { font: 400 11px/1.4 var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+  main { min-width: 0; padding: 34px 44px 110px; }
+  main:focus { outline: none; }
+  .page { display: grid; gap: 28px; max-width: 1320px; }
+  .page-head { display: grid; gap: 12px; }
+  .page-head-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+  /* ---------- controls */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 38px; padding: 9px 14px; border: 1px solid var(--line-strong); background: transparent; color: var(--ink); font-weight: 600; font-size: 14px; line-height: 1.1; cursor: pointer; border-radius: 0; text-decoration: none; transition: background var(--fast) var(--ease), color var(--fast) var(--ease), border-color var(--fast) var(--ease); white-space: nowrap; }
+  .btn:hover { background: var(--ink); color: var(--bg); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .btn.primary:hover { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+  .btn.quiet { border-color: var(--line); }
+  .btn.quiet:hover { border-color: var(--ink); }
+  .btn.small { min-height: 30px; padding: 6px 10px; font-size: 13px; }
+  .btn.link { border: 0; padding: 0; min-height: 0; color: var(--accent-text); text-decoration: underline; text-underline-offset: 3px; font-weight: 600; }
+  .btn.link:hover { background: transparent; color: var(--ink); }
+  .btn.danger { border-color: var(--warn-text); color: var(--warn-text); }
+  .btn.danger:hover, .btn.armed { background: var(--warn-text); color: var(--bg); border-color: var(--warn-text); }
+  .btn[disabled], .btn[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+  .btn .k { font: 500 10px/1 var(--mono); border: 1px solid currentColor; padding: 2px 4px; opacity: 0.65; }
+  .btn-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; border-radius: 999px; border: 1px solid var(--line); font: 500 10.5px/1 var(--mono); letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-soft); white-space: nowrap; background: transparent; }
+  button.chip { cursor: pointer; }
+  button.chip:hover { border-color: var(--ink); color: var(--ink); }
+  .chip.on, .chip.solid { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .chip.good { background: var(--good-tint); color: var(--good-text); border-color: transparent; }
+  .chip.warn { background: var(--warn-tint); color: var(--warn-text); border-color: transparent; }
+  .chip.accent { background: var(--accent-tint); color: var(--accent-tint-text); border-color: transparent; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+
+  input[type="text"], input[type="email"], input[type="url"], input[type="number"], input[type="search"], input:not([type]), select, textarea {
+    width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 0; padding: 9px 11px; font-size: 15px; line-height: 1.45; transition: border-color var(--fast) var(--ease);
+  }
+  input:hover, select:hover, textarea:hover { border-color: var(--muted); }
+  input:focus, select:focus, textarea:focus { border-color: var(--ink); outline: 2px solid var(--focus); outline-offset: -1px; }
+  textarea { resize: vertical; min-height: 96px; line-height: 1.55; }
+  input[readonly], textarea[readonly] { background: var(--sunken); }
+  input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent); margin: 0; flex: none; }
+  .field { display: grid; gap: 6px; min-width: 0; }
+  .field-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .count { font: 500 11px/1 var(--mono); color: var(--muted); }
+  .count.over { color: var(--warn-text); }
+  .fields { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+  .check-line { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+  .search { max-width: 320px; }
+
+  /* ---------- surfaces */
+  .card { border: 1px solid var(--line); background: var(--surface); padding: 22px; display: grid; gap: 16px; min-width: 0; align-content: start; }
+  .card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+  .hair { display: grid; gap: 1px; padding: 1px; }
+  .hair > * { background: var(--surface); outline: 1px solid var(--line); }
+  .tiles { grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); }
+  .tile { padding: 18px 20px 20px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+  .tile .v { font-weight: 800; font-size: 36px; line-height: 1; letter-spacing: -0.045em; font-variant-numeric: tabular-nums; }
+  .tile .sub { font-size: 13px; color: var(--muted); }
+  .needs { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .need { border: 0; text-align: left; padding: 20px 20px 18px; display: grid; gap: 10px; cursor: pointer; color: var(--ink); transition: background var(--fast) var(--ease), color var(--fast) var(--ease); }
+  .need .v { font-weight: 800; font-size: 56px; line-height: 0.9; letter-spacing: -0.05em; font-variant-numeric: tabular-nums; }
+  .need .go { font-weight: 600; font-size: 14px; }
+  .need:hover { background: var(--ink); color: var(--bg); }
+  .need:hover .label, .need:hover .muted { color: inherit; opacity: 0.75; }
+  .need.zero .v { color: var(--muted); }
+  .empty { padding: 48px 24px; display: grid; gap: 12px; justify-items: start; max-width: 520px; }
+  .notice { border: 1px solid var(--line); border-left: 3px solid var(--accent); background: var(--surface); padding: 14px 16px; display: grid; gap: 6px; }
+  .notice.warn { border-left-color: var(--coral); }
+  .notice.good { border-left-color: var(--good-text); }
+
+  /* ---------- bars */
+  .funnel { display: grid; gap: 4px; }
+  .fun-row { display: grid; grid-template-columns: minmax(110px, 160px) minmax(0, 1fr) 52px 70px; gap: 12px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--line); }
+  .fun-row:last-child { border-bottom: 0; }
+  .fun-row .name { font-size: 14px; font-weight: 600; }
+  .fun-row .n { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .fun-row .rate { text-align: right; font: 500 11px/1 var(--mono); color: var(--muted); }
+  .bar { height: 10px; background: var(--bar-track); position: relative; min-width: 0; }
+  .bar > i { position: absolute; top: 0; bottom: 0; left: 0; background: var(--accent); }
+  .bar.thin { height: 6px; }
+  .gate { display: grid; gap: 8px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .gate:last-child { border-bottom: 0; padding-bottom: 0; }
+  .gate-top { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+
+  /* ---------- tables */
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line); background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th { text-align: left; font: 500 10.5px/1.2 var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding: 11px 12px; border-bottom: 1px solid var(--line-strong); white-space: nowrap; background: var(--surface); }
+  td { padding: 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  td .clip { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; max-width: 42ch; }
+  .rate-cell { display: grid; grid-template-columns: 48px minmax(60px, 1fr); gap: 10px; align-items: center; }
+  tr.early td { color: var(--muted); }
+
+  /* ---------- split view (review, replies) */
+  .split { display: grid; grid-template-columns: minmax(270px, 340px) minmax(0, 1fr); border: 1px solid var(--line); background: var(--surface); height: calc(100vh - 190px); min-height: 560px; }
+  .queue { border-right: 1px solid var(--line); display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+  .queue-tools { padding: 12px; border-bottom: 1px solid var(--line); display: grid; gap: 8px; }
+  .queue-tools .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .queue-list { overflow-y: auto; min-height: 0; flex: 1; }
+  .q-item { display: grid; gap: 6px; width: 100%; text-align: left; padding: 14px 14px 14px 13px; border: 0; border-bottom: 1px solid var(--line); border-left: 3px solid transparent; background: transparent; cursor: pointer; color: var(--ink); }
+  .q-item:hover { background: var(--hover); }
+  .q-item.on { background: var(--accent-tint); border-left-color: var(--accent); }
+  .q-top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+  .q-top b { font-weight: 700; font-size: 15px; letter-spacing: -0.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .q-sub { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .q-group { padding: 12px 14px 8px; border-bottom: 1px solid var(--line); background: var(--sunken); }
+  .detail { min-width: 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; }
+  .detail-body { padding: 26px 30px 28px; display: grid; gap: 22px; align-content: start; flex: 1; }
+  .actionbar { position: sticky; bottom: 0; background: var(--surface); border-top: 1px solid var(--line); padding: 12px 30px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; z-index: 2; }
+  .actionbar .spacer { flex: 1; }
+  .back { display: none; justify-self: start; }
+  .meta { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; color: var(--ink-soft); }
+  .meta span { display: inline-flex; gap: 6px; align-items: center; }
+  .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+  .fact { padding: 12px 14px; display: grid; gap: 4px; min-width: 0; }
+  .fact .val { font-size: 14px; overflow-wrap: anywhere; }
+  .why { border-left: 3px solid var(--accent); padding: 4px 0 4px 14px; display: grid; gap: 4px; }
+  details.fold { border: 1px solid var(--line); }
+  details.fold > summary { cursor: pointer; padding: 12px 14px; list-style: none; display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+  details.fold > summary::-webkit-details-marker { display: none; }
+  details.fold > summary::after { content: "+"; font: 500 16px/1 var(--mono); color: var(--muted); }
+  details.fold[open] > summary::after { content: "–"; }
+  details.fold > .fold-body { padding: 0 14px 14px; }
+  .checks { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tabs { display: inline-flex; border: 1px solid var(--line-strong); }
+  .tabs button { border: 0; background: transparent; padding: 7px 12px; cursor: pointer; font: 500 11px/1 var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink); }
+  .tabs button.on { background: var(--ink); color: var(--bg); }
+  .mail { border: 1px solid var(--line); background: var(--bg); }
+  .mail-head { padding: 12px 16px; border-bottom: 1px solid var(--line); display: grid; gap: 4px; font-size: 13px; }
+  .mail-head div { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 8px; }
+  .mail-body { padding: 18px 16px 20px; font-size: 15px; line-height: 1.6; }
+  .mail-sig { margin-top: 16px; color: var(--ink-soft); }
+  .mail-foot { margin-top: 16px; padding-top: 10px; border-top: 1px solid var(--line); font: 400 11px/1.5 var(--mono); color: var(--muted); }
+  blockquote.their { margin: 0; padding: 16px 18px; background: var(--bg); border: 1px solid var(--line); border-left: 3px solid var(--ink); font-size: 15px; line-height: 1.6; }
+
+  /* ---------- board */
+  .board-wrap { overflow-x: auto; padding-bottom: 6px; }
+  .pipe-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .band { display: grid; gap: 12px; }
+  .band-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+  .band-head > div { display: grid; gap: 3px; }
+  .lane { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  .col-n { font: 700 18px/1 var(--font); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  .col.over, .drop-zone.over { outline: 2px dashed var(--accent); outline-offset: -4px; background: var(--accent-tint); }
+  .pcard { display: grid; gap: 7px; text-align: left; border: 1px solid var(--line); background: var(--surface); padding: 11px 12px; cursor: pointer; color: var(--ink); min-width: 0; transition: border-color var(--fast) var(--ease), opacity var(--fast) var(--ease); }
+  .pcard:hover { border-color: var(--ink); }
+  .pcard.urgent { border-left: 3px solid var(--coral); padding-left: 10px; }
+  .pcard.dragging { opacity: 0.4; }
+  .pc-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; min-width: 0; }
+  .pc-top b { font-weight: 700; letter-spacing: -0.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pc-cc { font: 500 10px/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); flex: none; }
+  .pc-who { font-size: 13px; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pc-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; min-width: 0; }
+  .pc-next { font: 400 11.5px/1.3 var(--mono); color: var(--muted); text-align: right; }
+  .pc-flag { font: 500 11px/1.2 var(--mono); color: var(--accent-tint-text); background: var(--accent-tint); padding: 3px 6px; text-align: right; }
+  .pc-flag.warn { color: var(--warn-text); background: var(--warn-tint); }
+  .pc-angle { font: 500 9.5px/1 var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .ticks { display: inline-flex; gap: 3px; flex: none; }
+  .ticks i { width: 10px; height: 4px; background: var(--bar-track); }
+  .ticks i.on { background: var(--accent); }
+  .lane .col-list.scroll { max-height: clamp(300px, 58vh, 640px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+  .lane .col-list.scroll:hover { scrollbar-color: var(--scroll-thumb-hover) transparent; }
+  .col-foot { padding: 7px 12px; border-top: 1px solid var(--line); font: 500 10px/1 var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); background: var(--surface); }
+  .pipe-mbar { display: grid; gap: 10px; }
+  .pipe-mbar-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .pipe-mbar-row select { flex: 1 1 140px; width: auto; }
+  .stage-strip { display: flex; gap: 6px; overflow-x: auto; margin: -6px -16px 0; padding: 10px 16px; scroll-snap-type: x proximity; scrollbar-width: none; align-items: stretch;
+    position: sticky; top: calc(var(--mhead, 96px) + env(safe-area-inset-top, 0px)); z-index: 20; background: var(--bg); border-bottom: 1px solid var(--line); }
+  .stage-strip::-webkit-scrollbar { display: none; }
+  .strip-sep { flex: none; width: 1px; background: var(--line-strong); margin: 4px 4px; opacity: 0.4; }
+  .stage-chip { flex: none; scroll-snap-align: start; display: grid; gap: 4px; align-content: center; min-width: 76px; min-height: 52px; padding: 8px 11px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); text-align: left; cursor: pointer; }
+  .stage-chip .sc-name { font: 500 9.5px/1.2 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); display: flex; gap: 5px; align-items: center; white-space: nowrap; }
+  .stage-chip .sc-n { font: 800 19px/1 var(--font); letter-spacing: -0.03em; }
+  .stage-chip.none .sc-n { color: var(--muted); }
+  .stage-chip.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .stage-chip.on .sc-name, .stage-chip.on .sc-n { color: var(--bg); }
+  .mstage { border: 1px solid var(--line); background: var(--sunken); }
+  .mstage .col-list { padding: 8px; }
+  .mtip { margin: 0; padding: 0 12px 12px; font-size: 13px; }
+  .drop-close { display: none; grid-template-columns: 1fr 1fr; gap: 10px; }
+  body.dragging .drop-close { display: grid; }
+  .drop-zone { border: 1px dashed var(--line-strong); padding: 18px; text-align: center; font: 500 11px/1 var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .th-sort { border: 0; background: transparent; padding: 0; cursor: pointer; font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; }
+  .th-sort.on, .th-sort:hover { color: var(--ink); }
+  .prow { cursor: pointer; }
+  .prow:hover td { background: var(--hover); }
+  @media (max-width: 1180px) { .lane { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .board { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(232px, 1fr); gap: 10px; }
+  .col { border: 1px solid var(--line); background: var(--sunken); display: flex; flex-direction: column; min-height: 220px; min-width: 0; }
+  .col-head { padding: 11px 12px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 8px; background: var(--surface); }
+  .col-list { display: grid; gap: 8px; padding: 8px; align-content: start; }
+  .col-empty { padding: 14px 12px; font-size: 13px; color: var(--muted); }
+
+  /* ---------- drawer, modal, toast */
+  .scrim { position: fixed; inset: 0; background: var(--scrim); opacity: 0; pointer-events: none; transition: opacity var(--fast) var(--ease); z-index: 40; }
+  .scrim.show { opacity: 1; pointer-events: auto; }
+  .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(580px, 100vw); background: var(--bg); border-left: 1px solid var(--line-strong); transform: translateX(102%); transition: transform 360ms var(--ease); z-index: 50; overflow-y: auto; padding: calc(22px + env(safe-area-inset-top, 0px)) max(22px, env(safe-area-inset-right, 0px)) calc(48px + env(safe-area-inset-bottom, 0px)) 24px; display: grid; gap: 22px; align-content: start; visibility: hidden; }
+  .drawer.open { transform: none; visibility: visible; }
+  .drawer-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; position: sticky; top: calc(-22px - env(safe-area-inset-top, 0px)); background: var(--bg); padding: 10px 0 12px; margin-top: -10px; z-index: 2; border-bottom: 1px solid var(--line); }
+  .timeline { display: grid; gap: 0; border-left: 1px solid var(--line-strong); margin-left: 4px; }
+  .tl { position: relative; padding: 0 0 14px 18px; display: grid; gap: 2px; }
+  .tl::before { content: ""; position: absolute; left: -5px; top: 5px; width: 9px; height: 9px; background: var(--ink); }
+  .tl.next::before { background: var(--bg); border: 1px solid var(--ink); }
+  .tl:last-child { padding-bottom: 0; }
+  .modal { position: fixed; inset: 0; display: grid; place-items: center; z-index: 70; background: var(--scrim); padding: 16px; }
+  .modal-card { background: var(--bg); border: 1px solid var(--line-strong); width: min(520px, 100%); padding: 26px; display: grid; gap: 18px; max-height: 90vh; overflow-y: auto; }
+  .keys { display: grid; grid-template-columns: auto 1fr; gap: 10px 18px; font-size: 14px; align-items: center; }
+  kbd { font: 500 11px/1 var(--mono); border: 1px solid var(--line-strong); padding: 4px 6px; display: inline-block; min-width: 22px; text-align: center; }
+  .toast { position: fixed; top: calc(18px + env(safe-area-inset-top, 0px)); left: 50%; transform: translate(-50%, -10px); opacity: 0; pointer-events: none; background: var(--toast-bg); color: var(--toast-fg); padding: 12px 12px 12px 16px; display: flex; align-items: center; gap: 14px; z-index: 80; max-width: min(480px, calc(100vw - 32px)); font-size: 14px; line-height: 1.4; transition: opacity var(--fast) var(--ease), transform var(--fast) var(--ease); border-left: 4px solid var(--accent); }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+  .toast .acts { display: flex; gap: 6px; flex: none; }
+  .toast.err { border-left-color: var(--coral); }
+  .toast button { background: transparent; color: inherit; border: 1px solid currentColor; padding: 6px 10px; cursor: pointer; font-weight: 600; font-size: 13px; }
+  .skel { background: var(--sunken); min-height: 18px; animation: pulse 1.4s var(--ease) infinite; }
+  @keyframes pulse { 50% { opacity: 0.55; } }
+  .saved-tick { font: 500 11px/1 var(--mono); color: var(--good-text); letter-spacing: 0.08em; text-transform: uppercase; }
+  .busy { cursor: progress; }
+  .busy .btn { pointer-events: none; }
+
+  /* ---------- LinkedIn cards */
+  .li-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+  .li-card { border: 1px solid var(--line); background: var(--surface); padding: 18px; display: grid; gap: 12px; align-content: start; min-width: 0; }
+  .li-card.done { background: var(--sunken); }
+  .li-note { font-size: 14px; background: var(--bg); border: 1px solid var(--line); padding: 10px 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .li-flags { display: flex; gap: 18px; flex-wrap: wrap; font-size: 14px; }
+  .li-flags label { display: inline-flex; gap: 8px; align-items: center; cursor: pointer; }
+
+  /* ---------- controls page */
+  .send-hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 20px; align-items: start; }
+  .send-hero .big { font-weight: 800; font-size: clamp(30px, 3.6vw, 44px); letter-spacing: -0.045em; line-height: 1; display: flex; align-items: center; gap: 12px; }
+  .send-hero .big .dot { width: 14px; height: 14px; }
+  .golive { border: 1px dashed var(--line-strong); padding: 16px; display: grid; gap: 12px; }
+  .run-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .run { padding: 18px; display: grid; gap: 10px; align-content: space-between; }
+  .log { display: grid; }
+  .log-row { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 14px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .log-row:last-child { border-bottom: 0; }
+  .log-row time { font: 400 11.5px/1.6 var(--mono); color: var(--muted); }
+
+  @media (min-width: 861px) {
+    body.has-bar .preview-bar { position: sticky; top: 0; height: 32px; padding-block: 0; align-items: center; white-space: nowrap; overflow: hidden; }
+    body.has-bar .side { top: 32px; height: calc(100vh - 32px); }
+    body.has-bar .toast { top: 50px; }
+  }
+  @media (max-width: 1100px) {
+    .grid2 { grid-template-columns: 1fr; }
+    main { padding: 28px 28px 110px; }
+  }
+  @media (max-width: 860px) {
+    body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); background: var(--bg); z-index: 31; }
+    .app { grid-template-columns: minmax(0, 1fr); }
+    .side { min-width: 0; position: sticky; top: env(safe-area-inset-top, 0px); height: auto; z-index: 30; border-right: 0; border-bottom: 1px solid var(--line); padding: 10px 16px 0; gap: 8px; overflow: visible; }
+    .mobile-state { display: inline-flex; }
+    .nav { flex-direction: row; overflow-x: auto; gap: 0; margin: 0 -16px; padding: 0 16px; scrollbar-width: none; }
+    .nav::-webkit-scrollbar { display: none; }
+    .nav-item { width: auto; padding: 10px 12px 11px; border-bottom: 2px solid transparent; }
+    .nav-item.on { background: transparent; color: var(--ink); border-bottom-color: var(--ink); }
+    .nav-item .nav-k, .nav-item .ico, .side-toggle { display: none; }
+    .nav-item .badge { margin-left: 4px; }
+    .toast { top: auto; bottom: calc(88px + env(safe-area-inset-bottom, 0px)); left: 16px !important; right: 16px; max-width: none; transform: translateY(10px); }
+    .toast.show { transform: none; }
+    .side-foot { display: none; }
+    main { padding: 20px 16px 110px; }
+    .page { gap: 22px; }
+    .split { grid-template-columns: 1fr; height: auto; min-height: 0; }
+    .queue { border-right: 0; }
+    .queue-list { overflow: visible; }
+    .detail { overflow: visible; }
+    .split.show-detail .queue { display: none; }
+    .split:not(.show-detail) .detail { display: none; }
+    .back { display: inline-flex; }
+    .detail-body { padding: 18px 16px 22px; }
+    .actionbar { padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); }
+    .actionbar .k, .actionbar .spacer { display: none; }
+    .actionbar .btn { flex: 1 1 auto; }
+    .actionbar [data-dirty]:empty { display: none; }
+    .board { grid-auto-flow: row; grid-auto-columns: auto; }
+    .lane { grid-template-columns: 1fr; }
+    .pcard { cursor: pointer; }
+    .col { min-height: 0; }
+    .send-hero { grid-template-columns: 1fr; }
+    .fun-row { grid-template-columns: minmax(96px, 120px) minmax(0, 1fr) 40px; }
+    .fun-row .rate { display: none; }
+    .search { max-width: none; }
+  }
+  @media (max-width: 860px) {
+    .drawer { border-left: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+    .drawer .btn-row .btn { flex: 1 1 calc(50% - 8px); }
+    .drawer .facts { grid-template-columns: 1fr; }
+    input[type="text"], input[type="email"], input[type="url"], input[type="number"], input[type="search"], input:not([type]), select, textarea { font-size: 16px; }
+    .pcard { padding: 13px 14px; }
+    .pc-who { white-space: normal; }
+  }
+  @media (pointer: coarse) {
+    .btn, .btn.small { min-height: 42px; }
+    button.chip { padding: 9px 12px; }
+    input[type="text"], input[type="email"], input[type="url"], input[type="number"], input[type="search"], input:not([type]), select, textarea { font-size: 16px; min-height: 44px; }
+    .tabs button { padding: 11px 14px; }
+    .q-item { padding-block: 16px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+  }
+  .skip-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
+  .skip-grid .btn { justify-content: flex-start; }
+  .pb-section { display: grid; gap: 12px; margin-top: 24px; }
+  .pb-card { display: grid; gap: 8px; }
+  .pb-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; }
+  .pb-rule { margin: 0; font-size: 16px; font-weight: 600; }
+  .pb-ev { margin: 0; font-size: 14px; }
+</style>
+
+<div class="preview-bar" id="previewBar" hidden>
+  <span>PREVIEW WITH SAMPLE DATA</span><span>·</span><span>Nothing here touches the real Sheet. Reload to reset.</span>
+</div>
+<div class="app" id="app">
+  <aside class="side" aria-label="HireMinds BD">
+    <div class="side-top">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">HM</span><span class="brand-text"><b>HireMinds BD</b><span>Tevrix AI</span></span></div>
+      <span class="mobile-state" id="mobileState"></span>
+      <button class="side-toggle" id="sideToggle" data-act="side-toggle" aria-label="Collapse the sidebar" title="Collapse the sidebar  [">
+        <svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="13"/><path d="M7.5 3.5v13M13.5 8l-2 2 2 2"/></svg>
+      </button>
+    </div>
+    <nav class="nav" id="nav" aria-label="Sections"></nav>
+    <div class="side-foot" id="sideFoot"></div>
+  </aside>
+  <main id="main" tabindex="-1"></main>
+</div>
+<div class="scrim" id="scrim" data-act="close-drawer"></div>
+<aside class="drawer" id="drawer" aria-hidden="true" aria-label="Lead details"></aside>
+<div class="modal" id="help" hidden data-act="close-help"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ================================================================ basics
+  var PREVIEW = !!window.__HM_PREVIEW__;
+  var main = document.getElementById('main');
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  var ROUTES = ['home', 'review', 'replies', 'pipeline', 'leads', 'linkedin', 'waitlist', 'playbook', 'controls'];
+  var NAV = { home: 'Today', review: 'Review', replies: 'Replies', pipeline: 'Pipeline', leads: 'Leads', linkedin: 'LinkedIn', waitlist: 'Waitlist', playbook: 'Playbook', controls: 'Controls' };
+  var SKIP = { wrong_person: 'Wrong person', size: 'Too big or too small', weak_hook: 'Weak hook', wrong_country: 'Wrong country', not_a_fit: 'Not a fit', other: 'Other' };
+  var PB_TYPES = { segment: 'Segment', country: 'Country', angle: 'Angle', writing: 'Writing', contact: 'Contact', example: 'Example', other: 'Other' };
+  var STAGE = {
+    drafted: 'Drafted', approved: 'Approved', sent_1: 'Email 1 sent', sent_2: 'Follow-up 1 sent', sent_3: 'Follow-up 2 sent',
+    finished: 'Finished', replied: 'Replied', bounced: 'Bounced', skipped: 'Skipped', dnc: 'Do not contact',
+    demo: 'Demo booked', beta: 'Beta client', won: 'Paying', lost: 'Lost'
+  };
+  var LABELS = { interested: 'Interested', not_now: 'Not now', wrong_person: 'Wrong person', unsubscribe: 'Unsubscribe', out_of_office: 'Out of office', other: 'Other' };
+  var WAIT_STAGES = ['Asked', 'Talked', 'Committed to pay', 'Not a fit'];
+  var LI_LIMIT = 300;
+  var ICONS = {
+    home: '<rect x="3" y="4" width="14" height="13"/><path d="M3 8h14M7 2v4M13 2v4"/>',
+    review: '<rect x="3" y="3" width="14" height="14"/><path d="M6.5 10l2.5 2.5 4.5-5"/>',
+    replies: '<path d="M8 5L3 10l5 5"/><path d="M3 10h8a6 6 0 0 1 6 6v1"/>',
+    pipeline: '<rect x="3" y="3" width="4" height="14"/><rect x="8.5" y="3" width="4" height="10"/><rect x="14" y="3" width="3" height="6"/>',
+    leads: '<circle cx="9" cy="9" r="5.5"/><path d="M13 13l4 4"/>',
+    linkedin: '<circle cx="8" cy="7" r="3"/><path d="M2.5 17c.8-3 3-4.5 5.5-4.5s4.7 1.5 5.5 4.5M15.5 5v5M13 7.5h5"/>',
+    waitlist: '<path d="M7 5h10M7 10h10M7 15h10M3 5h1.5M3 10h1.5M3 15h1.5"/>',
+    playbook: '<path d="M4 3.5h8.5A3.5 3.5 0 0 1 16 7v10H7.5A3.5 3.5 0 0 1 4 13.5z"/><path d="M4 13.5A3.5 3.5 0 0 1 7.5 10H16M8 6.5h4"/>',
+    controls: '<path d="M3 6h9M16 6h1M3 14h2M9 14h8"/><rect x="12" y="4" width="4" height="4"/><rect x="5" y="12" width="4" height="4"/>'
+  };
+  function ico(name) { return '<svg class="ico" viewBox="0 0 20 20" aria-hidden="true">' + ICONS[name] + '</svg>'; }
+
+  function esc(v) {
+    return String(v === null || v === undefined ? '' : v).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function str(v) { return v === null || v === undefined ? '' : String(v); }
+  function bool(v) { return v === true || String(v).toUpperCase() === 'TRUE'; }
+  function words(s) { s = str(s).trim(); return s ? s.split(/\s+/).length : 0; }
+  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : (many || one + 's')); }
+  function pct(x, digits) { return (x * 100).toFixed(digits === undefined ? 1 : digits).replace(/\.0$/, '') + '%'; }
+  function toDate(v) { if (!v) return null; var d = new Date(v); return isNaN(d.getTime()) ? null : d; }
+  function addDays(d, n) { return new Date(d.getTime() + n * 864e5); }
+  var fmtDay = new Intl.DateTimeFormat(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
+  var fmtFull = new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  var fmtShort = new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short' });
+  function rel(v) {
+    var d = toDate(v); if (!d) return '';
+    var s = (Date.now() - d.getTime()) / 1000;
+    if (s < 0) return fmtDay.format(d);
+    if (s < 60) return 'just now';
+    if (s < 3600) return Math.floor(s / 60) + ' min ago';
+    if (s < 86400) return Math.floor(s / 3600) + ' h ago';
+    if (s < 172800) return 'yesterday';
+    if (s < 6 * 86400) return Math.floor(s / 86400) + ' days ago';
+    return fmtShort.format(d);
+  }
+  function full(v) { var d = toDate(v); return d ? fmtFull.format(d) : ''; }
+  function day(v) { var d = toDate(v); return d ? fmtDay.format(d) : ''; }
+  function msg(e) {
+    var m = (e && e.message) || String(e || 'Something went wrong.');
+    return m.replace(/^(Exception|Error|ScriptError):\s*/i, '');
+  }
+
+  // ================================================================ server calls
+  function call(fn) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    return new Promise(function (resolve, reject) {
+      try {
+        var runner = google.script.run
+          .withSuccessHandler(resolve)
+          .withFailureHandler(function (err) { reject(err instanceof Error ? err : new Error(msg(err))); });
+        runner[fn].apply(runner, args);
+      } catch (e) { reject(e); }
+    });
+  }
+
+  // ================================================================ state
+  var S = null;
+  var ui = {
+    route: 'home', loading: true, error: null, lastLoad: 0, pending: false, drawer: null, flash: null, logAll: false,
+    review: { tab: 'todo', sel: null, q: '', sort: 'score', angle: '', mobile: false, view: 'edit' },
+    replies: { sel: null, mobile: false },
+    pipe: { q: '', closed: false, view: 'board', needs: false, angle: '', country: '', filters: false, mstage: '', sort: { k: 'next', dir: 1 } },
+    leads: { status: 'new', q: '', adding: false },
+    li: { filter: 'todo' },
+    wait: { adding: false },
+    pb: { adding: false, showOld: false },
+    skip: null,
+    live: { checks: {}, phrase: '' },
+    drafts: {}
+  };
+
+  function byId(id) {
+    if (!S) return null;
+    for (var i = 0; i < S.outreach.length; i++) if (String(S.outreach[i].lead_id) === String(id)) return S.outreach[i];
+    return null;
+  }
+  function leadOf(id) {
+    if (!S) return null;
+    for (var i = 0; i < S.leads.length; i++) if (String(S.leads[i].lead_id) === String(id)) return S.leads[i];
+    return null;
+  }
+  function upsert(row, quiet) {
+    var i = -1;
+    S.outreach.forEach(function (o, k) { if (String(o.lead_id) === String(row.lead_id)) i = k; });
+    if (i >= 0) S.outreach[i] = row; else S.outreach.push(row);
+    if (!quiet) render();
+  }
+  function setting(k) { return S && S.settings ? S.settings[k] : ''; }
+  function mailboxes() { return str(setting('MAILBOXES')).split(',').map(function (s) { return s.trim(); }).filter(Boolean); }
+  function sendState() {
+    if (bool(setting('SENDING_PAUSED'))) return { key: 'paused', title: 'Paused', sub: 'Nothing goes out until you resume.' };
+    if (bool(setting('TEST_MODE'))) return { key: 'test', title: 'Test mode', sub: 'Every email goes to ' + (str(setting('TEST_RECIPIENT')) || 'the test inbox') + '.' };
+    return { key: 'live', title: 'Live', sub: 'Approved emails go to real people.' };
+  }
+  function dailyCap() { return (Number(setting('DAILY_CAP_PER_MAILBOX')) || 0) * Math.max(1, mailboxes().length); }
+
+  function draftsAll() { return S ? S.outreach.filter(function (o) { return (!o.stage || o.stage === 'drafted') && !o.decision; }) : []; }
+  function approvedAll() { return S ? S.outreach.filter(function (o) { return o.stage === 'approved'; }) : []; }
+  function repliesOpen() {
+    return S ? S.outreach.filter(function (o) { return o.stage === 'replied' && !o.reply_sent_at; })
+      .sort(function (a, b) { return str(b.replied_at).localeCompare(str(a.replied_at)); }) : [];
+  }
+  function repliesDone() {
+    return S ? S.outreach.filter(function (o) { return o.reply_sent_at || (o.replied_at && o.stage !== 'replied'); })
+      .sort(function (a, b) { return str(b.replied_at).localeCompare(str(a.replied_at)); }).slice(0, 30) : [];
+  }
+  function reviewQueue() {
+    var q = ui.review.q.trim().toLowerCase();
+    var list = draftsAll().filter(function (o) {
+      if (ui.review.angle && o.angle !== ui.review.angle) return false;
+      if (!q) return true;
+      return [o.company, o.country, o.contact_name, o.contact_title, o.angle].join(' ').toLowerCase().indexOf(q) !== -1;
+    });
+    list.sort(function (a, b) {
+      if (ui.review.sort === 'country') return str(a.country).localeCompare(str(b.country)) || (Number(b.score) || 0) - (Number(a.score) || 0);
+      return (Number(b.score) || 0) - (Number(a.score) || 0) || str(a.company).localeCompare(str(b.company));
+    });
+    return list;
+  }
+  function counts() {
+    if (!S) return {};
+    return { review: draftsAll().length, replies: repliesOpen().length, linkedin: S.metrics.linkedinToSend, leads: S.metrics.leadsNew,
+      playbook: (S.playbook || []).filter(function (r) { return r.status === 'proposed'; }).length };
+  }
+
+  // Unsaved edits live here until saved, so a refresh never loses typing.
+  function dv(o, f) {
+    var d = ui.drafts[o.lead_id];
+    return d && Object.prototype.hasOwnProperty.call(d, f) ? d[f] : str(o[f]);
+  }
+  function editsFor(o, fields) {
+    var d = ui.drafts[o.lead_id], out = {}, any = false;
+    if (!d) return null;
+    Object.keys(d).forEach(function (k) {
+      if (fields && fields.indexOf(k) === -1) return;
+      if (d[k] !== str(o[k])) { out[k] = d[k]; any = true; }
+    });
+    return any ? out : null;
+  }
+  function isDirty(o, fields) { return !!(o && editsFor(o, fields)); }
+
+  // ================================================================ load and render
+  function load(quiet) {
+    if (!quiet && !S) { ui.loading = true; render(); }
+    return call('uiGetState').then(function (d) {
+      S = d; ui.loading = false; ui.error = null; ui.lastLoad = Date.now();
+      render();
+    }).catch(function (e) {
+      ui.loading = false;
+      if (!S) { ui.error = msg(e); render(); } else toast(msg(e), { err: true });
+    });
+  }
+  var softTimer = null;
+  function softRefresh() { clearTimeout(softTimer); softTimer = setTimeout(function () { load(true); }, 1400); }
+
+  function typing() {
+    var a = document.activeElement;
+    return !!(a && main.contains(a) && (a.tagName === 'TEXTAREA' || (a.tagName === 'INPUT' && a.type !== 'checkbox' && a.type !== 'button')));
+  }
+  function render(force) {
+    renderNav(); renderSide();
+    if (!force && typing()) { ui.pending = true; return; }
+    ui.pending = false;
+    var keep = {};
+    $$('[data-keep]', main).forEach(function (el) { keep[el.getAttribute('data-keep')] = el.scrollTop; });
+    var html;
+    if (ui.error) html = errorView();
+    else if (ui.loading || !S) html = loadingView();
+    else html = SCREENS[ui.route]();
+    main.innerHTML = html;
+    $$('[data-keep]', main).forEach(function (el) {
+      var k = el.getAttribute('data-keep');
+      if (keep[k] !== undefined) el.scrollTop = keep[k];
+    });
+    $$('textarea[data-auto]', main).forEach(autosize);
+    if (!isDesktop()) { var sd = $('.side'); if (sd) document.documentElement.style.setProperty('--mhead', sd.offsetHeight + 'px'); }
+    var sc = $('.stage-chip.on', main), strip = sc && sc.parentNode;
+    if (sc && strip.scrollWidth > strip.clientWidth) {
+      var l = sc.offsetLeft - strip.offsetLeft, r = l + sc.offsetWidth;
+      if (l < strip.scrollLeft + 16) strip.scrollLeft = Math.max(0, l - 24);
+      else if (r > strip.scrollLeft + strip.clientWidth - 16) strip.scrollLeft = r - strip.clientWidth + 24;
+    }
+    var on = $('.q-item.on', main), ql = on && on.closest('.queue-list');
+    if (on && ql && isDesktop()) {
+      var r = on.getBoundingClientRect(), qr = ql.getBoundingClientRect();
+      if (r.top < qr.top) ql.scrollTop -= qr.top - r.top;
+      else if (r.bottom > qr.bottom) ql.scrollTop += r.bottom - qr.bottom;
+    }
+  }
+  function autosize(el) { el.style.height = 'auto'; el.style.height = (el.scrollHeight + 2) + 'px'; }
+
+  function renderNav() {
+    var c = counts();
+    $('#nav').innerHTML = ROUTES.map(function (r, i) {
+      var n = c[r];
+      return '<button class="nav-item' + (ui.route === r ? ' on' : '') + '" data-act="go" data-to="' + r + '" title="' + NAV[r] + (n ? ' · ' + n + ' waiting' : '') + '  (' + (i + 1) + ')"' + (ui.route === r ? ' aria-current="page"' : '') + '>' +
+        ico(r) + '<span class="nav-label">' + NAV[r] + '</span>' + (n ? '<span class="badge num" aria-label="' + n + ' waiting">' + n + '</span>' : '') +
+        '<span class="nav-k" aria-hidden="true">' + (i + 1) + '</span></button>';
+    }).join('');
+    var nav = $('#nav'), on = $('.nav-item.on', nav);
+    if (on && nav.scrollWidth > nav.clientWidth) {
+      var l = on.offsetLeft - nav.offsetLeft, r = l + on.offsetWidth;
+      if (l < nav.scrollLeft + 16) nav.scrollLeft = Math.max(0, l - 32);
+      else if (r > nav.scrollLeft + nav.clientWidth - 16) nav.scrollLeft = r - nav.clientWidth + 32;
+    }
+  }
+  function renderSide() {
+    var foot = $('#sideFoot'), mob = $('#mobileState');
+    if (!S) { foot.innerHTML = ''; mob.innerHTML = ''; return; }
+    var st = sendState();
+    mob.innerHTML = '<button class="chip" data-act="go" data-to="controls"><span class="dot ' + st.key + '"></span>' + esc(st.title) + '</button>';
+    foot.innerHTML =
+      '<button class="state-block" data-act="go" data-to="controls" title="Sending: ' + esc(st.title) + '. ' + esc(st.sub) + '" style="text-align:left;cursor:pointer;color:var(--ink)">' +
+        '<span class="label state-text">Sending</span><strong class="state-title"><span class="dot ' + st.key + '"></span><span class="state-text">' + esc(st.title) + '</span></strong>' +
+        '<span class="muted state-text" style="font-size:13px">' + esc(st.sub) + '</span></button>' +
+      '<div class="side-links">' +
+        '<button class="btn quiet small" data-act="refresh" title="Refresh (R)">Refresh</button>' +
+        '<button class="btn quiet small" data-act="theme" title="Switch theme">' + themeLabel() + ' theme</button>' +
+        '<button class="btn quiet small" data-act="help" title="Keyboard shortcuts (?)">Shortcuts</button>' +
+        (S.sheetUrl ? '<a class="btn quiet small" href="' + esc(S.sheetUrl) + '" target="_blank" rel="noopener">Sheet ↗</a>' : '') +
+      '</div>' +
+      '<div class="who">' + esc(S.me) + '<br>Updated ' + esc(rel(new Date(ui.lastLoad).toISOString())) + '</div>';
+  }
+
+  function loadingView() {
+    return '<div class="page"><div class="page-head"><div class="skel" style="width:140px"></div><div class="skel" style="height:48px;width:min(420px,80%)"></div></div>' +
+      '<div class="hair needs">' + [1, 2, 3, 4].map(function () { return '<div class="need"><div class="skel" style="height:44px;width:60px"></div><div class="skel" style="width:70%"></div></div>'; }).join('') + '</div>' +
+      '<div class="skel" style="height:240px"></div></div>';
+  }
+  function errorView() {
+    return '<div class="page"><div class="empty"><span class="label">Could not load</span><h1 class="h2">The console could not read the Sheet.</h1>' +
+      '<p class="soft">' + esc(ui.error) + '</p><button class="btn primary" data-act="retry">Try again</button></div></div>';
+  }
+
+  function head(eyebrow, title, lede, right) {
+    return '<header class="page-head"><div class="page-head-row"><div style="display:grid;gap:12px;min-width:0">' +
+      (eyebrow ? '<span class="label">' + eyebrow + '</span>' : '') + '<h1 class="h1">' + title + '</h1></div>' + (right || '') + '</div>' +
+      (lede ? '<p class="lede">' + lede + '</p>' : '') + '</header>';
+  }
+  function emailChip(s) {
+    s = str(s).toLowerCase();
+    if (s === 'safe') return '<span class="chip good">Email safe</span>';
+    if (!s) return '<span class="chip">Email not checked</span>';
+    return '<span class="chip warn">Email ' + esc(s) + '</span>';
+  }
+  function stageChip(st) {
+    var cls = { replied: 'accent', demo: 'good', beta: 'good', won: 'good', bounced: 'warn', dnc: 'warn', lost: '' }[st] || '';
+    return '<span class="chip ' + cls + '">' + esc(STAGE[st] || st || 'Drafted') + '</span>';
+  }
+  function labelChip(l) {
+    if (!l) return '';
+    var cls = { interested: 'good', unsubscribe: 'warn', not_now: '', wrong_person: '', out_of_office: '', other: '' }[l] || '';
+    return '<span class="chip ' + cls + '">' + esc(LABELS[l] || l) + '</span>';
+  }
+  function firstName(email) {
+    var local = str(email).split('@')[0].split(/[._-]/)[0];
+    if (!local || local.length > 12 || /^(team|bd|sales|hello|info|admin|ops|marketing|founders?|business|contact|support|office|hr|careers|tevrixmarketing)$/i.test(local)) return '';
+    return local.charAt(0).toUpperCase() + local.slice(1);
+  }
+  function nextStep(o) {
+    var s1 = toDate(o.sent_1_at);
+    if (!s1) return '';
+    if (o.stage === 'sent_1') return 'Follow-up 1 on ' + day(addDays(s1, Number(setting('FOLLOWUP_1_AFTER_DAYS')) || 4));
+    if (o.stage === 'sent_2') return 'Follow-up 2 on ' + day(addDays(s1, Number(setting('FOLLOWUP_2_AFTER_DAYS')) || 10));
+    if (o.stage === 'sent_3') return 'Finishes on ' + day(addDays(s1, Number(setting('FINISH_AFTER_DAYS')) || 15));
+    return '';
+  }
+
+  // ================================================================ screen: today
+  function homeView() {
+    var m = S.metrics, st = sendState(), c = counts();
+    var hour = new Date().getHours();
+    var hello = (hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening');
+    var name = firstName(S.me);
+    var waiting = [];
+    if (c.review) waiting.push(plural(c.review, 'draft'));
+    if (c.replies) waiting.push(plural(c.replies, 'reply', 'replies'));
+    if (c.linkedin) waiting.push(plural(c.linkedin, 'LinkedIn request'));
+    var lede = (waiting.length ? waiting.join(', ').replace(/, ([^,]*)$/, ' and $1') + ' need you. ' : 'Nothing needs you right now. ') +
+      (st.key === 'test' ? 'Sending is in test mode, so nothing reaches real people yet.' : st.key === 'paused' ? 'Sending is paused.' : 'Sending is live.');
+
+    var needs = [
+      ['review', c.review, 'Drafts to review', 'Approve or skip what Claude wrote'],
+      ['replies', c.replies, 'Replies to answer', 'Claude has drafted each answer'],
+      ['linkedin', c.linkedin, 'LinkedIn to send', 'By hand, from your own account'],
+      ['pipeline', m.approved, 'Approved, not sent', 'The next send run sends up to ' + (Number(setting('MAX_SENDS_PER_RUN')) || 3)]
+    ].map(function (n) {
+      return '<button class="need' + (n[1] ? '' : ' zero') + '" data-act="go" data-to="' + n[0] + '">' +
+        '<span class="label">' + n[2] + '</span><span class="v">' + n[1] + '</span>' +
+        '<span class="muted" style="font-size:13px">' + n[3] + '</span><span class="go">' + (n[1] ? 'Open ' + NAV[n[0]] + ' →' : 'Clear') + '</span></button>';
+    }).join('');
+
+    var bouncePause = Number(setting('BOUNCE_PAUSE_PCT')) || 3;
+    var tiles = [
+      ['Sent today', m.sentToday + '<span class="muted" style="font-size:18px;letter-spacing:-0.02em"> / ' + dailyCap() + '</span>', plural(mailboxes().length || 1, 'mailbox', 'mailboxes') + ' · ' + esc(str(setting('SEND_DAYS'))) + ' ' + esc(str(setting('SEND_START_HOUR'))) + ':00–' + esc(str(setting('SEND_END_HOUR'))) + ':00'],
+      ['Reply rate · 30 days', m.sent30 ? pct(m.replyRate30) : '—', m.sent30 ? (m.replyRate30 >= 0.03 ? '<span class="chip good">At or above 3%</span>' : '<span class="chip warn">Below the 3% target</span>') : 'No first emails in 30 days'],
+      ['Bounce rate', m.firstSent ? pct(m.bounceRate) : '—', m.bounceRate * 100 >= bouncePause ? '<span class="chip warn">Over the ' + bouncePause + '% pause line</span>' : 'Sending pauses itself at ' + bouncePause + '%'],
+      ['Interested', m.interested, plural(m.replies, 'reply', 'replies') + ' in total'],
+      ['Demos', m.demos, m.beta ? plural(m.beta, 'beta client') : 'Booked from replies'],
+      ['Paying', m.won, '$250 a month each']
+    ].map(function (t) {
+      return '<div class="tile"><span class="label">' + t[0] + '</span><span class="v">' + t[1] + '</span><span class="sub">' + t[2] + '</span></div>';
+    }).join('');
+
+    var max = Math.max.apply(null, m.funnel.map(function (f) { return f.n; }).concat([1]));
+    var funnel = m.funnel.map(function (f, i) {
+      var prev = i ? m.funnel[i - 1].n : 0;
+      var rate = i && prev ? pct(f.n / prev, 0) + ' of prev' : '';
+      return '<div class="fun-row" title="' + esc(f.label + ': ' + f.n) + '"><span class="name">' + esc(f.label) + '</span>' +
+        '<span class="bar" role="img" aria-label="' + esc(f.label + ' ' + f.n) + '"><i style="width:' + (f.n / max * 100).toFixed(1) + '%"></i></span>' +
+        '<span class="n">' + f.n + '</span><span class="rate">' + rate + '</span></div>';
+    }).join('');
+
+    return '<div class="page">' +
+      head(esc(fmtDay.format(new Date())) + ' · ' + esc(S.tz), hello + (name ? ', ' + esc(name) : '') + '.', esc(lede)) +
+      '<section class="hair needs" aria-label="Needs you">' + needs + '</section>' +
+      '<section class="hair tiles" aria-label="Numbers">' + tiles + '</section>' +
+      '<section class="grid2">' +
+        '<div class="card"><div class="card-head"><h2 class="h3">Funnel</h2><span class="label">All time</span></div><div class="funnel">' + funnel + '</div></div>' +
+        gatesCard() +
+      '</section>' +
+      '<section class="grid2">' + splitTable('Which angle is working', 'Angle', m.angles) + splitTable('Where replies come from', 'Country', m.countries) + '</section>' +
+      '<section class="card"><div class="card-head"><h2 class="h3">Recent activity</h2><button class="btn link" data-act="go" data-to="controls">Full log</button></div>' + logList(S.log.slice(0, 8)) + '</section>' +
+      '</div>';
+  }
+
+  function splitTable(title, colName, rows) {
+    if (!rows.length) return '<div class="card"><h2 class="h3">' + title + '</h2><p class="muted">Shows up once the first emails go out.</p></div>';
+    var body = rows.map(function (r) {
+      var rate = r.sent ? r.replies / r.sent : 0, early = r.sent < 20;
+      return '<tr class="' + (early ? 'early' : '') + '"><td>' + esc(r.name) + (early ? ' <span class="chip" title="Under 20 sends is too early to judge">Early</span>' : '') + '</td>' +
+        '<td class="n">' + r.sent + '</td><td class="n">' + r.replies + '</td>' +
+        '<td><div class="rate-cell"><span class="num" style="text-align:right">' + (r.sent ? pct(rate) : '—') + '</span><span class="bar thin"><i style="width:' + Math.min(100, rate / 0.1 * 100).toFixed(1) + '%"></i></span></div></td>' +
+        '<td class="n">' + r.demos + '</td></tr>';
+    }).join('');
+    return '<div class="card"><div class="card-head"><h2 class="h3">' + title + '</h2><span class="label">Bar scale 0–10%</span></div>' +
+      '<div class="table-wrap" style="border:0"><table><thead><tr><th>' + colName + '</th><th class="n">Sent</th><th class="n">Replies</th><th>Reply rate</th><th class="n">Demos</th></tr></thead><tbody>' + body + '</tbody></table></div></div>';
+  }
+
+  function gatesCard() {
+    var g = S.gates;
+    var due = toDate(g.due + 'T00:00:00'), left = due ? Math.max(0, Math.ceil((due - Date.now()) / 864e5)) : 0;
+    function meter(title, now, target, unit, met, note) {
+      var w = Math.min(100, target ? now / target * 100 : 0);
+      return '<div class="gate"><div class="gate-top"><span style="font-weight:600">' + title + '</span>' +
+        (met ? '<span class="chip good">Met</span>' : '<span class="chip">Not yet</span>') + '</div>' +
+        '<span class="bar" role="img" aria-label="' + esc(now + ' of ' + target) + '"><i style="width:' + w.toFixed(1) + '%"></i></span>' +
+        '<div class="gate-top"><span class="num" style="font-weight:700">' + now + ' / ' + target + ' ' + unit + '</span><span class="muted" style="font-size:13px">' + note + '</span></div></div>';
+    }
+    var g1met = g.g1.demos30 >= g.g1.demoTarget && g.g1.replyRate30 >= g.g1.replyTarget;
+    return '<div class="card"><div class="card-head"><h2 class="h3">Run on AI gates</h2><span class="label">' + left + ' days to ' + esc(fmtShort.format(due)) + '</span></div>' +
+      '<p class="muted" style="margin:0;font-size:14px">We sell the outreach system only after HireMinds proves it works.</p>' +
+      meter('Demos from outreach · 30 days', g.g1.demos30, g.g1.demoTarget, 'demos', g1met, 'Reply rate ' + (g.g1.sent30 ? pct(g.g1.replyRate30) : '—') + ', needs 3%') +
+      meter('Founders asking how we run on AI', g.g2.asked, g.g2.target, 'asking', g.g2.asked >= g.g2.target, 'From the waitlist') +
+      meter('Committed to pay', g.g3.committed, g.g3.target, 'founders', g.g3.committed >= g.g3.target, '₹29,999 or $599') +
+      '</div>';
+  }
+
+  var ACT = {
+    approve: 'approved', skip: 'skipped', undo: 'put back in review', edit: 'edited', to_linkedin: 'moved to LinkedIn',
+    reply_send: 'queued an answer to', reply_save: 'saved an answer to', reply_cancel: 'cancelled the answer to', stage: 'moved a lead to',
+    add_lead: 'added lead', lead_parked: 'parked', lead_new: 'reopened', linkedin: 'updated LinkedIn for', waitlist_add: 'added to waitlist',
+    waitlist: 'updated waitlist for', dnc_add: 'added to do-not-contact', setting: 'changed', run: 'ran',
+    sent_1: 'sent email 1 to', sent_2: 'sent follow-up 1 to', sent_3: 'sent follow-up 2 to', reply_in: 'got a reply from',
+    reply_sent: 'sent the answer to', bounce: 'bounced:', bounced: 'bounced:', paused: 'paused sending:', finished: 'finished',
+    // Names Code.gs writes to the Log tab
+    sent_first: 'sent email 1 to', sent_fu1: 'sent follow-up 1 to', sent_fu2: 'sent follow-up 2 to', sent_reply: 'sent the answer to',
+    reply: 'got a reply from', unsubscribe: 'unsubscribed:', out_of_office: 'out of office:', followup_skipped: 'skipped an empty follow-up:',
+    dnc_block: 'blocked (do not contact):', cap_reached: 'hit the', send_error: 'could not send:', send_blocked: 'held sending:',
+    check_error: 'could not check a thread:', auto_pause: 'paused sending (bounces):', pause: 'paused sending', resume: 'resumed sending',
+    lock_busy: 'skipped a run:', dispatch: 'started the lead search:', dispatch_error: 'could not start the lead search:',
+    daily_summary: 'sent the daily summary:', test_email: 'sent a test email to', install_triggers: 'installed the timers:',
+    cio_sync: 'synced to Customer.io:', cio_error: 'Customer.io sync failed:'
+  };
+  function logList(rows) {
+    if (!rows.length) return '<p class="muted" style="margin:0">Nothing logged yet.</p>';
+    return '<div class="log">' + rows.map(function (r) {
+      var who = str(r.mailbox).split('@')[0] || 'system';
+      var act = ACT[r.action] || str(r.action).replace(/_/g, ' ');
+      var detail = r.action === 'stage' ? (STAGE[r.detail] || r.detail) : r.detail;
+      return '<div class="log-row"><time title="' + esc(full(r.time)) + '">' + esc(rel(r.time)) + '</time><span><b>' + esc(who) + '</b> ' + esc(act) + ' ' + esc(detail) + '</span></div>';
+    }).join('') + '</div>';
+  }
+
+  // ================================================================ screen: review
+  function skippedAll() { return S ? S.outreach.filter(function (o) { return o.stage === 'skipped' && !o.sent_1_at; }) : []; }
+  function reviewList() {
+    if (ui.review.tab === 'todo') return reviewQueue();
+    var q = ui.review.q.trim().toLowerCase();
+    var base = ui.review.tab === 'approved' ? approvedAll() : skippedAll();
+    return base.filter(function (o) {
+      return !q || [o.company, o.country, o.contact_name, o.contact_title, o.angle].join(' ').toLowerCase().indexOf(q) !== -1;
+    }).sort(function (a, b) { return str(b.decided_at).localeCompare(str(a.decided_at)); });
+  }
+  function reviewView() {
+    var tab = ui.review.tab, list = reviewList(), all = draftsAll(), appr = approvedAll(), skip = skippedAll();
+    if (!list.some(function (o) { return o.lead_id === ui.review.sel; })) ui.review.sel = list.length ? list[0].lead_id : null;
+    var sel = byId(ui.review.sel);
+    var angles = {};
+    all.forEach(function (o) { if (o.angle) angles[o.angle] = 1; });
+    var tabs = '<div class="qtabs" role="tablist" aria-label="Drafts">' + [['todo', 'To review', all.length], ['approved', 'Approved', appr.length], ['skipped', 'Skipped', skip.length]].map(function (t) {
+      return '<button role="tab" aria-selected="' + (tab === t[0]) + '" class="' + (tab === t[0] ? 'on' : '') + '" data-act="review-tab" data-v="' + t[0] + '">' + t[1] + ' · <span class="num">' + t[2] + '</span></button>';
+    }).join('') + '</div>';
+    var tools = '<div class="queue-tools">' + tabs +
+      '<input type="search" placeholder="Search company, country, person" aria-label="Search" data-input="review-q" value="' + esc(ui.review.q) + '">' +
+      (tab === 'todo' ? '<div class="row"><select aria-label="Sort" data-change="review-sort"><option value="score"' + (ui.review.sort === 'score' ? ' selected' : '') + '>Best fit first</option><option value="country"' + (ui.review.sort === 'country' ? ' selected' : '') + '>By country</option></select>' +
+      '<select aria-label="Angle" data-change="review-angle"><option value="">All angles</option>' + Object.keys(angles).sort().map(function (a) { return '<option' + (ui.review.angle === a ? ' selected' : '') + '>' + esc(a) + '</option>'; }).join('') + '</select></div>' : '') +
+      '</div>';
+    var items = list.map(function (o) {
+      var safe = str(o.email_status).toLowerCase() === 'safe';
+      var right = tab === 'todo' ? '<span class="label num">' + esc(o.score) + '</span>' : '<span class="label">' + esc(rel(o.decided_at)) + '</span>';
+      var chips = tab === 'todo'
+        ? (o.angle ? '<span class="chip">' + esc(o.angle) + '</span>' : '') + (safe ? '' : '<span class="chip warn">' + esc(o.email ? (o.email_status || 'Not checked') : 'No email') + '</span>')
+        : (tab === 'approved' ? '<span class="chip good">Sends next run</span>' : (str(o.reviewer_notes).indexOf('Moved to LinkedIn') !== -1 ? '<span class="chip">On LinkedIn list</span>' : '<span class="chip">Skipped</span>'));
+      return '<button class="q-item' + (o.lead_id === ui.review.sel ? ' on' : '') + '" data-act="review-sel" data-id="' + esc(o.lead_id) + '">' +
+        '<span class="q-top"><b>' + esc(o.company) + '</b>' + right + '</span>' +
+        '<span class="q-sub">' + esc([o.country, o.contact_title || o.contact_name].filter(Boolean).join(' · ')) + '</span>' +
+        '<span class="chips">' + chips + (isDirty(o) ? '<span class="chip accent">Edited</span>' : '') + '</span></button>';
+    }).join('');
+    if (!list.length) items = '<div class="col-empty">' + (tab === 'todo' ? (all.length ? 'No drafts match.' : 'No drafts waiting.') : tab === 'approved' ? 'Nothing approved and waiting. Approved emails move to the Pipeline once sent.' : 'Nothing skipped.') + '</div>';
+    return '<div class="page">' + head('Review', 'Drafts from Claude', '') +
+      '<div class="split' + (ui.review.mobile ? ' show-detail' : '') + '"><div class="queue">' + tools + '<div class="queue-list" data-keep="rq-' + tab + '">' + items + '</div></div>' +
+      '<div class="detail" data-keep="rd-' + esc(ui.review.sel || '') + '">' + (sel ? reviewDetail(sel) : reviewEmpty(tab === 'todo' ? all.length && list.length === 0 : true)) + '</div></div></div>';
+  }
+
+  function reviewEmpty(any) {
+    var ready = S.actions && S.actions.intake && S.actions.intake.ready;
+    if (ui.review.tab !== 'todo') {
+      return '<div class="detail-body"><div class="empty"><span class="label">' + (ui.review.tab === 'approved' ? 'Approved' : 'Skipped') + '</span>' +
+        '<h2 class="h2">' + (ui.review.tab === 'approved' ? 'Nothing waiting to send.' : 'Nothing skipped.') + '</h2>' +
+        '<p class="soft">' + (ui.review.tab === 'approved' ? 'Approved emails wait here until the next send run, then move along the Pipeline.' : 'Drafts you skip land here. You can put any of them back in review.') + '</p>' +
+        '<div class="btn-row"><button class="btn quiet" data-act="review-tab" data-v="todo">Back to drafts</button><button class="btn quiet" data-act="go" data-to="pipeline">Open Pipeline</button></div></div></div>';
+    }
+    var nAppr = approvedAll().length;
+    return '<div class="detail-body"><div class="empty"><span class="label">' + (any ? 'No match' : 'All clear') + '</span>' +
+      '<h2 class="h2">' + (any ? 'No drafts match that search.' : 'Nothing to review.') + '</h2>' +
+      '<p class="soft">' + (any ? 'Clear the search or pick another angle.' : 'Claude drafts new emails after each lead run. New leads land in the Leads tab first.') + '</p>' +
+      (any ? '' : '<div class="btn-row"><button class="btn primary" data-act="run" data-a="intake"' + (ready ? '' : ' disabled') + '>Find leads now</button><button class="btn quiet" data-act="go" data-to="leads">See leads</button>' +
+        (nAppr ? '<button class="btn quiet" data-act="review-tab" data-v="approved">See ' + nAppr + ' approved</button>' : '') + '</div>') +
+      '</div></div>';
+  }
+
+  function emailChecks(o) {
+    var subj = dv(o, 'subject'), body = dv(o, 'email_1'), w = words(body);
+    var co = str(o.company).toLowerCase().split(/\s+/)[0] || '';
+    return [
+      [subj.length > 0 && subj.length <= 60, 'Subject ' + subj.length + ' chars', 'Under 60 shows in full on a phone'],
+      [w > 0 && w <= 90, w + ' words', 'Email 1 stays at 90 words or fewer'],
+      [!/https?:\/\/|www\./i.test(body), 'No links', 'Links in a first email hurt delivery'],
+      [!co || body.toLowerCase().indexOf(co) !== -1, 'Names the company', 'Shows the email was written for them'],
+      [/\?/.test(body), 'Asks a question', 'One clear question to reply to'],
+      [!/!/.test(subj + body), 'No exclamation marks', 'Tevrix voice']
+    ];
+  }
+  function checksHtml(o) {
+    return emailChecks(o).map(function (c) {
+      return '<span class="chip ' + (c[0] ? 'good' : 'warn') + '" title="' + esc(c[2]) + '">' + (c[0] ? '✓ ' : '! ') + esc(c[1]) + '</span>';
+    }).join('');
+  }
+
+  function field(o, f, label, opts) {
+    opts = opts || {};
+    var v = dv(o, f), id = 'f-' + f;
+    var counter = '';
+    if (opts.count === 'chars') counter = '<span class="count' + (opts.limit && v.length > opts.limit ? ' over' : '') + '" data-count="' + f + '">' + v.length + (opts.limit ? ' / ' + opts.limit : '') + ' chars</span>';
+    if (opts.count === 'words') counter = '<span class="count" data-count="' + f + '">' + words(v) + ' words</span>';
+    var lock = opts.locked ? ' readonly' : '';
+    var input = opts.line
+      ? '<input id="' + id + '" type="text" data-draft="' + f + '" value="' + esc(v) + '"' + lock + '>'
+      : '<textarea id="' + id + '" data-auto data-draft="' + f + '" rows="' + (opts.rows || 4) + '"' + lock + '>' + esc(v) + '</textarea>';
+    return '<div class="field"><div class="field-top"><label class="label" for="' + id + '">' + label + '</label>' + counter + '</div>' + input +
+      (opts.note ? '<span class="muted" style="font-size:13px">' + opts.note + '</span>' : '') + '</div>';
+  }
+
+  function reviewDetail(o) {
+    if (!o._full) {
+      var want = o.lead_id;
+      call('uiGetRow', want).then(function (r) { upsert(r); }).catch(function (e) { toast(msg(e), { err: true }); });
+      return '<div class="detail-body"><div class="skel" style="height:28px;width:50%"></div><div class="skel" style="height:90px"></div><div class="skel" style="height:220px"></div></div>';
+    }
+    var lead = leadOf(o.lead_id) || {};
+    var safe = str(o.email_status).toLowerCase() === 'safe';
+    var blocked = !o.email ? 'No email address was found for this person.' : !safe ? 'The address checked as "' + (o.email_status || 'not checked') + '", so it will not be emailed. Send it on LinkedIn instead.' : '';
+    var site = lead.website || (lead.domain ? 'https://' + lead.domain : '');
+    var f1 = Number(setting('FOLLOWUP_1_AFTER_DAYS')) || 4, f2 = Number(setting('FOLLOWUP_2_AFTER_DAYS')) || 10;
+    var dirty = isDirty(o);
+    var isDraft = (!o.stage || o.stage === 'drafted') && !o.decision;
+    var facts = [
+      ['Contact', [o.contact_name, o.contact_title].filter(Boolean).join(', ') || '—'],
+      ['Email', o.email || '—'],
+      ['Open roles', lead.open_roles ? lead.open_roles + (lead.roles_sample ? ' · ' + lead.roles_sample : '') : '—'],
+      ['Size', lead.company_size || '—']
+    ].map(function (f) { return '<div class="fact"><span class="label">' + f[0] + '</span><span class="val">' + esc(f[1]) + '</span></div>'; }).join('');
+
+    var editor;
+    if (ui.review.view === 'sent') editor = asSent(o);
+    else editor =
+      field(o, 'subject', 'Subject', { line: true, count: 'chars' }) +
+      field(o, 'email_1', 'Email 1', { count: 'words', rows: 8 }) +
+      '<div class="checks" data-checks>' + checksHtml(o) + '</div>' +
+      field(o, 'follow_up_1', 'Follow-up 1 · day ' + f1, { count: 'words', rows: 4 }) +
+      field(o, 'follow_up_2', 'Follow-up 2 · day ' + f2, { count: 'words', rows: 4 }) +
+      field(o, 'linkedin_note', 'LinkedIn note', { count: 'chars', limit: LI_LIMIT, rows: 3, note: 'Used if you move this lead to LinkedIn.' }) +
+      field(o, 'reviewer_notes', 'Your notes', { rows: 2, note: 'Claude reads these on its next run and learns from them.' });
+
+    return '<div class="detail-body" data-lead="' + esc(o.lead_id) + '">' +
+      '<div style="display:grid;gap:10px"><button class="btn link back" data-act="review-back">← All drafts</button>' +
+        '<div class="page-head-row" style="align-items:flex-start"><div style="display:grid;gap:8px;min-width:0"><h2 class="h2">' + esc(o.company) + '</h2>' +
+        '<div class="meta"><span>' + esc(o.country || '') + '</span>' + (site ? '<span><a href="' + esc(site) + '" target="_blank" rel="noopener">' + esc(lead.domain || site) + ' ↗</a></span>' : '') + '<span class="mono" style="font-size:12px">' + esc(o.lead_id) + '</span></div></div>' +
+        '<div class="chips">' + (o.angle ? '<span class="chip accent">' + esc(o.angle) + '</span>' : '') + emailChip(o.email_status) + '<span class="chip">Fit ' + esc(o.score) + '</span></div></div></div>' +
+      reviewStatus(o) +
+      (blocked && isDraft ? '<div class="notice warn"><b>Email is off for this lead.</b><span class="soft">' + esc(blocked) + '</span></div>' : '') +
+      '<div class="why"><span class="label">Why now</span><span>' + esc(o.signal || lead.signal || '—') + '</span>' + (o.fit_reason ? '<span class="soft" style="font-size:14px">' + esc(o.fit_reason) + '</span>' : '') + '</div>' +
+      '<div class="hair facts">' + facts + '</div>' +
+      (o.dossier ? '<details class="fold"><summary><span class="label">Claude’s research notes</span></summary><div class="fold-body pre soft" style="font-size:14px">' + esc(o.dossier) + '</div></details>' : '') +
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><h3 class="h3">The emails</h3><div class="tabs" role="tablist"><button role="tab" data-act="review-view" data-v="edit" class="' + (ui.review.view === 'edit' ? 'on' : '') + '">Edit</button><button role="tab" data-act="review-view" data-v="sent" class="' + (ui.review.view === 'sent' ? 'on' : '') + '">As sent</button></div></div>' +
+      editor +
+      '</div>' +
+      '<div class="actionbar">' +
+      (isDraft ?
+        '<button class="btn primary" data-act="approve" data-id="' + esc(o.lead_id) + '"' + (blocked ? ' disabled' : '') + '>Approve <span class="k">A</span></button>' +
+        '<button class="btn" data-act="skip" data-id="' + esc(o.lead_id) + '">Skip <span class="k">S</span></button>' +
+        '<button class="btn' + (blocked ? ' primary' : ' quiet') + '" data-act="to-li" data-id="' + esc(o.lead_id) + '">Send on LinkedIn <span class="k">L</span></button>'
+      : '<button class="btn" data-act="undo" data-id="' + esc(o.lead_id) + '">Back to review</button>' +
+        (o.stage === 'approved' ? '<button class="btn quiet" data-act="view-pipe" data-id="' + esc(o.lead_id) + '">See it in Pipeline</button>' : '')) +
+        '<span class="spacer"></span>' +
+        '<span class="label" data-dirty>' + (dirty ? 'Unsaved edits' : '') + '</span>' +
+        '<button class="btn quiet" data-act="save-draft" data-id="' + esc(o.lead_id) + '">Save</button>' +
+      '</div>';
+  }
+
+  function reviewStatus(o) {
+    if (o.stage === 'approved') {
+      return '<div class="notice good"><b>Approved ' + esc(rel(o.decided_at)) + '.</b><span class="soft">It goes out on the next send run from ' + esc(str(setting('SEND_AS')) || o.mailbox || 'the outreach address') +
+        (bool(setting('TEST_MODE')) ? ', to the test inbox while test mode is on' : '') + '. You can still edit it until then.</span></div>';
+    }
+    if (o.stage === 'skipped') {
+      var li = str(o.reviewer_notes).indexOf('Moved to LinkedIn') !== -1;
+      return '<div class="notice"><b>Skipped ' + esc(rel(o.decided_at)) + '.</b><span class="soft">' + (li ? 'This person is on your LinkedIn list instead.' : 'Nobody will email this lead.') + ' Put it back in review to change your mind.</span></div>';
+    }
+    return '';
+  }
+
+  function asSent(o) {
+    var test = bool(setting('TEST_MODE'));
+    var from = str(setting('SEND_AS')) || o.mailbox || mailboxes()[0] || 'team@';
+    var sig = [setting('SENDER_NAME'), setting('SENDER_TITLE'), setting('COMPANY_LINE'), setting('SIG_WEBSITE'), setting('SIG_LINKEDIN')]
+      .concat(bool(setting('WHATSAPP_ON_ALL_EMAILS')) ? [setting('SIG_WHATSAPP')] : []).map(str).filter(Boolean);
+    function mail(label, subject, body) {
+      return '<div class="mail"><div class="mail-head"><span class="label">' + label + '</span>' +
+        '<div><span class="muted">From</span><span>' + esc(str(setting('SENDER_NAME'))) + ' &lt;' + esc(from) + '&gt;</span></div>' +
+        '<div><span class="muted">To</span><span>' + (test ? esc(setting('TEST_RECIPIENT')) + ' <span class="chip warn">Test mode</span>' : esc(o.email)) + '</span></div>' +
+        '<div><span class="muted">Subject</span><b>' + esc(subject) + '</b></div></div>' +
+        '<div class="mail-body"><div class="pre">' + esc(body) + '</div>' +
+        '<div class="mail-sig pre">' + esc(sig.join('\n')) + '</div>' +
+        '<div class="mail-foot">' + esc(str(setting('POSTAL_ADDRESS')) || 'Postal address goes here (Settings › POSTAL_ADDRESS)') + '<br>Logo and one-click unsubscribe link are added when sent</div></div></div>';
+    }
+    var s = dv(o, 'subject');
+    return mail('Email 1', s, dv(o, 'email_1')) + mail('Follow-up 1 · same thread', 'Re: ' + s, dv(o, 'follow_up_1')) + mail('Follow-up 2 · same thread', 'Re: ' + s, dv(o, 'follow_up_2'));
+  }
+
+  // ================================================================ screen: replies
+  function repliesView() {
+    var open = repliesOpen(), done = repliesDone();
+    var all = open.concat(done);
+    if (!all.some(function (o) { return o.lead_id === ui.replies.sel; })) ui.replies.sel = open.length ? open[0].lead_id : (done.length ? done[0].lead_id : null);
+    var sel = byId(ui.replies.sel);
+    function item(o) {
+      return '<button class="q-item' + (o.lead_id === ui.replies.sel ? ' on' : '') + '" data-act="reply-sel" data-id="' + esc(o.lead_id) + '">' +
+        '<span class="q-top"><b>' + esc(o.contact_name || o.company) + '</b><span class="label">' + esc(rel(o.replied_at)) + '</span></span>' +
+        '<span class="q-sub">' + esc(o.company) + ' · ' + esc(o.country || '') + '</span>' +
+        '<span class="chips">' + labelChip(o.reply_label) + (o.reply_decision === 'send' && !o.reply_sent_at ? '<span class="chip accent">Queued</span>' : '') + (o.reply_sent_at ? '<span class="chip">Answered</span>' : '') + (o.stage !== 'replied' ? stageChip(o.stage) : '') + '</span></button>';
+    }
+    var list = (open.length ? open.map(item).join('') : '<div class="col-empty">No replies waiting.</div>') +
+      (done.length ? '<div class="q-group"><span class="label">Handled · ' + done.length + '</span></div>' + done.map(item).join('') : '');
+    return '<div class="page">' + head('Replies', 'People who wrote back', '') +
+      '<div class="split' + (ui.replies.mobile ? ' show-detail' : '') + '"><div class="queue"><div class="queue-list" data-keep="pq">' + list + '</div></div>' +
+      '<div class="detail" data-keep="pd-' + esc(ui.replies.sel || '') + '">' + (sel ? replyDetail(sel) : '<div class="detail-body"><div class="empty"><span class="label">All clear</span><h2 class="h2">No replies yet.</h2><p class="soft">Replies are checked every few minutes. Claude labels each one and drafts an answer for you to approve.</p></div></div>') + '</div></div></div>';
+  }
+
+  function replyDetail(o) {
+    if (!o._full) {
+      call('uiGetRow', o.lead_id).then(function (r) { upsert(r); });
+      return '<div class="detail-body"><div class="skel" style="height:28px;width:50%"></div><div class="skel" style="height:140px"></div></div>';
+    }
+    var queued = o.reply_decision === 'send' && !o.reply_sent_at, sent = !!o.reply_sent_at;
+    var labels = Object.keys(LABELS).map(function (k) {
+      return '<button class="chip' + (o.reply_label === k ? ' on' : '') + '" data-act="set-label" data-id="' + esc(o.lead_id) + '" data-label="' + k + '"' + (o.reply_label === k ? ' aria-pressed="true"' : '') + '>' + LABELS[k] + '</button>';
+    }).join('');
+    var outcomes = [['demo', 'Demo booked'], ['beta', 'Beta client'], ['won', 'Paying'], ['finished', 'Not now'], ['lost', 'Lost']].map(function (s) {
+      return '<button class="btn small' + (o.stage === s[0] ? '' : ' quiet') + '" data-act="set-stage" data-id="' + esc(o.lead_id) + '" data-stage="' + s[0] + '"' + (o.stage === s[0] ? ' aria-pressed="true"' : '') + '>' + s[1] + '</button>';
+    }).join('') + '<button class="btn small danger" data-arm data-act="set-stage" data-id="' + esc(o.lead_id) + '" data-stage="dnc">Do not contact</button>';
+    var booking = str(setting('BOOKING_LINK'));
+    return '<div class="detail-body" data-lead="' + esc(o.lead_id) + '">' +
+      '<div style="display:grid;gap:10px"><button class="btn link back" data-act="reply-back">← All replies</button>' +
+      '<div class="page-head-row" style="align-items:flex-start"><div style="display:grid;gap:8px;min-width:0"><h2 class="h2">' + esc(o.contact_name || o.company) + '</h2>' +
+      '<div class="meta"><span>' + esc([o.contact_title, o.company].filter(Boolean).join(' · ')) + '</span><span>' + esc(o.country || '') + '</span><span class="mono" style="font-size:12px">' + esc(o.email) + '</span></div></div>' +
+      '<div class="chips">' + stageChip(o.stage) + '</div></div></div>' +
+      (o.reply_label === 'unsubscribe' && o.stage !== 'dnc' ? '<div class="notice warn"><b>They asked to stop.</b><span class="soft">Mark them as do not contact. They will never be emailed again.</span><div><button class="btn small danger" data-act="set-stage" data-id="' + esc(o.lead_id) + '" data-stage="dnc">Mark do not contact</button></div></div>' : '') +
+      '<div style="display:grid;gap:8px"><span class="label">Their reply · ' + esc(full(o.replied_at)) + '</span><blockquote class="their pre">' + esc(o.reply_text || '(No text captured. Open the thread in Gmail.)') + '</blockquote></div>' +
+      '<div style="display:grid;gap:8px"><span class="label">Claude read it as</span><div class="chips">' + labels + '</div></div>' +
+      (sent ? '<div class="notice good"><b>Answered ' + esc(rel(o.reply_sent_at)) + '.</b><span class="soft pre">' + esc(o.reply_draft) + '</span></div>'
+        : field(o, 'reply_draft', 'Your answer', { count: 'words', rows: 7, note: queued ? '' : 'Goes out from ' + esc(str(setting('SEND_AS')) || o.mailbox || 'the same mailbox') + ' in the same thread.' }) +
+          (booking ? '<div><button class="btn small quiet" data-act="insert-booking" data-id="' + esc(o.lead_id) + '">Add booking link</button></div>' : '') +
+          (queued ? '<div class="notice"><b>Queued.</b><span class="soft">It goes out on the next send run' + (bool(setting('TEST_MODE')) ? ', to the test inbox while test mode is on' : '') + '.</span></div>' : '')) +
+      '<div style="display:grid;gap:8px"><span class="label">Where this lead stands</span><div class="btn-row">' + outcomes + '</div></div>' +
+      '<details class="fold"><summary><span class="label">What we sent · ' + esc(o.subject || '') + '</span></summary><div class="fold-body pre soft" style="font-size:14px">' + esc(o.email_1 || '') + '</div></details>' +
+      '</div>' +
+      (sent ? '' : '<div class="actionbar">' +
+        (queued ? '<button class="btn" data-act="reply-cancel" data-id="' + esc(o.lead_id) + '">Cancel send</button>'
+          : '<button class="btn primary" data-act="reply-send" data-id="' + esc(o.lead_id) + '">Send answer</button>') +
+        '<span class="spacer"></span><span class="label" data-dirty>' + (isDirty(o, ['reply_draft']) ? 'Unsaved edits' : '') + '</span>' +
+        '<button class="btn quiet" data-act="reply-save" data-id="' + esc(o.lead_id) + '">Save</button></div>');
+  }
+
+  // ================================================================ screen: pipeline
+  var PRICE_USD = 250;
+  var SEQ = ['approved', 'sent_1', 'sent_2', 'sent_3'];
+  var CONV = ['replied', 'demo', 'beta', 'won'];
+  var CLOSED = ['finished', 'lost', 'bounced', 'skipped', 'dnc'];
+  var COL_NAME = { approved: 'Approved', sent_1: 'Email 1 sent', sent_2: 'Follow-up 1 sent', sent_3: 'Follow-up 2 sent', replied: 'Replied', demo: 'Demo booked', beta: 'Beta client', won: 'Paying' };
+  var ORDER = { approved: 1, sent_1: 2, sent_2: 3, sent_3: 4, replied: 5, demo: 6, beta: 7, won: 8, finished: 9, lost: 10, bounced: 11, skipped: 12, dnc: 13 };
+
+  function daysSince(v) { var d = toDate(v); return d ? (Date.now() - d.getTime()) / 864e5 : null; }
+  function lastTouch(o) {
+    return [o.stage_at, o.reply_sent_at, o.replied_at, o.bounced_at, o.sent_3_at, o.sent_2_at, o.sent_1_at, o.decided_at]
+      .filter(Boolean).sort().pop() || '';
+  }
+  function ago(days) { return days < 1 / 24 ? 'under 1 h' : days < 1 ? Math.floor(days * 24) + ' h' : Math.floor(days) + ' d'; }
+  // What happens next for a lead in the automatic sequence, and when.
+  function nextInfo(o) {
+    if (o.stage === 'approved') {
+      var age = daysSince(o.decided_at) || 0;
+      return { text: age > 1 ? 'Not sent yet · ' + ago(age) : 'Sends next run', late: age > 1, due: toDate(o.decided_at) };
+    }
+    var s1 = toDate(o.sent_1_at);
+    var steps = { sent_1: ['Follow-up 1', 'FOLLOWUP_1_AFTER_DAYS', 4], sent_2: ['Follow-up 2', 'FOLLOWUP_2_AFTER_DAYS', 10], sent_3: ['Finishes', 'FINISH_AFTER_DAYS', 15] };
+    var st = steps[o.stage];
+    if (!s1 || !st) return null;
+    var due = addDays(s1, Number(setting(st[1])) || st[2]);
+    var diff = (due.getTime() - Date.now()) / 864e5;
+    var when = diff < -2 ? 'overdue ' + Math.floor(-diff) + ' d' : diff < 0 ? 'due now' : diff < 1 ? 'today' : diff < 2 ? 'tomorrow' : day(due);
+    return { text: st[0] + ' ' + when, late: diff < -2, due: due };
+  }
+  // Anything on a card that is waiting on a founder, or looks stuck.
+  function attention(o) {
+    if (o.stage === 'replied' && !o.reply_sent_at && o.reply_decision !== 'send') {
+      var d = daysSince(o.replied_at) || 0;
+      return { kind: 'reply', text: 'Waiting on you · ' + ago(d), urgent: d >= 1 };
+    }
+    if (o.stage === 'demo' || o.stage === 'beta') {
+      var q = daysSince(lastTouch(o));
+      if (q !== null && q >= 10) return { kind: 'stale', text: 'No update · ' + Math.floor(q) + ' d', urgent: true };
+    }
+    var n = nextInfo(o);
+    if (n && n.late) return { kind: 'late', text: n.text, urgent: true };
+    return null;
+  }
+  function statusLine(o) {
+    var a = attention(o);
+    if (a) return '<span class="pc-flag' + (a.urgent ? ' warn' : '') + '">' + esc(a.text) + '</span>';
+    if (o.stage === 'replied') return '<span class="pc-next">' + (o.reply_decision === 'send' && !o.reply_sent_at ? 'Answer queued' : 'Answered ' + esc(rel(o.reply_sent_at))) + '</span>';
+    var n = nextInfo(o);
+    if (n) return '<span class="pc-next">' + esc(n.text) + '</span>';
+    var lt = lastTouch(o);
+    return '<span class="pc-next">' + (lt ? 'Since ' + esc(fmtShort.format(toDate(lt))) : '') + '</span>';
+  }
+  function ticks(o) {
+    var n = ['sent_1_at', 'sent_2_at', 'sent_3_at'].filter(function (k) { return o[k]; }).length;
+    return '<span class="ticks" title="' + n + ' of 3 emails sent" aria-label="' + n + ' of 3 emails sent">' +
+      [0, 1, 2].map(function (i) { return '<i class="' + (i < n ? 'on' : '') + '"></i>'; }).join('') + '</span>';
+  }
+  function pcard(o) {
+    var a = attention(o);
+    var drag = isDesktop() ? ' draggable="true" data-drag="' + esc(o.lead_id) + '"' : '';
+    return '<div class="pcard' + (a && a.urgent ? ' urgent' : '') + (ui.flash === o.lead_id ? ' flash' : '') + '" role="button" tabindex="0"' + drag + ' data-act="open-row" data-id="' + esc(o.lead_id) + '">' +
+      '<span class="pc-top"><b>' + esc(o.company) + '</b><span class="pc-cc">' + esc(o.country || '') + '</span></span>' +
+      '<span class="pc-who">' + esc([o.contact_name, o.contact_title].filter(Boolean).join(' · ') || '—') + '</span>' +
+      (CLOSED.indexOf(o.stage) !== -1 ? '<span class="chips">' + stageChip(o.stage) + '</span>' : CONV.indexOf(o.stage) !== -1 && o.reply_label ? '<span class="chips">' + labelChip(o.reply_label) + '</span>' : '') +
+      '<span class="pc-foot">' + ticks(o) + statusLine(o) + '</span>' +
+      (o.angle ? '<span class="pc-angle">' + esc(o.angle) + '</span>' : '') + '</div>';
+  }
+  function sortCol(stage, list) {
+    var by = {
+      approved: function (a, b) { return str(a.decided_at).localeCompare(str(b.decided_at)); },
+      replied: function (a, b) { return (attention(b) ? 1 : 0) - (attention(a) ? 1 : 0) || str(b.replied_at).localeCompare(str(a.replied_at)); },
+      demo: function (a, b) { return lastTouch(a).localeCompare(lastTouch(b)); }
+    };
+    by.beta = by.demo; by.won = by.demo;
+    var seq = function (a, b) { var x = nextInfo(a), y = nextInfo(b); return (x && x.due ? x.due.getTime() : 0) - (y && y.due ? y.due.getTime() : 0); };
+    return list.slice().sort(by[stage] || seq);
+  }
+  function colSub(stage, n) {
+    var m = S.metrics;
+    return {
+      approved: 'Next run sends up to ' + (Number(setting('MAX_SENDS_PER_RUN')) || 3),
+      sent_1: 'Follow-up 1 after ' + (Number(setting('FOLLOWUP_1_AFTER_DAYS')) || 4) + ' days',
+      sent_2: 'Follow-up 2 after ' + (Number(setting('FOLLOWUP_2_AFTER_DAYS')) || 10) + ' days',
+      sent_3: 'Finishes after ' + (Number(setting('FINISH_AFTER_DAYS')) || 15) + ' days',
+      replied: m.firstSent ? pct(m.replyRate) + ' of first emails' : 'No first emails yet',
+      demo: n ? '$' + (n * PRICE_USD).toLocaleString() + '/mo if all convert' : 'Book from replies',
+      beta: 'Free first month',
+      won: '$' + (n * PRICE_USD).toLocaleString() + '/mo'
+    }[stage];
+  }
+  function pipeRows() {
+    var q = ui.pipe.q.trim().toLowerCase();
+    return S.outreach.filter(function (o) {
+      if (!ORDER[o.stage]) return false;
+      if (ui.pipe.angle && o.angle !== ui.pipe.angle) return false;
+      if (ui.pipe.country && o.country !== ui.pipe.country) return false;
+      if (ui.pipe.needs && !attention(o)) return false;
+      return !q || [o.company, o.contact_name, o.country, o.angle, o.email].join(' ').toLowerCase().indexOf(q) !== -1;
+    });
+  }
+  function laneHtml(stages, rows, conv) {
+    return '<div class="lane">' + stages.map(function (st) {
+      var list = sortCol(st, rows.filter(function (o) { return o.stage === st; }));
+      return '<section class="col" aria-label="' + COL_NAME[st] + '"' + (conv ? ' data-drop="' + st + '"' : '') + '>' +
+        '<div class="col-head"><span class="label" style="color:var(--ink)">' + COL_NAME[st] + '<span class="sub">' + esc(colSub(st, list.length)) + '</span></span><span class="col-n num">' + list.length + '</span></div>' +
+        '<div class="col-list scroll" data-keep="pc-' + st + '" tabindex="-1">' + (list.length ? list.map(pcard).join('') : '<div class="col-empty">' + (conv ? 'Drop a card here' : 'None') + '</div>') + '</div>' +
+        (list.length > 4 ? '<div class="col-foot">' + list.length + ' cards · scroll</div>' : '') +
+        '</section>';
+    }).join('') + '</div>';
+  }
+  function sortHead(k, label, cls) {
+    var on = ui.pipe.sort.k === k;
+    return '<th' + (cls ? ' class="' + cls + '"' : '') + ' aria-sort="' + (on ? (ui.pipe.sort.dir > 0 ? 'ascending' : 'descending') : 'none') + '"><button class="th-sort' + (on ? ' on' : '') + '" data-act="pipe-sort" data-k="' + k + '">' + label + (on ? (ui.pipe.sort.dir > 0 ? ' ↑' : ' ↓') : '') + '</button></th>';
+  }
+  function listHtml(rows) {
+    var k = ui.pipe.sort.k, dir = ui.pipe.sort.dir;
+    var val = {
+      company: function (o) { return str(o.company).toLowerCase(); },
+      stage: function (o) { return ORDER[o.stage] || 99; },
+      last: function (o) { return lastTouch(o); },
+      next: function (o) { var n = nextInfo(o); return n && n.due ? n.due.toISOString() : 'z'; },
+      country: function (o) { return str(o.country).toLowerCase(); },
+      angle: function (o) { return str(o.angle).toLowerCase(); }
+    }[k];
+    rows = rows.slice().sort(function (a, b) { var x = val(a), y = val(b); return (x < y ? -1 : x > y ? 1 : 0) * dir; });
+    if (!rows.length) return '<div class="card"><p class="muted" style="margin:0">No leads match.</p></div>';
+    return '<div class="table-wrap"><table class="ptable"><thead><tr>' + sortHead('company', 'Company') + sortHead('stage', 'Stage') + '<th>Emails</th>' +
+      sortHead('next', 'Next') + sortHead('last', 'Last touch') + sortHead('country', 'Country') + sortHead('angle', 'Angle') + '</tr></thead><tbody>' +
+      rows.slice(0, 300).map(function (o) {
+        return '<tr class="prow" data-act="open-row" data-id="' + esc(o.lead_id) + '" tabindex="0" role="button">' +
+          '<td><b>' + esc(o.company) + '</b><br><span class="muted" style="font-size:13px">' + esc([o.contact_name, o.contact_title].filter(Boolean).join(' · ')) + '</span></td>' +
+          '<td>' + stageChip(o.stage) + (o.reply_label ? ' ' + labelChip(o.reply_label) : '') + '</td><td>' + ticks(o) + '</td>' +
+          '<td>' + statusLine(o) + '</td><td class="muted" style="white-space:nowrap">' + esc(rel(lastTouch(o))) + '</td>' +
+          '<td>' + esc(o.country) + '</td><td class="muted">' + esc(o.angle) + '</td></tr>';
+      }).join('') + '</tbody></table></div>' + (rows.length > 300 ? '<p class="muted">Showing 300 of ' + rows.length + '. Search or filter to narrow it.</p>' : '');
+  }
+  var SHORT = { approved: 'Approved', sent_1: 'Email 1', sent_2: 'Follow-up 1', sent_3: 'Follow-up 2', replied: 'Replied', demo: 'Demo', beta: 'Beta', won: 'Paying', closed: 'Closed' };
+  function phoneStages(rows) {
+    var groups = [['Sequence', SEQ], ['Conversations', CONV], ['', ['closed']]];
+    var count = function (st) { return rows.filter(function (o) { return st === 'closed' ? CLOSED.indexOf(o.stage) !== -1 : o.stage === st; }).length; };
+    var flag = function (st) { return rows.some(function (o) { return o.stage === st && attention(o); }); };
+    if (!ui.pipe.mstage) {
+      ui.pipe.mstage = rows.some(function (o) { return o.stage === 'replied' && attention(o); }) ? 'replied'
+        : (SEQ.concat(CONV).filter(function (st) { return count(st); })[0] || 'approved');
+    }
+    var cur = ui.pipe.mstage;
+    var strip = '<div class="stage-strip" role="tablist" aria-label="Stages">' + groups.map(function (g) {
+      return (g[0] === 'Sequence' ? '' : '<span class="strip-sep" aria-hidden="true"></span>') + g[1].map(function (st) {
+        var n = count(st), name = SHORT[st];
+        return '<button role="tab" aria-selected="' + (cur === st) + '" class="stage-chip' + (cur === st ? ' on' : '') + (n ? '' : ' none') + '" data-act="pipe-mstage" data-v="' + st + '">' +
+          '<span class="sc-name">' + name + (flag(st) ? '<span class="dot test" aria-label="needs you"></span>' : '') + '</span><span class="sc-n num">' + n + '</span></button>';
+      }).join('');
+    }).join('') + '</div>';
+    var list = cur === 'closed'
+      ? rows.filter(function (o) { return CLOSED.indexOf(o.stage) !== -1; }).sort(function (a, b) { return lastTouch(b).localeCompare(lastTouch(a)); })
+      : sortCol(cur, rows.filter(function (o) { return o.stage === cur; }));
+    var name = cur === 'closed' ? 'Closed' : COL_NAME[cur];
+    var sub = cur === 'closed' ? 'Finished, lost, bounced, skipped and do not contact' : colSub(cur, list.length);
+    var tip = CONV.indexOf(cur) !== -1 ? 'Tap a card to move it to another stage.' : cur === 'closed' ? '' : 'These move on their own.';
+    return strip +
+      '<section class="mstage" aria-label="' + esc(name) + '"><div class="col-head"><span class="label" style="color:var(--ink)">' + esc(name) + '<span class="sub">' + esc(sub) + '</span></span><span class="col-n num">' + list.length + '</span></div>' +
+      '<div class="col-list">' + (list.length ? list.map(pcard).join('') : '<div class="col-empty">Nothing here' + (ui.pipe.q || ui.pipe.needs || ui.pipe.angle || ui.pipe.country ? ' with these filters' : '') + '.</div>') + '</div>' +
+      (tip && list.length ? '<p class="muted mtip">' + tip + '</p>' : '') + '</section>';
+  }
+
+  function pipelineView() {
+    var phone = !isDesktop();
+    var all = S.outreach.filter(function (o) { return ORDER[o.stage]; });
+    var rows = pipeRows();
+    var flagged = all.filter(function (o) { return attention(o); });
+    var kinds = { reply: 0, stale: 0, late: 0 };
+    flagged.forEach(function (o) { kinds[attention(o).kind]++; });
+    var angles = {}, countries = {};
+    all.forEach(function (o) { if (o.angle) angles[o.angle] = 1; if (o.country) countries[o.country] = 1; });
+    function opts(obj, cur, none) {
+      return '<option value="">' + none + '</option>' + Object.keys(obj).sort().map(function (v) { return '<option' + (cur === v ? ' selected' : '') + '>' + esc(v) + '</option>'; }).join('');
+    }
+    var open = all.filter(function (o) { return CLOSED.indexOf(o.stage) === -1; }).length;
+    var mrr = S.metrics.won * PRICE_USD;
+    var nFilters = (ui.pipe.angle ? 1 : 0) + (ui.pipe.country ? 1 : 0);
+    var mbar = '<div class="pipe-mbar">' +
+      '<div class="pipe-mbar-row"><input type="search" placeholder="Search" aria-label="Search the pipeline" data-input="pipe-q" value="' + esc(ui.pipe.q) + '" style="flex:1 1 150px;width:auto">' +
+      '<button class="chip' + (ui.pipe.needs ? ' on' : '') + '" data-act="pipe-needs" aria-pressed="' + ui.pipe.needs + '">Needs you · ' + flagged.length + '</button>' +
+      '<button class="chip' + (ui.pipe.filters || nFilters ? ' on' : '') + '" data-act="pipe-filters" aria-expanded="' + !!ui.pipe.filters + '">Filter' + (nFilters ? ' · ' + nFilters : '') + '</button></div>' +
+      (ui.pipe.needs || nFilters || ui.pipe.q ? '<div class="pipe-mbar-row"><span class="muted" style="font-size:13px">Filtered</span><button class="btn link" data-act="pipe-clear">Clear all</button></div>' : '') +
+      (ui.pipe.filters ? '<div class="pipe-mbar-row"><select aria-label="Angle" data-change="pipe-angle">' + opts(angles, ui.pipe.angle, 'All angles') + '</select>' +
+        '<select aria-label="Country" data-change="pipe-country">' + opts(countries, ui.pipe.country, 'All countries') + '</select></div>' : '') + '</div>';
+    var bar = '<div class="pipe-bar">' +
+      '<div class="tabs" role="tablist" aria-label="View"><button role="tab" class="' + (ui.pipe.view === 'board' ? 'on' : '') + '" data-act="pipe-view" data-v="board">Board</button><button role="tab" class="' + (ui.pipe.view === 'list' ? 'on' : '') + '" data-act="pipe-view" data-v="list">List</button></div>' +
+      '<button class="chip' + (ui.pipe.needs ? ' on' : '') + '" data-act="pipe-needs" aria-pressed="' + ui.pipe.needs + '">Needs you · ' + flagged.length + '</button>' +
+      '<select aria-label="Angle" data-change="pipe-angle" style="width:auto">' + opts(angles, ui.pipe.angle, 'All angles') + '</select>' +
+      '<select aria-label="Country" data-change="pipe-country" style="width:auto">' + opts(countries, ui.pipe.country, 'All countries') + '</select>' +
+      '<input type="search" class="search" placeholder="Search company or person" aria-label="Search the pipeline" data-input="pipe-q" value="' + esc(ui.pipe.q) + '" style="flex:1 1 200px">' +
+      (ui.pipe.needs || ui.pipe.angle || ui.pipe.country || ui.pipe.q ? '<button class="btn link" data-act="pipe-clear">Clear</button>' : '') + '</div>';
+    var parts = [];
+    if (kinds.reply) parts.push(plural(kinds.reply, 'reply is', 'replies are') + ' waiting on you');
+    if (kinds.stale) parts.push(plural(kinds.stale, 'deal has', 'deals have') + ' had no update in 10+ days');
+    if (kinds.late) parts.push(plural(kinds.late, 'email is', 'emails are') + ' late, so check sending is on');
+    var notice = parts.length && !ui.pipe.needs ? '<div class="notice warn"><span>' + esc(parts.join('. ').replace(/^./, function (c) { return c.toUpperCase(); })) + '.</span>' + (phone ? '' : '<div><button class="btn small" data-act="pipe-needs">Show only these</button></div>') + '</div>' : '';
+
+    var body;
+    if (phone) body = phoneStages(rows);
+    else if (ui.pipe.view === 'list') body = listHtml(rows);
+    else {
+      var closed = rows.filter(function (o) { return CLOSED.indexOf(o.stage) !== -1; });
+      var byClosed = {};
+      closed.forEach(function (o) { byClosed[o.stage] = (byClosed[o.stage] || 0) + 1; });
+      body =
+        '<section class="band"><div class="band-head"><div><h2 class="h3">Sequence</h2><span class="muted" style="font-size:13px">Runs by itself. Follow-ups stop the moment someone replies.</span></div></div>' + laneHtml(SEQ, rows, false) + '</section>' +
+        '<section class="band"><div class="band-head"><div><h2 class="h3">Conversations</h2><span class="muted" style="font-size:13px">Yours to move. Drag a card to a column, or open it.</span></div>' +
+          '<span class="label">' + (mrr ? '$' + mrr.toLocaleString() + '/mo paying' : 'No paying clients yet') + '</span></div>' + laneHtml(CONV, rows, true) +
+          '<div class="drop-close"><div class="drop-zone" data-drop="finished">Drop here: not now</div><div class="drop-zone" data-drop="lost">Drop here: lost</div></div></section>' +
+        '<section class="band"><div class="band-head"><button class="btn quiet" data-act="pipe-closed" aria-expanded="' + ui.pipe.closed + '">' + (ui.pipe.closed ? 'Hide' : 'Show') + ' closed · ' + closed.length + '</button>' +
+          '<span class="muted" style="font-size:13px">' + (closed.length ? CLOSED.filter(function (c) { return byClosed[c]; }).map(function (c) { return byClosed[c] + ' ' + (STAGE[c] || c).toLowerCase(); }).join(' · ') : 'Nothing closed yet') + '</span></div>' +
+          (ui.pipe.closed && closed.length ? listHtml(closed) : '') + '</section>';
+    }
+    if (phone) return '<div class="page">' + head('Pipeline · ' + plural(open, 'open lead'), 'Every lead, by stage', '') + mbar + body + '</div>';
+    return '<div class="page">' +
+      head('Pipeline', 'Every lead, by stage', plural(open, 'open lead') + (draftsAll().length ? ', plus ' + plural(draftsAll().length, 'draft') + ' still in Review.' : '.'),
+        draftsAll().length ? '<button class="btn quiet" data-act="go" data-to="review">Review drafts →</button>' : '') +
+      bar + notice + body + '</div>';
+  }
+
+  function openRow(id) {
+    var o = byId(id); if (!o) return;
+    ui.drawer = id;
+    showDrawer(drawerHtml(o));
+    if (!o._full) call('uiGetRow', id).then(function (r) { upsert(r, true); if (ui.drawer === id) showDrawer(drawerHtml(r)); }).catch(function (e) { toast(msg(e), { err: true }); });
+  }
+  function drawerHtml(o) {
+    var lead = leadOf(o.lead_id) || {};
+    var tl = [['Found', lead.found_at], ['Approved', o.decided_at], ['Email 1 sent', o.sent_1_at], ['Follow-up 1 sent', o.sent_2_at], ['Follow-up 2 sent', o.sent_3_at],
+      ['Replied', o.replied_at], ['Answer sent', o.reply_sent_at], ['Bounced', o.bounced_at], ['Added to Customer.io', o.cio_synced_at]]
+      .filter(function (t) { return t[1]; })
+      .sort(function (a, b) { return str(a[1]).localeCompare(str(b[1])); })
+      .map(function (t) { return '<div class="tl"><b>' + t[0] + '</b><span class="muted" style="font-size:13px">' + esc(full(t[1])) + '</span></div>'; }).join('');
+    var nx = nextStep(o);
+    if (nx) tl += '<div class="tl next"><b>Next</b><span class="muted" style="font-size:13px">' + esc(nx) + '</span></div>';
+    var stages = (o.sent_1_at ? [['replied', 'Replied'], ['demo', 'Demo booked'], ['beta', 'Beta client'], ['won', 'Paying'], ['finished', 'Finished'], ['lost', 'Lost']] : []).map(function (s) {
+      return '<button class="btn small' + (o.stage === s[0] ? '' : ' quiet') + '" data-act="set-stage" data-id="' + esc(o.lead_id) + '" data-stage="' + s[0] + '">' + s[1] + '</button>';
+    }).join('') + '<button class="btn small danger" data-arm data-act="set-stage" data-id="' + esc(o.lead_id) + '" data-stage="dnc">Do not contact</button>';
+    var canUndo = (o.stage === 'approved' || o.stage === 'skipped') && !o.sent_1_at;
+    var texts = o._full ? [['Subject', o.subject], ['Email 1', o.email_1], ['Follow-up 1', o.follow_up_1], ['Follow-up 2', o.follow_up_2], ['Their reply', o.reply_text], ['Our answer', o.reply_draft], ['Your notes', o.reviewer_notes]]
+      .filter(function (t) { return t[1]; }).map(function (t) { return '<div style="display:grid;gap:6px"><span class="label">' + t[0] + '</span><div class="pre soft" style="font-size:14px">' + esc(t[1]) + '</div></div>'; }).join('')
+      : '<div class="skel" style="height:120px"></div>';
+    var sheetLink = S.sheetUrl ? S.sheetUrl + '#gid=0&range=A' + o._row : '';
+    return '<div class="drawer-top"><div style="display:grid;gap:8px;min-width:0"><span class="label">' + esc(o.lead_id) + '</span><h2 class="h2">' + esc(o.company) + '</h2>' +
+      '<div class="meta"><span>' + esc([o.contact_name, o.contact_title].filter(Boolean).join(', ')) + '</span><span>' + esc(o.country) + '</span></div>' +
+      '<div class="chips">' + stageChip(o.stage) + labelChip(o.reply_label) + (o.angle ? '<span class="chip accent">' + esc(o.angle) + '</span>' : '') + '</div></div>' +
+      '<button class="btn small quiet" data-act="close-drawer" aria-label="Close">Close <span class="k">Esc</span></button></div>' +
+      '<div class="hair facts"><div class="fact"><span class="label">Email</span><span class="val mono" style="font-size:13px">' + esc(o.email || '—') + '</span></div><div class="fact"><span class="label">Mailbox</span><span class="val mono" style="font-size:13px">' + esc(o.mailbox || '—') + '</span></div></div>' +
+      (o.signal ? '<div class="why"><span class="label">Why now</span><span>' + esc(o.signal) + '</span></div>' : '') +
+      '<div style="display:grid;gap:10px"><span class="label">Timeline</span><div class="timeline">' + (tl || '<div class="tl"><span class="muted">Nothing yet</span></div>') + '</div></div>' +
+      '<div style="display:grid;gap:10px"><span class="label">Move to</span><div class="btn-row">' + stages + (canUndo ? '<button class="btn small" data-act="undo" data-id="' + esc(o.lead_id) + '">Back to review</button>' : '') + '</div></div>' +
+      texts +
+      (sheetLink ? '<div><a class="btn quiet small" href="' + esc(sheetLink) + '" target="_blank" rel="noopener">Open row ' + o._row + ' in the Sheet ↗</a></div>' : '');
+  }
+  function showDrawer(html) {
+    var d = $('#drawer');
+    d.innerHTML = html; d.classList.add('open'); d.setAttribute('aria-hidden', 'false');
+    $('#scrim').classList.add('show');
+  }
+  function closeDrawer() {
+    ui.drawer = null;
+    var d = $('#drawer'); d.classList.remove('open'); d.setAttribute('aria-hidden', 'true');
+    $('#scrim').classList.remove('show');
+  }
+
+  // ================================================================ screen: leads
+  function leadsView() {
+    var q = ui.leads.q.trim().toLowerCase(), f = ui.leads.status;
+    var byStatus = {};
+    S.leads.forEach(function (l) { byStatus[l.status || 'new'] = (byStatus[l.status || 'new'] || 0) + 1; });
+    var rows = S.leads.filter(function (l) {
+      if (f !== 'all' && (l.status || 'new') !== f) return false;
+      return !q || [l.company, l.domain, l.country, l.contact_name, l.signal, l.segment].join(' ').toLowerCase().indexOf(q) !== -1;
+    });
+    var filters = ['new', 'queued', 'parked', 'duplicate', 'all'].map(function (s) {
+      var n = s === 'all' ? S.leads.length : (byStatus[s] || 0);
+      return '<button class="chip' + (f === s ? ' on' : '') + '" data-act="leads-filter" data-v="' + s + '">' + s + ' · ' + n + '</button>';
+    }).join('');
+    var body = rows.slice(0, 200).map(function (l) {
+      var site = l.website || (l.domain ? 'https://' + l.domain : '');
+      var st = l.status || 'new';
+      var action = st === 'parked' ? '<button class="btn small quiet" data-act="lead-status" data-id="' + esc(l.lead_id) + '" data-v="new">Back to new</button>'
+        : st === 'new' ? '<button class="btn small quiet" data-act="lead-status" data-id="' + esc(l.lead_id) + '" data-v="parked">Park</button>' : '';
+      return '<tr><td><b>' + esc(l.company) + '</b>' + (site ? '<br><a href="' + esc(site) + '" target="_blank" rel="noopener" style="font-size:13px">' + esc(l.domain || site) + '</a>' : '') + '</td>' +
+        '<td>' + esc(l.country) + '</td>' +
+        '<td><span class="clip" title="' + esc(l.signal) + '">' + esc(l.signal) + '</span>' + (l.open_roles ? '<span class="muted" style="font-size:13px">' + esc(l.open_roles) + ' open roles</span>' : '') + '</td>' +
+        '<td>' + esc(l.contact_name || '—') + (l.contact_title ? '<br><span class="muted" style="font-size:13px">' + esc(l.contact_title) + '</span>' : '') + '</td>' +
+        '<td>' + (l.email ? emailChip(l.email_status) : '<span class="chip">No email</span>') + '</td>' +
+        '<td class="muted" style="white-space:nowrap">' + esc(l.source) + '<br>' + esc(rel(l.found_at)) + '</td>' +
+        '<td><span class="chip' + (st === 'new' ? ' accent' : '') + '">' + esc(st) + '</span></td><td>' + action + '</td></tr>';
+    }).join('');
+    var form = ui.leads.adding ? '<form class="card" data-form="lead-add"><div class="card-head"><h2 class="h3">Add a lead by hand</h2><span class="muted" style="font-size:13px">For referrals and inbound. Claude researches it and drafts on the next run.</span></div>' +
+      '<div class="fields">' +
+      [['company', 'Company *', true], ['website', 'Website'], ['country', 'Country'], ['contact_name', 'Contact name'], ['contact_title', 'Contact title'], ['email', 'Email (only if you know it is right)'], ['signal', 'Why now'], ['notes', 'Notes']]
+        .map(function (x) { return '<div class="field"><label class="label" for="nl-' + x[0] + '">' + x[1] + '</label><input id="nl-' + x[0] + '" name="' + x[0] + '" type="text"' + (x[2] ? ' required' : '') + '></div>'; }).join('') +
+      '</div><div class="btn-row"><button class="btn primary" type="submit">Add lead</button><button class="btn quiet" type="button" data-act="lead-add-toggle">Cancel</button></div></form>' : '';
+    return '<div class="page">' +
+      head('Leads', 'Companies Claude found', 'New leads are what Claude drafts next. Park any you do not want, and Claude leaves them alone.',
+        '<button class="btn primary" data-act="lead-add-toggle">' + (ui.leads.adding ? 'Close form' : 'Add a lead') + '</button>') +
+      form +
+      '<div class="page-head-row"><div class="chips">' + filters + '</div><input type="search" class="search" placeholder="Search leads" aria-label="Search leads" data-input="leads-q" value="' + esc(ui.leads.q) + '"></div>' +
+      (rows.length ? '<div class="table-wrap"><table><thead><tr><th>Company</th><th>Country</th><th>Signal</th><th>Contact</th><th>Email</th><th>Found</th><th>Status</th><th></th></tr></thead><tbody>' + body + '</tbody></table></div>' +
+        (rows.length > 200 ? '<p class="muted">Showing the first 200 of ' + rows.length + '. Search to narrow it down.</p>' : '')
+        : '<div class="card"><p class="muted" style="margin:0">No leads here.</p></div>') +
+      (S.metrics.leadsTotal > S.leads.length ? '<p class="muted" style="font-size:13px">The console shows the newest ' + S.leads.length + ' of ' + S.metrics.leadsTotal + ' leads. The rest are in the Sheet.</p>' : '') +
+      '</div>';
+  }
+
+  // ================================================================ screen: linkedin
+  function liSent(l) { return bool(l.sent); }
+  function linkedinView() {
+    var f = ui.li.filter;
+    var rows = S.linkedin.filter(function (l) {
+      if (f === 'todo') return !liSent(l);
+      if (f === 'sent') return liSent(l) && !bool(l.accepted);
+      if (f === 'accepted') return bool(l.accepted);
+      return true;
+    });
+    var n = { todo: 0, sent: 0, accepted: 0, all: S.linkedin.length };
+    S.linkedin.forEach(function (l) { if (!liSent(l)) n.todo++; else if (bool(l.accepted)) n.accepted++; else n.sent++; });
+    var filters = [['todo', 'To send'], ['sent', 'Sent'], ['accepted', 'Accepted'], ['all', 'All']].map(function (x) {
+      return '<button class="chip' + (f === x[0] ? ' on' : '') + '" data-act="li-filter" data-v="' + x[0] + '">' + x[1] + ' · ' + n[x[0]] + '</button>';
+    }).join('');
+    var me = firstName(S.me) || str(S.me).split('@')[0];
+    var founders = str(setting('FOUNDERS')).split(',').map(function (f) { return f.trim(); }).filter(Boolean);
+    var cards = rows.map(function (l) {
+      var note = str(l.note), over = note.length > LI_LIMIT;
+      var link = l.search_link || ('https://www.linkedin.com/search/results/people/?keywords=' + encodeURIComponent((str(l.name) + ' ' + str(l.company)).trim()));
+      return '<article class="li-card' + (liSent(l) ? ' done' : '') + '"><div style="display:grid;gap:4px"><span class="label">' + esc(day(l.date)) + (l.founder ? ' · ' + esc(l.founder) : ' · Unassigned') + '</span>' +
+        '<h3 class="h3">' + esc(l.name) + '</h3><span class="soft" style="font-size:14px">' + esc([l.title, l.company].filter(Boolean).join(' · ')) + '</span></div>' +
+        (note ? '<div style="display:grid;gap:6px"><div class="field-top"><span class="label">Note</span><span class="count' + (over ? ' over' : '') + '">' + note.length + ' / ' + LI_LIMIT + '</span></div><div class="li-note">' + esc(note) + '</div></div>' : '<span class="muted" style="font-size:14px">No note. Connect without one or write your own.</span>') +
+        '<div class="btn-row"><a class="btn small primary" href="' + esc(link) + '" target="_blank" rel="noopener">Find on LinkedIn ↗</a>' +
+        (note ? '<button class="btn small quiet" data-act="copy" data-text="' + esc(note) + '">Copy note</button>' : '') +
+        '</div>' +
+        (founders.length ? '<div class="field" style="max-width:220px"><label class="label" for="lf-' + l._row + '">Sent by</label><select id="lf-' + l._row + '" data-change="li-founder" data-row="' + l._row + '" data-name="' + esc(l.name) + '"><option value="">Unassigned</option>' +
+          founders.concat(l.founder && founders.indexOf(l.founder) === -1 ? [l.founder] : []).map(function (f) { return '<option' + (l.founder === f ? ' selected' : '') + '>' + esc(f) + '</option>'; }).join('') + '</select></div>'
+          : (!l.founder ? '<div><button class="btn small quiet" data-act="li-take" data-row="' + l._row + '" data-name="' + esc(l.name) + '" data-me="' + esc(me) + '">Take it</button></div>' : '')) +
+        '<div class="li-flags"><label><input type="checkbox" data-change="li-flag" data-flag="sent" data-row="' + l._row + '" data-name="' + esc(l.name) + '"' + (liSent(l) ? ' checked' : '') + '> Request sent</label>' +
+        '<label><input type="checkbox" data-change="li-flag" data-flag="accepted" data-row="' + l._row + '" data-name="' + esc(l.name) + '"' + (bool(l.accepted) ? ' checked' : '') + '> Accepted</label></div></article>';
+    }).join('');
+    return '<div class="page">' +
+      head('LinkedIn', 'Connect by hand', 'LinkedIn bans automation, so these go from your own account. Keep it to about 15 a day each. Notes over 200 characters get cut on free accounts.') +
+      '<div class="chips">' + filters + '</div>' +
+      (rows.length ? '<div class="li-grid">' + cards + '</div>' : '<div class="card"><p class="muted" style="margin:0">' + (f === 'todo' ? 'Nothing to send. Leads move here when their email is risky or you choose LinkedIn in Review.' : 'Nothing here.') + '</p></div>') +
+      '</div>';
+  }
+
+  // ================================================================ screen: waitlist
+  function waitlistView() {
+    if (!S.hasWaitlist) return '<div class="page">' + head('Run on AI', 'Waitlist', '') + '<div class="notice warn"><b>The Waitlist tab is missing.</b><span class="soft">Add a tab named Waitlist with: date, name, company, role, country, channel, what_they_asked, stage, notes.</span></div></div>';
+    var g = S.gates;
+    var rows = S.waitlist.map(function (w) {
+      var opts = WAIT_STAGES.map(function (s) { return '<option' + (w.stage === s ? ' selected' : '') + '>' + s + '</option>'; }).join('');
+      if (w.stage && WAIT_STAGES.indexOf(w.stage) === -1) opts = '<option selected>' + esc(w.stage) + '</option>' + opts;
+      return '<tr><td class="muted" style="white-space:nowrap">' + esc(day(w.date)) + '</td>' +
+        '<td><b>' + esc(w.name) + '</b><br><span class="muted" style="font-size:13px">' + esc([w.role, w.company].filter(Boolean).join(' · ')) + '</span></td>' +
+        '<td>' + esc(w.country) + '</td><td>' + esc(w.channel) + '</td><td><span class="clip">' + esc(w.what_they_asked) + '</span></td>' +
+        '<td style="min-width:170px"><select aria-label="Stage for ' + esc(w.name) + '" data-change="wait-stage" data-row="' + w._row + '" data-name="' + esc(w.name) + '">' + opts + '</select></td>' +
+        '<td style="min-width:200px"><input type="text" aria-label="Notes for ' + esc(w.name) + '" data-change="wait-notes" data-row="' + w._row + '" data-name="' + esc(w.name) + '" value="' + esc(w.notes) + '"></td></tr>';
+    }).join('');
+    var form = ui.wait.adding ? '<form class="card" data-form="wait-add"><h2 class="h3">Someone asked how we run on AI</h2><div class="fields">' +
+      [['name', 'Name *', true], ['company', 'Company'], ['role', 'Role'], ['country', 'Country'], ['channel', 'Where they asked (Instagram, LinkedIn, call)'], ['what_they_asked', 'What they asked'], ['notes', 'Notes']]
+        .map(function (x) { return '<div class="field"><label class="label" for="wl-' + x[0] + '">' + x[1] + '</label><input id="wl-' + x[0] + '" name="' + x[0] + '" type="text"' + (x[2] ? ' required' : '') + '></div>'; }).join('') +
+      '</div><div class="btn-row"><button class="btn primary" type="submit">Add to waitlist</button><button class="btn quiet" type="button" data-act="wait-add-toggle">Cancel</button></div></form>' : '';
+    return '<div class="page">' +
+      head('Run on AI', 'Founders who asked', 'People who saw the reels and asked how we run Tevrix on AI. We sell the system only after 10 ask and 2 to 3 commit to pay.',
+        '<button class="btn primary" data-act="wait-add-toggle">' + (ui.wait.adding ? 'Close form' : 'Add a person') + '</button>') +
+      '<div class="hair tiles"><div class="tile"><span class="label">Asking</span><span class="v">' + g.g2.asked + '<span class="muted" style="font-size:18px"> / ' + g.g2.target + '</span></span><span class="bar thin"><i style="width:' + Math.min(100, g.g2.asked / g.g2.target * 100) + '%"></i></span></div>' +
+      '<div class="tile"><span class="label">Committed to pay</span><span class="v">' + g.g3.committed + '<span class="muted" style="font-size:18px"> / ' + g.g3.target + '</span></span><span class="bar thin"><i style="width:' + Math.min(100, g.g3.committed / g.g3.target * 100) + '%"></i></span></div>' +
+      '<div class="tile"><span class="label">Price to test</span><span class="v">$599</span><span class="sub">₹29,999 in India, per month</span></div></div>' +
+      form +
+      (S.waitlist.length ? '<div class="table-wrap"><table><thead><tr><th>Date</th><th>Person</th><th>Country</th><th>Channel</th><th>Asked</th><th>Stage</th><th>Notes</th></tr></thead><tbody>' + rows + '</tbody></table></div>'
+        : '<div class="card"><p class="muted" style="margin:0">No one yet. Add people as they ask in DMs, comments or calls.</p></div>') +
+      '</div>';
+  }
+
+  // ================================================================ screen: playbook
+  function pbCard(r, actions) {
+    return '<article class="card pb-card"><div class="pb-meta"><span class="chip">' + esc(PB_TYPES[r.type] || r.type || 'Rule') + '</span>' +
+      (r.source ? '<span class="muted">from ' + esc(r.source) + '</span>' : '') + (r.added_at ? '<span class="muted">· ' + esc(day(r.added_at)) + '</span>' : '') +
+      (r.status === 'approved' && r.decided_by ? '<span class="muted">· approved by ' + esc(str(r.decided_by).split('@')[0]) + '</span>' : '') + '</div>' +
+      '<p class="pb-rule">' + esc(r.rule) + '</p>' + (r.evidence ? '<p class="soft pb-ev">' + esc(r.evidence) + '</p>' : '') +
+      (actions ? '<div class="btn-row">' + actions + '</div>' : '') + '</article>';
+  }
+  function pbBtn(r, status, label, cls) {
+    return '<button class="btn ' + (cls || '') + '" data-act="pb-decide" data-row="' + r._row + '" data-id="' + esc(r.id) + '" data-status="' + status + '">' + label + '</button>';
+  }
+  function playbookView() {
+    if (!S.hasPlaybook) return '<div class="page">' + head('Learning', 'Playbook', '') + '<div class="notice warn"><b>The Playbook tab is missing.</b><span class="soft">Add a tab named Playbook with: id, added_at, type, rule, evidence, source, status, decided_at, decided_by.</span></div></div>';
+    var pb = S.playbook || [];
+    var proposed = pb.filter(function (r) { return r.status === 'proposed'; });
+    var active = pb.filter(function (r) { return r.status === 'approved'; });
+    var old = pb.filter(function (r) { return r.status === 'rejected' || r.status === 'retired'; });
+    var skips = {};
+    S.outreach.forEach(function (o) { if (o.stage === 'skipped' && o.skip_reason) skips[o.skip_reason] = (skips[o.skip_reason] || 0) + 1; });
+    var skipLine = Object.keys(skips).length ? Object.keys(skips).sort(function (a, b) { return skips[b] - skips[a]; }).map(function (k) { return esc(SKIP[k] || k) + ' ' + skips[k]; }).join(' · ') : 'No skip reasons yet.';
+    var opts = Object.keys(PB_TYPES).map(function (k) { return '<option value="' + k + '">' + PB_TYPES[k] + '</option>'; }).join('');
+    var form = ui.pb.adding ? '<form class="card" data-form="pb-add"><h2 class="h3">Add a rule yourself</h2><div class="fields">' +
+      '<div class="field"><label class="label" for="pb-type">Type</label><select id="pb-type" name="type">' + opts + '</select></div>' +
+      '<div class="field" style="grid-column:1/-1"><label class="label" for="pb-rule">Rule *</label><input id="pb-rule" name="rule" type="text" required placeholder="e.g. Skip companies with fewer than 50 staff in the UK"></div>' +
+      '<div class="field" style="grid-column:1/-1"><label class="label" for="pb-ev">Why</label><input id="pb-ev" name="evidence" type="text" placeholder="What you have seen"></div>' +
+      '</div><div class="btn-row"><button class="btn primary" type="submit">Add rule</button><button class="btn quiet" type="button" data-act="pb-add-toggle">Cancel</button></div></form>' : '';
+    return '<div class="page">' +
+      head('Learning', 'Playbook', 'The rules Claude follows on top of its instructions. Every Monday it proposes changes from your skips, your edits and the reply numbers. Nothing changes until you approve it.',
+        '<button class="btn primary" data-act="pb-add-toggle">' + (ui.pb.adding ? 'Close form' : 'Add a rule') + '</button>') +
+      '<div class="hair tiles"><div class="tile"><span class="label">Waiting for you</span><span class="v">' + proposed.length + '</span></div>' +
+      '<div class="tile"><span class="label">Rules in use</span><span class="v">' + active.length + '</span></div>' +
+      '<div class="tile"><span class="label">Why you skipped</span><span class="sub" style="font-size:14px">' + skipLine + '</span></div></div>' +
+      form +
+      '<section class="pb-section"><h2 class="h3">Proposed</h2>' + (proposed.length ? proposed.map(function (r) {
+        return pbCard(r, pbBtn(r, 'approved', 'Approve', 'primary') + pbBtn(r, 'rejected', 'Reject', 'quiet'));
+      }).join('') : '<div class="card"><p class="muted" style="margin:0">Nothing to decide. Claude proposes new rules every Monday morning.</p></div>') + '</section>' +
+      '<section class="pb-section"><h2 class="h3">In use</h2>' + (active.length ? active.map(function (r) { return pbCard(r, pbBtn(r, 'retired', 'Retire', 'quiet small')); }).join('')
+        : '<div class="card"><p class="muted" style="margin:0">No rules yet. Claude drafts from its standard instructions until you approve one.</p></div>') + '</section>' +
+      (old.length ? '<section class="pb-section"><button class="btn quiet small" data-act="pb-old">' + (ui.pb.showOld ? 'Hide' : 'Show') + ' ' + plural(old.length, 'rejected or retired rule') + '</button>' +
+        (ui.pb.showOld ? old.map(function (r) { return pbCard(r, pbBtn(r, 'approved', 'Use again', 'quiet small')); }).join('') : '') + '</section>' : '') +
+      '</div>';
+  }
+
+  // ================================================================ screen: controls
+  var GROUPS = [
+    { title: 'Limits', note: 'New mailboxes stay at 20 a day or less for the first month.', keys: [
+      ['DAILY_CAP_PER_MAILBOX', 'Emails per mailbox per day'], ['MAX_SENDS_PER_RUN', 'Emails per send run'], ['SEND_DAYS', 'Send days'],
+      ['SEND_START_HOUR', 'First send hour (0–23)'], ['SEND_END_HOUR', 'Last send hour (0–23)'], ['FOLLOWUP_1_AFTER_DAYS', 'Follow-up 1 after (days)'],
+      ['FOLLOWUP_2_AFTER_DAYS', 'Follow-up 2 after (days)'], ['FINISH_AFTER_DAYS', 'Finish after (days)'], ['BOUNCE_PAUSE_PCT', 'Pause when bounces pass (%)']] },
+    { title: 'Sender', note: 'Shown in every email. The postal address is required by anti-spam law.', keys: [
+      ['SENDER_NAME', 'Name'], ['SENDER_TITLE', 'Title'], ['COMPANY_LINE', 'Company line'], ['POSTAL_ADDRESS', 'Postal address'], ['BOOKING_LINK', 'Booking link'],
+      ['SEND_AS', 'Send as'], ['MAILBOXES', 'Mailboxes, comma separated'], ['TEST_RECIPIENT', 'Test emails go to']] },
+    { title: 'Signature', note: 'WhatsApp shows only in replies unless you turn it on for every email.', keys: [
+      ['SIG_WEBSITE', 'Website line'], ['SIG_LINKEDIN', 'LinkedIn link'], ['SIG_WHATSAPP', 'WhatsApp link'], ['WHATSAPP_ON_ALL_EMAILS', 'WhatsApp on every email'],
+      ['LOGO_URL', 'Logo link (blank uses the built-in logo)'], ['FOUNDERS', 'Founders, comma separated']] },
+    { title: 'Access and alerts', note: 'People who can edit the Sheet can always open this console.', keys: [
+      ['DASHBOARD_USERS', 'Extra people who can open the console'], ['ALERT_EMAILS', 'Alerts go to']] },
+    { title: 'Automation', note: 'Where the lead finders run.', keys: [
+      ['GITHUB_OWNER', 'GitHub owner'], ['GITHUB_REPO', 'GitHub repo'], ['INTAKE_WORKFLOW', 'Lead workflow'], ['AGENCIES_WORKFLOW', 'Agencies workflow'], ['AGENCIES_DAY', 'Agencies run on'], ['CIO_REGION', 'Customer.io region']] }
+  ];
+  function controlsView() {
+    var st = sendState(), paused = st.key === 'paused', test = bool(setting('TEST_MODE'));
+    var lv = ui.live;
+    var liveReady = ['dns', 'warm', 'test', 'unsub'].every(function (k) { return lv.checks[k]; }) && lv.phrase.trim().toUpperCase() === 'GO LIVE';
+    var golive = test ? '<div class="golive"><b>Before you go live</b>' +
+      [['dns', 'SPF, DKIM and DMARC pass for the outreach domain'], ['warm', 'The mailbox has warmed up for at least two weeks'], ['test', 'A test email arrived in the inbox, not spam, and reads right'], ['unsub', 'The unsubscribe link works']]
+        .map(function (c) { return '<label class="check-line"><input type="checkbox" data-change="live-check" data-k="' + c[0] + '"' + (lv.checks[c[0]] ? ' checked' : '') + '><span>' + c[1] + '</span></label>'; }).join('') +
+      '<div class="field" style="max-width:320px"><label class="label" for="golive">Type GO LIVE</label><input id="golive" type="text" autocomplete="off" data-input="live-phrase" value="' + esc(lv.phrase) + '"></div>' +
+      '<div><button class="btn primary" data-act="go-live"' + (liveReady ? '' : ' disabled') + '>Turn off test mode</button></div></div>'
+      : '<div class="btn-row"><button class="btn" data-act="test-on">Back to test mode</button></div>';
+    var hero = '<section class="card"><div class="send-hero"><div style="display:grid;gap:10px"><span class="label">Sending</span>' +
+      '<div class="big"><span class="dot ' + st.key + '"></span>' + st.title + '</div><p class="lede" style="font-size:16px">' + esc(st.sub) +
+      (test && !paused ? ' Turn it off only when the checks below are done.' : '') + '</p></div>' +
+      '<div class="btn-row">' + (paused ? '<button class="btn primary" data-act="resume">Resume sending</button>' : '<button class="btn" data-act="pause">Pause all sending</button>') + '</div></div>' +
+      golive + '</section>';
+
+    var runs = [['intake', 'Searches job boards and maps for companies hiring now. New leads land in about 10 minutes.'],
+      ['send', 'Sends approved emails and due follow-ups, inside the limits below.'],
+      ['replies', 'Reads new replies, labels them and drafts answers.'],
+      ['test', 'Sends one sample email to the test inbox.']].map(function (r) {
+        var a = (S.actions || {})[r[0]] || { label: r[0], ready: false };
+        return '<div class="run"><div style="display:grid;gap:6px"><b>' + esc(a.label) + '</b><span class="muted" style="font-size:13px">' + r[1] + '</span></div>' +
+          '<div><button class="btn small' + (a.ready ? '' : ' quiet') + '" data-act="run" data-a="' + r[0] + '"' + (a.ready ? '' : ' disabled title="Arrives with the automation script"') + '>Run now</button>' + (a.ready ? '' : ' <span class="label">Not installed</span>') + '</div></div>';
+      }).join('');
+
+    var shown = { SENDING_PAUSED: 1, TEST_MODE: 1 };
+    var groups = GROUPS.map(function (g) {
+      return '<section class="card"><div class="card-head"><h2 class="h3">' + g.title + '</h2><span class="muted" style="font-size:13px">' + g.note + '</span></div><div class="fields">' +
+        g.keys.map(function (k) { shown[k[0]] = 1; return settingField(k[0], k[1]); }).join('') + '</div></section>';
+    }).join('');
+    var other = Object.keys(S.settings).filter(function (k) { return !shown[k]; });
+    if (other.length) groups += '<section class="card"><h2 class="h3">Other settings</h2><div class="fields">' + other.map(function (k) { return settingField(k, k); }).join('') + '</div></section>';
+
+    var dnc = '<section class="card"><div class="card-head"><h2 class="h3">Do not contact · ' + S.dncCount + '</h2><span class="muted" style="font-size:13px">An address, or @company.com for the whole company. Stops any open sequence at once.</span></div>' +
+      '<form class="btn-row" data-form="dnc-add" style="align-items:stretch"><input name="value" type="text" placeholder="name@company.com or @company.com" aria-label="Address or domain" style="flex:2 1 240px;width:auto" required><input name="reason" type="text" placeholder="Reason" aria-label="Reason" style="flex:1 1 160px;width:auto"><button class="btn" type="submit">Add</button></form>' +
+      (S.dnc.length ? '<div class="table-wrap" style="max-height:260px;overflow-y:auto"><table><thead><tr><th>Address</th><th>Reason</th><th>Added</th></tr></thead><tbody>' +
+        S.dnc.slice(0, 50).map(function (d) { return '<tr><td class="mono" style="font-size:13px">' + esc(d.value) + '</td><td>' + esc(d.reason) + '</td><td class="muted">' + esc(rel(d.added_at)) + '</td></tr>'; }).join('') + '</tbody></table></div>' : '') +
+      '</section>';
+
+    return '<div class="page">' + head('Controls', 'Sending and settings', 'Every change here writes to the Settings tab and is logged with your name.') +
+      hero +
+      '<section style="display:grid;gap:12px"><h2 class="h3">Run now</h2><div class="hair run-grid">' + runs + '</div></section>' +
+      groups + dnc +
+      '<section class="card"><div class="card-head"><h2 class="h3">Activity log</h2><span class="label">Last ' + S.log.length + '</span></div>' + logList(ui.logAll ? S.log : S.log.slice(0, 15)) +
+        (S.log.length > 15 ? '<div><button class="btn quiet small" data-act="log-all">' + (ui.logAll ? 'Show fewer' : 'Show all ' + S.log.length) + '</button></div>' : '') + '</section>' +
+      '<section class="card"><div class="card-head"><h2 class="h3">This screen</h2></div><div class="btn-row"><button class="btn quiet" data-act="theme">Theme: ' + themeLabel() + '</button><button class="btn quiet" data-act="help">Keyboard shortcuts</button>' +
+      (S.sheetUrl ? '<a class="btn quiet" href="' + esc(S.sheetUrl) + '" target="_blank" rel="noopener">Open the Sheet ↗</a>' : '') + '</div><span class="who">Signed in as ' + esc(S.me) + '</span></section>' +
+      '</div>';
+  }
+  function settingField(key, label) {
+    var has = Object.prototype.hasOwnProperty.call(S.settings, key);
+    var v = has ? S.settings[key] : '';
+    var type = typeof v === 'number' ? 'number' : 'text';
+    var bad = /^#(ERROR|REF|NAME|VALUE|N\/A)/.test(str(v));
+    var control = typeof v === 'boolean'
+      ? '<select id="s-' + key + '" data-setting="' + key + '"><option value="TRUE"' + (v ? ' selected' : '') + '>On</option><option value="FALSE"' + (v ? '' : ' selected') + '>Off</option></select>'
+      : '<input id="s-' + key + '" type="' + type + '" data-setting="' + key + '" value="' + esc(bad ? '' : v) + '"' + (has ? (bad ? ' placeholder="Broken in the Sheet: retype it here"' : '') : ' disabled placeholder="Add ' + key + ' to the Settings tab"') + '>';
+    return '<div class="field"><div class="field-top"><label class="label" for="s-' + key + '">' + esc(label) + '</label><span class="saved-tick" data-saved="' + key + '"></span></div>' +
+      control + (bad ? '<span class="count over">The Sheet shows ' + esc(v) + ' here. A value starting with + or = is read as a formula; type it with a leading apostrophe in the Sheet, or save it from here.</span>' : '') +
+      (S.settingNotes && S.settingNotes[key] ? '<span class="muted" style="font-size:12.5px;line-height:1.4">' + esc(S.settingNotes[key]) + '</span>' : '') +
+      '<span class="mono muted" style="font-size:10.5px">' + key + '</span></div>';
+  }
+
+  var SCREENS = { home: homeView, review: reviewView, replies: repliesView, pipeline: pipelineView, leads: leadsView, linkedin: linkedinView, waitlist: waitlistView, playbook: playbookView, controls: controlsView };
+
+  // ================================================================ toast, help, theme
+  var toastTimer = null, toastActs = [];
+  function toast(text, opts) {
+    opts = opts || {};
+    var t = $('#toast');
+    toastActs = (opts.actions || []).slice();
+    if (opts.undo) toastActs.unshift({ label: 'Undo', fn: opts.undo });
+    t.className = 'toast show' + (opts.err ? ' err' : '');
+    t.setAttribute('role', opts.err ? 'alert' : 'status');
+    t.innerHTML = '<span>' + esc(text) + '</span>' + (toastActs.length ? '<span class="acts">' + toastActs.map(function (a, i) { return '<button data-act="toast-act" data-i="' + i + '">' + esc(a.label) + '</button>'; }).join('') + '</span>' : '');
+    // Centre it over whatever is visible: the page, or the part left of an open side panel.
+    if (isDesktop()) {
+      var d = $('#drawer'), r = main.getBoundingClientRect();
+      var right = d.classList.contains('open') ? d.getBoundingClientRect().left : r.right;
+      t.style.left = Math.round((r.left + right) / 2) + 'px';
+    } else t.style.left = '';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.className = 'toast'; toastActs = []; }, opts.err ? 9000 : toastActs.length ? 7000 : 4500);
+  }
+  function showHelp() {
+    var h = $('#help');
+    h.innerHTML = '<div class="modal-card" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts"><div class="drawer-top"><h2 class="h2">Shortcuts</h2><button class="btn small quiet" data-act="help-x">Close <span class="k">Esc</span></button></div><div class="keys">' +
+      [['1–9', 'Go to Today, Review, Replies, Pipeline, Leads, LinkedIn, Waitlist, Playbook, Controls'], ['J / K', 'Next / previous draft or reply'], ['A', 'Approve the draft'], ['S', 'Skip the draft, then 1–6 for the reason'], ['L', 'Send it on LinkedIn instead'], ['E', 'Edit the first email'], ['Ctrl S', 'Save edits'], ['R', 'Refresh from the Sheet'], ['[', 'Collapse or open the sidebar'], ['?', 'This list'], ['Esc', 'Close panels']]
+        .map(function (k) { return '<span><kbd>' + k[0] + '</kbd></span><span>' + k[1] + '</span>'; }).join('') + '</div></div>';
+    h.hidden = false;
+  }
+  function hideHelp() { $('#help').hidden = true; }
+  var THEMES = ['system', 'light', 'dark'];
+  function getTheme() { try { return localStorage.getItem('hm-theme') || 'system'; } catch (e) { return 'system'; } }
+  function applyTheme(t) {
+    if (t === 'system') document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', t);
+  }
+  function themeLabel() { var t = getTheme(); return t.charAt(0).toUpperCase() + t.slice(1); }
+  var themeNow = getTheme();
+  if (themeNow !== 'system') applyTheme(themeNow);
+
+  function sideCollapsed() { try { return localStorage.getItem('hm-side') === 'collapsed'; } catch (e) { return false; } }
+  function applySide(c) {
+    var app = $('#app'), b = $('#sideToggle');
+    app.classList.toggle('collapsed', c);
+    var label = c ? 'Open the sidebar' : 'Collapse the sidebar';
+    b.setAttribute('aria-label', label); b.setAttribute('title', label + '  [');
+    b.setAttribute('aria-expanded', String(!c));
+  }
+  function toggleSide() {
+    var c = !$('#app').classList.contains('collapsed');
+    try { localStorage.setItem('hm-side', c ? 'collapsed' : 'open'); } catch (e) {}
+    applySide(c);
+  }
+  applySide(sideCollapsed());
+
+  // ================================================================ navigation
+  function go(route, push) {
+    if (!SCREENS[route]) route = 'home';
+    var changed = ui.route !== route;
+    ui.route = route;
+    closeDrawer(); hideHelp();
+    render(true);
+    if (changed) { window.scrollTo(0, 0); main.focus({ preventScroll: true }); }
+    if (push !== false) {
+      try {
+        if (window.google && google.script && google.script.history && !PREVIEW) google.script.history.push(null, null, route);
+        else if (location.hash !== '#' + route) history.replaceState(null, '', '#' + route);
+      } catch (e) {}
+    }
+  }
+
+  // ================================================================ actions
+  var busy = false;
+  function work(p, okText) {
+    busy = true; document.body.classList.add('busy');
+    return p.then(function (r) { busy = false; document.body.classList.remove('busy'); if (okText) toast(typeof okText === 'function' ? okText(r) : okText); return r; })
+      .catch(function (e) { busy = false; document.body.classList.remove('busy'); toast(msg(e), { err: true }); throw e; });
+  }
+  function nextInQueue(id, list) {
+    var i = -1;
+    list.forEach(function (o, k) { if (o.lead_id === id) i = k; });
+    var rest = list.filter(function (o) { return o.lead_id !== id; });
+    return rest.length ? rest[Math.min(Math.max(i, 0), rest.length - 1)].lead_id : null;
+  }
+  // Skipping asks why, in one tap. The reason is how Claude learns what to stop drafting.
+  function askSkip(id) {
+    var o = byId(id); if (!o || busy) return;
+    ui.skip = id;
+    var h = $('#help');
+    h.innerHTML = '<div class="modal-card" role="dialog" aria-modal="true" aria-label="Why skip this draft?"><div class="drawer-top"><h2 class="h2">Why skip ' + esc(o.company) + '?</h2><button class="btn small quiet" data-act="help-x">Cancel <span class="k">Esc</span></button></div>' +
+      '<p class="soft" style="margin:0 0 16px">Claude reads these every Monday and stops drafting leads like this one.</p><div class="skip-grid">' +
+      Object.keys(SKIP).map(function (r, n) { return '<button class="btn" data-act="skip-reason" data-id="' + esc(id) + '" data-r="' + r + '"><span class="k">' + (n + 1) + '</span> ' + SKIP[r] + '</button>'; }).join('') +
+      '</div><div class="btn-row" style="margin-top:16px"><button class="btn quiet small" data-act="skip-reason" data-id="' + esc(id) + '" data-r="">Skip without a reason</button></div></div>';
+    h.hidden = false;
+    var first = $('[data-act="skip-reason"]', h); if (first) first.focus();
+  }
+  function decide(id, decision, reason) {
+    var o = byId(id); if (!o || busy) return;
+    var next = nextInQueue(id, reviewQueue());
+    work(call('uiDecide', id, decision, editsFor(o), reason || '')).then(function (row) {
+      delete ui.drafts[id];
+      ui.review.sel = next; ui.review.view = 'edit';
+      if (!next) ui.review.mobile = false;
+      upsert(row);
+      if (decision === 'approve') toast('Approved ' + row.company + '. It is in Pipeline under Approved until the next send run.', { undo: function () { undo(id, true); }, actions: [{ label: 'View', fn: function () { viewInPipeline(id); } }] });
+      else toast('Skipped ' + row.company + (reason ? ' (' + SKIP[reason].toLowerCase() + ')' : '') + '.', { undo: function () { undo(id, true); } });
+      softRefresh();
+    }).catch(function () {});
+  }
+  function viewInPipeline(id) {
+    ui.flash = id; ui.pipe.q = '';
+    go('pipeline');
+    var card = $('.pcard.flash');
+    if (card && card.scrollIntoView) card.scrollIntoView({ block: 'nearest', inline: 'center' });
+    setTimeout(function () { if (ui.flash === id) ui.flash = null; }, 3000);
+  }
+  function setLabel(id, label) {
+    if (busy) return;
+    work(call('uiSetLabel', id, label), 'Marked as ' + (LABELS[label] || label) + '.').then(function (row) { upsert(row); softRefresh(); }).catch(function () {});
+  }
+  function undo(id, select) {
+    work(call('uiUndo', id)).then(function (row) {
+      if (select || ui.route === 'review') { ui.review.sel = id; ui.review.tab = 'todo'; }
+      upsert(row);
+      if (ui.drawer === id) closeDrawer();
+      toast(row.company + ' is back in review.');
+      softRefresh();
+    }).catch(function () {});
+  }
+  function saveDraft(id, quietOk) {
+    var o = byId(id); if (!o || busy) return;
+    var edits = editsFor(o);
+    if (!edits) { if (!quietOk) toast('No changes to save.'); return; }
+    work(call('uiSaveDraft', id, edits), 'Saved.').then(function (row) { delete ui.drafts[id]; upsert(row); }).catch(function () {});
+  }
+  function toLinkedIn(id) {
+    var o = byId(id); if (!o || busy) return;
+    var next = nextInQueue(id, reviewQueue());
+    var edits = editsFor(o, ['linkedin_note', 'reviewer_notes']);
+    var p = edits ? call('uiSaveDraft', id, edits).then(function () { return call('uiToLinkedIn', id); }) : call('uiToLinkedIn', id);
+    work(p).then(function (row) {
+      delete ui.drafts[id]; ui.review.sel = next; if (!next) ui.review.mobile = false;
+      upsert(row);
+      toast(row.company + ' moved to your LinkedIn list.');
+      load(true);
+    }).catch(function () {});
+  }
+  function reply(id, action) {
+    var o = byId(id); if (!o || busy) return;
+    var draft = dv(o, 'reply_draft');
+    if (action === 'send' && !draft.trim()) { toast('Write an answer first.', { err: true }); return; }
+    work(call('uiReply', id, draft, action)).then(function (row) {
+      delete ui.drafts[id]; upsert(row);
+      toast(action === 'send' ? 'Queued. It goes out on the next send run.' : action === 'cancel' ? 'Send cancelled. The answer is saved.' : 'Saved.',
+        action === 'send' ? { undo: function () { reply(id, 'cancel'); } } : {});
+      softRefresh();
+    }).catch(function () {});
+  }
+  function setStage(id, stage, label) {
+    var o = byId(id); if (!o || busy) return;
+    var args = label === undefined ? [id, stage] : [id, stage, label];
+    work(call.apply(null, ['uiSetStage'].concat(args))).then(function (row) {
+      upsert(row);
+      if (ui.drawer === id) showDrawer(drawerHtml(row));
+      toast(label !== undefined ? 'Marked as ' + (LABELS[label] || label) + '.' : row.company + ': ' + (STAGE[stage] || stage) + '.');
+      softRefresh();
+    }).catch(function () {});
+  }
+  function saveSetting(input) {
+    var key = input.getAttribute('data-setting');
+    var val = input.type === 'number' ? input.value : input.value;
+    work(call('uiSetSetting', key, val)).then(function (settings) {
+      S.settings = settings;
+      var tick = $('[data-saved="' + key + '"]');
+      if (tick) { tick.textContent = 'Saved'; setTimeout(function () { tick.textContent = ''; }, 2400); }
+      renderSide();
+    }).catch(function () { input.value = str(S.settings[key]); });
+  }
+  function setSwitch(key, value, text) {
+    work(call('uiSetSetting', key, value), text).then(function (settings) {
+      S.settings = settings;
+      if (key === 'TEST_MODE') ui.live = { checks: {}, phrase: '' };
+      render(true);
+    }).catch(function () {});
+  }
+  function copyText(text) {
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+      toast(ok ? 'Copied.' : 'Select the note and copy it by hand.', ok ? {} : { err: true });
+    }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { toast('Copied.'); }, fallback);
+      else fallback();
+    } catch (e) { fallback(); }
+  }
+  function formData(form) {
+    var o = {};
+    $$('input, select, textarea', form).forEach(function (el) { if (el.name) o[el.name] = el.value; });
+    return o;
+  }
+
+  var ACTIONS = {
+    'go': function (el) { go(el.getAttribute('data-to')); },
+    'retry': function () { ui.error = null; load(); },
+    'refresh': function () { load(true).then(function () { toast('Up to date.'); }); },
+    'theme': function () {
+      var t = THEMES[(THEMES.indexOf(getTheme()) + 1) % THEMES.length];
+      try { localStorage.setItem('hm-theme', t); } catch (e) {}
+      applyTheme(t); themeNow = t; render(true);
+    },
+    'help': showHelp,
+    'close-help': function (el, e) { if (e.target === el) hideHelp(); },
+    'help-x': hideHelp,
+    'close-drawer': closeDrawer,
+    'toast-act': function (el) { var a = toastActs[Number(el.getAttribute('data-i'))]; $('#toast').className = 'toast'; toastActs = []; if (a) a.fn(); },
+    'side-toggle': toggleSide,
+    'review-tab': function (el) { ui.review.tab = el.getAttribute('data-v'); ui.review.sel = null; ui.review.mobile = false; ui.review.view = 'edit'; render(true); },
+    'view-pipe': function (el) { viewInPipeline(el.getAttribute('data-id')); },
+    'review-sel': function (el) { ui.review.sel = el.getAttribute('data-id'); ui.review.mobile = true; render(true); if (!isDesktop()) window.scrollTo(0, 0); },
+    'review-back': function () { ui.review.mobile = false; render(true); },
+    'review-view': function (el) { ui.review.view = el.getAttribute('data-v'); render(true); },
+    'approve': function (el) { decide(el.getAttribute('data-id'), 'approve'); },
+    'skip': function (el) { askSkip(el.getAttribute('data-id')); },
+    'skip-reason': function (el) { var id = el.getAttribute('data-id'), r = el.getAttribute('data-r'); ui.skip = null; hideHelp(); decide(id, 'skip', r); },
+    'pb-add-toggle': function () { ui.pb.adding = !ui.pb.adding; render(true); if (ui.pb.adding) { var f = $('#pb-rule'); if (f) f.focus(); } },
+    'pb-old': function () { ui.pb.showOld = !ui.pb.showOld; render(true); },
+    'pb-decide': function (el) {
+      var row = Number(el.getAttribute('data-row')), id = el.getAttribute('data-id'), st = el.getAttribute('data-status');
+      var said = { approved: 'Approved. Claude follows it from the next morning run.', rejected: 'Rejected. Claude will not propose it again.', retired: 'Retired. Claude stops following it from the next run.' }[st];
+      work(call('uiPlaybookDecide', row, id, st), said).then(function (r) {
+        S.playbook = S.playbook.map(function (x) { return x._row === r._row ? r : x; });
+        render(true);
+      }).catch(function () {});
+    },
+    'undo': function (el) { undo(el.getAttribute('data-id'), ui.route === 'review'); },
+    'save-draft': function (el) { saveDraft(el.getAttribute('data-id')); },
+    'to-li': function (el) { toLinkedIn(el.getAttribute('data-id')); },
+    'reply-sel': function (el) { ui.replies.sel = el.getAttribute('data-id'); ui.replies.mobile = true; render(true); if (!isDesktop()) window.scrollTo(0, 0); },
+    'reply-back': function () { ui.replies.mobile = false; render(true); },
+    'reply-send': function (el) { reply(el.getAttribute('data-id'), 'send'); },
+    'reply-save': function (el) { reply(el.getAttribute('data-id'), 'save'); },
+    'reply-cancel': function (el) { reply(el.getAttribute('data-id'), 'cancel'); },
+    'insert-booking': function (el) {
+      var id = el.getAttribute('data-id'), o = byId(id), ta = $('#f-reply_draft');
+      var link = str(setting('BOOKING_LINK')), cur = ta ? ta.value : dv(o, 'reply_draft');
+      if (cur.indexOf(link) !== -1) return;
+      var val = cur.replace(/\s+$/, '') + (cur.trim() ? '\n\n' : '') + 'Here is a link to pick a time: ' + link;
+      ui.drafts[id] = ui.drafts[id] || {}; ui.drafts[id].reply_draft = val;
+      if (ta) { ta.value = val; autosize(ta); updateLive(ta); }
+    },
+    'set-label': function (el) { setLabel(el.getAttribute('data-id'), el.getAttribute('data-label')); },
+    'set-stage': function (el) { setStage(el.getAttribute('data-id'), el.getAttribute('data-stage')); },
+    'open-row': function (el) { openRow(el.getAttribute('data-id')); },
+    'log-all': function () { ui.logAll = !ui.logAll; render(true); },
+    'pipe-closed': function () { ui.pipe.closed = !ui.pipe.closed; render(true); },
+    'pipe-view': function (el) { ui.pipe.view = el.getAttribute('data-v'); render(true); },
+    'pipe-needs': function () { ui.pipe.needs = !ui.pipe.needs; render(true); },
+    'pipe-filters': function () { ui.pipe.filters = !ui.pipe.filters; render(true); },
+    'pipe-mstage': function (el) {
+      ui.pipe.mstage = el.getAttribute('data-v'); render(true);
+      var strip = $('.stage-strip'), sec = $('.mstage');
+      if (strip && sec && strip.getBoundingClientRect().top < sec.getBoundingClientRect().top - strip.offsetHeight - 4) return;
+      if (sec) window.scrollTo(0, Math.max(0, window.scrollY + sec.getBoundingClientRect().top - strip.getBoundingClientRect().bottom - 8));
+    },
+    'pipe-clear': function () { ui.pipe.needs = false; ui.pipe.angle = ''; ui.pipe.country = ''; ui.pipe.q = ''; render(true); },
+    'pipe-sort': function (el) {
+      var k = el.getAttribute('data-k');
+      ui.pipe.sort = { k: k, dir: ui.pipe.sort.k === k ? -ui.pipe.sort.dir : (k === 'last' ? -1 : 1) };
+      render(true);
+    },
+    'leads-filter': function (el) { ui.leads.status = el.getAttribute('data-v'); render(true); },
+    'lead-add-toggle': function () { ui.leads.adding = !ui.leads.adding; render(true); if (ui.leads.adding) { var f = $('#nl-company'); if (f) f.focus(); } },
+    'lead-status': function (el) {
+      var id = el.getAttribute('data-id'), v = el.getAttribute('data-v');
+      work(call('uiSetLeadStatus', id, v)).then(function (row) {
+        S.leads = S.leads.map(function (l) { return l.lead_id === id ? row : l; });
+        render(true); toast(row.company + (v === 'parked' ? ' parked. Claude will leave it alone.' : ' is back in the new list.'));
+        softRefresh();
+      }).catch(function () {});
+    },
+    'li-filter': function (el) { ui.li.filter = el.getAttribute('data-v'); render(true); },
+    'li-take': function (el) {
+      var row = Number(el.getAttribute('data-row')), name = el.getAttribute('data-name');
+      work(call('uiLinkedIn', row, name, { founder: el.getAttribute('data-me') })).then(function (r) { replaceLi(r); render(true); toast('It is yours.'); }).catch(function () {});
+    },
+    'copy': function (el) { copyText(el.getAttribute('data-text')); },
+    'wait-add-toggle': function () { ui.wait.adding = !ui.wait.adding; render(true); if (ui.wait.adding) { var f = $('#wl-name'); if (f) f.focus(); } },
+    'pause': function () { setSwitch('SENDING_PAUSED', true, 'Sending paused. Nothing goes out until you resume.'); },
+    'resume': function () { setSwitch('SENDING_PAUSED', false, 'Sending resumed.'); },
+    'test-on': function () { setSwitch('TEST_MODE', true, 'Test mode is on. Emails go to the test inbox.'); },
+    'go-live': function () { setSwitch('TEST_MODE', false, 'Test mode is off. Approved emails now go to real people.'); },
+    'run': function (el) {
+      var a = el.getAttribute('data-a');
+      work(call('uiRun', a)).then(function (r) { toast(r.message); load(true); }).catch(function () {});
+    }
+  };
+  function replaceLi(r) { S.linkedin = S.linkedin.map(function (l) { return l._row === r._row ? r : l; }); }
+  function isDesktop() { return window.matchMedia('(min-width: 861px)').matches; }
+
+  // Two-step confirm for anything that cannot be taken back.
+  function arm(el) {
+    if (el.classList.contains('armed')) return true;
+    var label = el.innerHTML;
+    el.classList.add('armed'); el.innerHTML = 'Click again to confirm';
+    setTimeout(function () { if (el.isConnected) { el.classList.remove('armed'); el.innerHTML = label; } }, 3500);
+    return false;
+  }
+
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest('[data-act]');
+    if (!el || el.disabled) return;
+    var act = el.getAttribute('data-act');
+    if (!ACTIONS[act]) return;
+    if (el.hasAttribute('data-arm') && !arm(el)) return;
+    if (el.tagName === 'A') return;
+    e.preventDefault();
+    ACTIONS[act](el, e);
+  });
+
+  function updateLive(el) {
+    var body = el.closest('[data-lead]');
+    var id = body && body.getAttribute('data-lead'), o = id && byId(id), f = el.getAttribute('data-draft');
+    if (!o) return;
+    var c = $('[data-count="' + f + '"]', body);
+    if (c) {
+      if (/words/.test(c.textContent)) c.textContent = words(el.value) + ' words';
+      else {
+        var lim = f === 'linkedin_note' ? LI_LIMIT : 0;
+        c.textContent = el.value.length + (lim ? ' / ' + lim : '') + ' chars';
+        c.classList.toggle('over', !!lim && el.value.length > lim);
+      }
+    }
+    var ch = $('[data-checks]', body);
+    if (ch && (f === 'subject' || f === 'email_1')) ch.innerHTML = checksHtml(o);
+    var d = $('[data-dirty]');
+    if (d) d.textContent = isDirty(o) ? 'Unsaved edits' : '';
+  }
+
+  document.addEventListener('input', function (e) {
+    var el = e.target;
+    if (el.hasAttribute('data-draft')) {
+      var body = el.closest('[data-lead]'); if (!body) return;
+      var id = body.getAttribute('data-lead');
+      ui.drafts[id] = ui.drafts[id] || {};
+      ui.drafts[id][el.getAttribute('data-draft')] = el.value;
+      if (el.tagName === 'TEXTAREA') autosize(el);
+      updateLive(el);
+      renderNav();
+      return;
+    }
+    var k = el.getAttribute('data-input');
+    if (!k) return;
+    if (k === 'live-phrase') {
+      ui.live.phrase = el.value;
+      var ready = ['dns', 'warm', 'test', 'unsub'].every(function (c) { return ui.live.checks[c]; }) && el.value.trim().toUpperCase() === 'GO LIVE';
+      var b = $('[data-act="go-live"]'); if (b) b.disabled = !ready;
+      return;
+    }
+    var pos = el.selectionStart;
+    if (k === 'review-q') ui.review.q = el.value;
+    if (k === 'pipe-q') ui.pipe.q = el.value;
+    if (k === 'leads-q') ui.leads.q = el.value;
+    render(true);
+    var again = $('[data-input="' + k + '"]');
+    if (again) { again.focus(); try { again.setSelectionRange(pos, pos); } catch (x) {} }
+  });
+
+  document.addEventListener('change', function (e) {
+    var el = e.target;
+    if (el.hasAttribute('data-setting')) { saveSetting(el); return; }
+    var k = el.getAttribute('data-change');
+    if (!k) return;
+    if (k === 'review-sort') { ui.review.sort = el.value; render(true); }
+    else if (k === 'pipe-angle') { ui.pipe.angle = el.value; render(true); }
+    else if (k === 'pipe-country') { ui.pipe.country = el.value; render(true); }
+    else if (k === 'review-angle') { ui.review.angle = el.value; render(true); }
+    else if (k === 'live-check') { ui.live.checks[el.getAttribute('data-k')] = el.checked; render(true); }
+    else if (k === 'li-flag') {
+      var patch = {}; patch[el.getAttribute('data-flag')] = el.checked;
+      if (el.getAttribute('data-flag') === 'accepted' && el.checked) patch.sent = true;
+      work(call('uiLinkedIn', Number(el.getAttribute('data-row')), el.getAttribute('data-name'), patch)).then(function (r) { replaceLi(r); render(true); softRefresh(); }).catch(function () { el.checked = !el.checked; });
+    } else if (k === 'li-founder') {
+      work(call('uiLinkedIn', Number(el.getAttribute('data-row')), el.getAttribute('data-name'), { founder: el.value }), 'Saved.').then(function (r) { replaceLi(r); }).catch(function () {});
+    } else if (k === 'wait-stage' || k === 'wait-notes') {
+      var p = {}; p[k === 'wait-stage' ? 'stage' : 'notes'] = el.value;
+      work(call('uiWaitlistUpdate', Number(el.getAttribute('data-row')), el.getAttribute('data-name'), p), 'Saved.').then(function (r) {
+        S.waitlist = S.waitlist.map(function (w) { return w._row === r._row ? r : w; });
+        if (k === 'wait-stage') softRefresh();
+      }).catch(function () {});
+    }
+  });
+
+  document.addEventListener('submit', function (e) {
+    var form = e.target.closest('[data-form]');
+    if (!form) return;
+    e.preventDefault();
+    var kind = form.getAttribute('data-form'), data = formData(form);
+    if (kind === 'lead-add') {
+      work(call('uiAddLead', data), function () { return data.company + ' added. Claude researches it on the next run.'; })
+        .then(function () { ui.leads.adding = false; ui.leads.status = 'new'; load(true); }).catch(function () {});
+    } else if (kind === 'wait-add') {
+      work(call('uiWaitlistAdd', data), function () { return data.name + ' is on the waitlist.'; })
+        .then(function () { ui.wait.adding = false; load(true); }).catch(function () {});
+    } else if (kind === 'pb-add') {
+      work(call('uiPlaybookAdd', data), 'Rule added. Claude follows it from the next morning run.')
+        .then(function () { ui.pb.adding = false; load(true); }).catch(function () {});
+    } else if (kind === 'dnc-add') {
+      work(call('uiDncAdd', data.value, data.reason), function (r) { return r.value + ' will never be emailed' + (r.stopped ? '. Stopped ' + plural(r.stopped, 'open sequence') : '') + '.'; })
+        .then(function () { load(true); }).catch(function () {});
+    }
+  });
+
+  document.addEventListener('keydown', function (e) {
+    var tgt = e.target;
+    if ((e.key === 'Enter' || e.key === ' ') && tgt && tgt.getAttribute && tgt.getAttribute('role') === 'button' && tgt.hasAttribute('data-act') && tgt.tagName !== 'BUTTON') {
+      e.preventDefault(); tgt.click(); return;
+    }
+    if (e.key === 'Escape') { if (!$('#help').hidden) { ui.skip = null; hideHelp(); } else closeDrawer(); return; }
+    if (ui.skip && !$('#help').hidden && /^[1-6]$/.test(e.key)) {
+      e.preventDefault();
+      var sid = ui.skip, sr = Object.keys(SKIP)[Number(e.key) - 1];
+      ui.skip = null; hideHelp(); decide(sid, 'skip', sr); return;
+    }
+    var t = e.target, inField = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable);
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
+      e.preventDefault();
+      if (ui.route === 'review' && ui.review.sel) saveDraft(ui.review.sel);
+      if (ui.route === 'replies' && ui.replies.sel) reply(ui.replies.sel, 'save');
+      return;
+    }
+    if (inField || e.metaKey || e.ctrlKey || e.altKey || !S) return;
+    var k = e.key.toLowerCase();
+    if (/^[1-9]$/.test(k)) { go(ROUTES[Number(k) - 1]); return; }
+    if (e.key === '?') { showHelp(); return; }
+    if (e.key === '[') { toggleSide(); return; }
+    if (k === 'r') { ACTIONS.refresh(); return; }
+    if (ui.drawer) return;
+    if (ui.route === 'review') {
+      var list = reviewList(), i = -1, todo = ui.review.tab === 'todo';
+      list.forEach(function (o, n) { if (o.lead_id === ui.review.sel) i = n; });
+      if ((k === 'j' || k === 'arrowdown') && list.length) { e.preventDefault(); ui.review.sel = list[Math.min(list.length - 1, i + 1)].lead_id; render(true); }
+      else if ((k === 'k' || k === 'arrowup') && list.length) { e.preventDefault(); ui.review.sel = list[Math.max(0, i - 1)].lead_id; render(true); }
+      else if (!todo && (k === 'a' || k === 's' || k === 'l')) { toast('Open the To review tab to approve or skip.'); }
+      else if (k === 'a' && ui.review.sel) { var b = $('[data-act="approve"]'); if (b && !b.disabled) decide(ui.review.sel, 'approve'); else toast('This one cannot be emailed. Press L to send it on LinkedIn.', { err: true }); }
+      else if (k === 's' && ui.review.sel) askSkip(ui.review.sel);
+      else if (k === 'l' && ui.review.sel) toLinkedIn(ui.review.sel);
+      else if (k === 'e') { e.preventDefault(); ui.review.view = 'edit'; render(true); var f = $('#f-email_1'); if (f) f.focus(); }
+    } else if (ui.route === 'replies') {
+      var rl = repliesOpen().concat(repliesDone()), j = -1;
+      rl.forEach(function (o, n) { if (o.lead_id === ui.replies.sel) j = n; });
+      if ((k === 'j' || k === 'arrowdown') && rl.length) { e.preventDefault(); ui.replies.sel = rl[Math.min(rl.length - 1, j + 1)].lead_id; render(true); }
+      else if ((k === 'k' || k === 'arrowup') && rl.length) { e.preventDefault(); ui.replies.sel = rl[Math.max(0, j - 1)].lead_id; render(true); }
+    }
+  });
+
+  // Drag a pipeline card into Replied, Demo booked, Beta client or Paying, or onto Not now / Lost.
+  var dragId = null;
+  document.addEventListener('dragstart', function (e) {
+    var c = e.target.closest && e.target.closest('[data-drag]');
+    if (!c) return;
+    dragId = c.getAttribute('data-drag');
+    try { e.dataTransfer.setData('text/plain', dragId); e.dataTransfer.effectAllowed = 'move'; } catch (x) {}
+    c.classList.add('dragging'); document.body.classList.add('dragging');
+  });
+  document.addEventListener('dragend', function () {
+    dragId = null; document.body.classList.remove('dragging');
+    $$('.dragging, .over').forEach(function (el) { el.classList.remove('dragging'); el.classList.remove('over'); });
+  });
+  document.addEventListener('dragover', function (e) {
+    var z = dragId && e.target.closest && e.target.closest('[data-drop]');
+    if (!z) return;
+    e.preventDefault();
+    $$('.over').forEach(function (el) { if (el !== z) el.classList.remove('over'); });
+    z.classList.add('over');
+  });
+  document.addEventListener('drop', function (e) {
+    var z = e.target.closest && e.target.closest('[data-drop]');
+    if (!z || !dragId) return;
+    e.preventDefault();
+    var id = dragId, stage = z.getAttribute('data-drop'), o = byId(id);
+    z.classList.remove('over');
+    if (o && o.stage !== stage) setStage(id, stage);
+  });
+
+  try {
+    var mq = window.matchMedia('(min-width: 861px)');
+    var onMq = function () { if (S) render(true); };
+    if (mq.addEventListener) mq.addEventListener('change', onMq); else if (mq.addListener) mq.addListener(onMq);
+  } catch (e) {}
+
+  // Catch up on refreshes skipped while typing, once focus leaves the field.
+  document.addEventListener('focusout', function () {
+    setTimeout(function () { if (ui.pending && !typing() && !busy) render(); }, 450);
+  });
+  // Refresh when coming back to the tab, at most once a minute.
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible' && S && Date.now() - ui.lastLoad > 60000) load(true);
+  });
+  setInterval(function () {
+    if (document.visibilityState !== 'visible' || !S) return;
+    if (Date.now() - ui.lastLoad > 120000) load(true); else renderSide();
+  }, 30000);
+  window.addEventListener('beforeunload', function (e) {
+    var dirty = Object.keys(ui.drafts).some(function (id) { var o = byId(id); return o && isDirty(o); });
+    if (dirty) { e.preventDefault(); e.returnValue = ''; }
+  });
+
+  // ================================================================ start
+  if (PREVIEW) { $('#previewBar').hidden = false; document.body.classList.add('has-bar'); }
+  function start(hash) {
+    var r = str(hash).replace(/^#/, '');
+    ui.route = SCREENS[r] ? r : 'home';
+    render(true);
+    load();
+  }
+  try {
+    if (!PREVIEW && window.google && google.script && google.script.url) {
+      google.script.url.getLocation(function (loc) { start(loc && loc.hash); });
+      if (google.script.history) google.script.history.setChangeHandler(function (ev) { if (ev && ev.location) go(ev.location.hash, false); });
+    } else {
+      start(location.hash);
+      window.addEventListener('hashchange', function () { var r = location.hash.replace('#', ''); if (r !== ui.route && SCREENS[r]) go(r, false); });
+    }
+  } catch (e) { start(''); }
+})();
+</script>

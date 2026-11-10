@@ -19,13 +19,15 @@ var HEADERS = {
     'signal', 'score', 'angle', 'subject', 'email_1', 'follow_up_1', 'follow_up_2', 'linkedin_note', 'dossier',
     'fit_reason', 'reviewer_notes', 'lead_id', 'mailbox', 'decided_at', 'thread_id', 'message_id', 'sent_1_at',
     'sent_2_at', 'sent_3_at', 'replied_at', 'reply_label', 'reply_text', 'reply_draft', 'reply_decision',
-    'reply_sent_at', 'bounced_at', 'cio_synced_at'],
+    'reply_sent_at', 'bounced_at', 'cio_synced_at', 'skip_reason', 'original_email'],
   'Leads': ['lead_id', 'found_at', 'source', 'segment', 'company', 'domain', 'website', 'country', 'company_size',
     'open_roles', 'roles_sample', 'signal', 'job_urls', 'ceo_name', 'contact_name', 'contact_title', 'email',
     'email_source', 'email_status', 'pattern', 'people_found', 'status', 'notes'],
   'LinkedIn': ['date', 'founder', 'name', 'title', 'company', 'search_link', 'note', 'sent', 'accepted', 'lead_id'],
   'Do not contact': ['value', 'reason', 'added_at', 'source'],
   'Log': ['time', 'mailbox', 'action', 'lead_id', 'detail'],
+  // Rules Claude follows. The Monday report proposes rows; founders approve them in the console.
+  'Playbook': ['id', 'added_at', 'type', 'rule', 'evidence', 'source', 'status', 'decided_at', 'decided_by'],
   'Settings': ['key', 'value', 'notes']
 };
 
