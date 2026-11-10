@@ -1,0 +1,9 @@
+{
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "destination": "https://script.google.com/a/macros/tevrixai.com/s/AKfycbyVW5TpOQVkhRZwT40ev7evEjycDi37MFau-33KYoDMoHuZiOeGbfeHNYfsam5GU4lAsw/exec",
+      "permanent": false
+    }
+  ]
+}
