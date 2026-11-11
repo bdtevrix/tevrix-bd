@@ -22,7 +22,7 @@ Claude (19:00) labels replies and drafts answers ──▶ founder sets reply_de
 | `bd/sheets.py` | gspread with a service account; reads and appends by header name, `RAW` so nothing is evaluated as a formula |
 | `bd/main.py` | CLI |
 | `apps-script/` | `Code.gs` and `appsscript.json` to paste into the Sheet's Apps Script editor |
-| `claude/` | Claude's scheduled-task prompts, voice rules, ICP and the outreach angles (draft) |
+| `claude/` | Claude's scheduled-task prompts, voice rules, ICP, lead signals and the outreach angles (draft) |
 | `SETUP.md` | The steps only a person can do, in order |
 
 ## CLI
