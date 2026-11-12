@@ -838,6 +838,12 @@ function uiSetSetting(key, value) {
     }
     uiSet_(t, idx, 'value', v);
     if (key === 'DASHBOARD_USERS') CacheService.getScriptCache().remove('ui_allowed');
+    // Resuming starts the bounce brake on a clean slate: bounces from before the pause have been dealt with.
+    if (key === 'SENDING_PAUSED' && v === false) {
+      t.rows.forEach(function (r, i) {
+        if (uiStr_(r[t.col.key]) === 'BOUNCE_COUNT_FROM') uiSet_(t, i, 'value', new Date());
+      });
+    }
     uiLog_(me, 'setting', '', key + ' = ' + (/KEY|TOKEN|SECRET/.test(key) ? '••••' : v));
     return uiSettings_();
   });

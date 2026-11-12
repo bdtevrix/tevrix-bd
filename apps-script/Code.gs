@@ -142,6 +142,7 @@ function runIntakeNow() { dispatch_(settings_().INTAKE_WORKFLOW || 'intake.yml')
 function togglePause() {
   var paused = truthy_(settings_().SENDING_PAUSED);
   setSetting_('SENDING_PAUSED', paused ? 'FALSE' : 'TRUE');
+  if (paused) setSetting_('BOUNCE_COUNT_FROM', new Date()); // resume: the bounce brake starts on a clean slate
   log_(paused ? 'resume' : 'pause', '', 'by ' + me_());
   toast_(paused ? 'Sending resumed.' : 'Sending paused.');
 }
@@ -487,15 +488,43 @@ function checkUnsubscribes_(t, S, dnc) {
   });
 }
 
+// Bounce brake. Looks at the last BOUNCE_WINDOW_DAYS days (default 7), not just today: at 5 sends a day a
+// "10 sends today" rule could never trigger. Pauses when there are BOUNCE_PAUSE_MIN+ bounces (default 2) and
+// they are over BOUNCE_PAUSE_PCT of sends in the window. Only bounces after BOUNCE_COUNT_FROM count, so
+// resuming after a pause starts a clean slate instead of tripping again on the bounces already dealt with.
 function checkBouncePause_(t, S) {
-  var c = todayCounts_(t);
-  var pct = num_(S.BOUNCE_PAUSE_PCT, 3);
-  if (c.sent >= 10 && (c.bounced / c.sent) * 100 > pct && !truthy_(S.SENDING_PAUSED)) {
-    setSetting_('SENDING_PAUSED', 'TRUE');
-    log_('auto_pause', '', c.bounced + ' bounces / ' + c.sent + ' sends today');
-    alert_('Sending paused: bounces at ' + Math.round(c.bounced / c.sent * 100) + '%',
-      c.bounced + ' bounces out of ' + c.sent + ' sends today. Sending is paused until you set SENDING_PAUSED to FALSE.');
+  if (truthy_(S.SENDING_PAUSED)) return;
+  var w = bounceWindow_(t, S, new Date());
+  if (!bounceTrips_(w, S)) return;
+  var now = new Date();
+  setSetting_('SENDING_PAUSED', 'TRUE');
+  setSetting_('BOUNCE_COUNT_FROM', Utilities.formatDate(now, IST, 'yyyy-MM-dd HH:mm'));
+  var pctNow = Math.round(w.bounced / Math.max(w.sent, 1) * 100);
+  log_('auto_pause', '', w.bounced + ' bounces / ' + w.sent + ' sends in ' + w.days + ' days (' + pctNow + '%): ' + w.emails.join(', '));
+  alert_('Sending paused: ' + w.bounced + ' bounces in ' + w.days + ' days',
+    w.bounced + ' of the last ' + w.sent + ' emails bounced (' + pctNow + '%):\n' + w.emails.join('\n') +
+    '\n\nSending is paused until you set SENDING_PAUSED to FALSE (or press Resume in the console). ' +
+    'Check where those addresses came from before resuming.');
+}
+
+/** Sends and bounces since max(now - BOUNCE_WINDOW_DAYS, BOUNCE_COUNT_FROM). */
+function bounceWindow_(t, S, now) {
+  var days = num_(S.BOUNCE_WINDOW_DAYS, 7);
+  var from = new Date(now.getTime() - days * 86400000);
+  var reset = date_(S.BOUNCE_COUNT_FROM);
+  if (reset && reset > from) from = reset;
+  var inWin = function (v) { var d = date_(v); return d && d >= from && d <= now; };
+  var w = { days: days, from: from, sent: 0, bounced: 0, emails: [] };
+  for (var r = 2; r <= t.lastRow; r++) {
+    ['sent_1_at', 'sent_2_at', 'sent_3_at'].forEach(function (k) { if (inWin(t.get(r, k))) w.sent++; });
+    if (inWin(t.get(r, 'bounced_at'))) { w.bounced++; w.emails.push(String(t.get(r, 'email'))); }
   }
+  return w;
+}
+
+function bounceTrips_(w, S) {
+  var min = num_(S.BOUNCE_PAUSE_MIN, 2), pct = num_(S.BOUNCE_PAUSE_PCT, 3);
+  return w.bounced >= min && w.sent > 0 && (w.bounced / w.sent) * 100 > pct;
 }
 
 /** The most recent message on a thread that is not from us. */
