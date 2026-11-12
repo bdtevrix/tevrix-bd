@@ -38,19 +38,19 @@ Do these in order. Nothing sends to a real lead until step 17 (TEST_MODE stays T
     - *Project Settings* → tick **Show "appsscript.json"** → replace it with `apps-script/appsscript.json`.
     - *Services (+)* → **Gmail API** (v1) if it is not already listed.
     - *Project Settings → Script Properties*: `GITHUB_TOKEN` = the token from step 11.
-    - Reload the Sheet → menu **HireMinds BD → Install triggers** → approve the permissions (Google warns that the app is unverified because it is your own script: *Advanced → Go to project*).
+    - Reload the Sheet → menu **Tevrix BD → Install triggers** → approve the permissions (Google warns that the app is unverified because it is your own script: *Advanced → Go to project*).
 13. **Fill Settings**: `SEND_AS` (team@outreachdomain.com), `MAILBOXES` (the BD account's address), `SENDER_NAME`, `POSTAL_ADDRESS`, `BOOKING_LINK`, `ALERT_EMAILS`, `GITHUB_OWNER`, `TEST_RECIPIENT` (your own address, **not** the BD account, or the reply test below will not register). Fill `FOUNDERS` (the two founders' first names, comma-separated) so Claude alternates LinkedIn requests between you.
 14. **Booking page**: in the BD Google Calendar, *Create → Appointment schedule*, 15 minutes → copy the booking link into `BOOKING_LINK`.
 15. **Founders**: review `claude/angles.md`, mark the angles you approve, and confirm the six items at its top (name, one-line promise, proof point, role fit, price, candidate disclosure). Record a 60-second proof video.
 
 ### First run and test
 - **Dry run in GitHub**: *Actions → intake → Run workflow*, tick *Dry run*, limit `5`. Check the log and the CSV artifact.
-- **Real intake**: *HireMinds BD → Run intake now* (or wait for 01:00 IST). New rows appear in **Leads** with status `new`. Then tell Claude in this account to create the scheduled tasks (morning research, evening replies, Monday report).
+- **Real intake**: *Tevrix BD → Run intake now* (or wait for 01:00 IST). New rows appear in **Leads** with status `new`. Then tell Claude in this account to create the scheduled tasks (morning research, evening replies, Monday report).
 16. **Optional, Customer.io**: *Settings → API credentials → Tracking API keys* → add `CIO_SITE_ID` and `CIO_API_KEY` to Script Properties. Optional `CHAT_WEBHOOK` (Google Chat) for alerts there too.
 17. **Test with TEST_MODE = TRUE**:
-    1. *HireMinds BD → Send test email to me* → check the From name, alias, signature, opt-out line and postal address.
+    1. *Tevrix BD → Send test email to me* → check the From name, alias, signature, opt-out line and postal address.
     2. Add a test row to **Outreach**: your own company, `country` UK, your email, `email_status` safe, a subject and `email_1`, `follow_up_1`. Set `decision` = approve; `stage` becomes approved and `mailbox` fills in.
-    3. *HireMinds BD → Send now* (in TEST_MODE it ignores the 09:00–16:00 window). The email arrives at TEST_RECIPIENT with `[TEST]`; `stage` = sent_1 and `thread_id`, `message_id`, `sent_1_at` fill in.
+    3. *Tevrix BD → Send now* (in TEST_MODE it ignores the 09:00–16:00 window). The email arrives at TEST_RECIPIENT with `[TEST]`; `stage` = sent_1 and `thread_id`, `message_id`, `sent_1_at` fill in.
     4. Change `sent_1_at` to 5 days ago → *Send now* → the follow-up arrives **in the same thread** as "Re: …".
     5. Reply to that thread from TEST_RECIPIENT → *Check replies now* → `stage` = replied, `reply_text` fills in, and an alert email arrives.
     6. Write something in `reply_draft`, set `reply_decision` = send → *Send now* → the reply arrives in the thread.

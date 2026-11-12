@@ -13,7 +13,7 @@ def script(src: str) -> str:
     return "<script>\n" + src + "\n</script>\n"
 
 page = (
-    "<title>HireMinds BD Console</title>\n"
+    "<title>Tevrix BD Console</title>\n"
     "<script>window.__HM_PREVIEW__ = true;</script>\n"
     + script(read("preview/fakegas.js"))
     + script(read("preview/sample.js"))

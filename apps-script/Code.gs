@@ -1,6 +1,6 @@
 /**
- * HireMinds BD — the clock and the hands.
- * Bound to the Sheet "HireMinds BD — Outreach". Runs as each mailbox account (the BD account first).
+ * Tevrix BD — the clock and the hands.
+ * Bound to the Sheet "Tevrix BD — Outreach". Runs as each mailbox account (the BD account first).
  *
  * Settings tab: everything visible. Script Properties: GITHUB_TOKEN, CIO_SITE_ID, CIO_API_KEY, CHAT_WEBHOOK.
  * Columns are always looked up by header name, never by position.
@@ -59,7 +59,7 @@ var UNSUB_RE = /(unsubscribe|remove me|take me off|opt[ -]?out|not interested|no
 // ------------------------------------------------------------------ menu and onEdit
 
 function onOpen() {
-  SpreadsheetApp.getUi().createMenu('HireMinds BD')
+  SpreadsheetApp.getUi().createMenu('Tevrix BD')
     .addItem('Install triggers', 'installTriggers')
     .addItem('Run intake now', 'runIntakeNow')
     .addItem('Send now', 'sendNow')
@@ -592,7 +592,7 @@ function dailySummary() {
     if (String(t.get(r, 'reply_label')) === 'interested') interested++;
   }
   var body = [
-    'HireMinds BD — ' + Utilities.formatDate(new Date(), IST, 'EEE d MMM yyyy'),
+    'Tevrix BD — ' + Utilities.formatDate(new Date(), IST, 'EEE d MMM yyyy'),
     '',
     'Drafts waiting for review: ' + drafts,
     'Approved, not yet sent: ' + queued,
@@ -605,7 +605,7 @@ function dailySummary() {
     '',
     SpreadsheetApp.getActive().getUrl()
   ].join('\n');
-  alert_('HireMinds BD daily summary', body);
+  alert_('Tevrix BD daily summary', body);
   log_('daily_summary', '', 'sent ' + c.sent + ', replies ' + c.replied);
 }
 
@@ -644,7 +644,7 @@ function cioSync() {
 function sendTestEmail() {
   var S = settings_();
   var to = S.TEST_RECIPIENT || me_();
-  var t = table_(TAB.OUTREACH), subject = 'HireMinds test', body = 'This is a test of the HireMinds BD sender.';
+  var t = table_(TAB.OUTREACH), subject = 'Tevrix BD test', body = 'This is a test of the Tevrix BD sender.';
   for (var r = 2; r <= t.lastRow; r++) {
     if (t.get(r, 'email_1') && t.get(r, 'subject')) { subject = t.get(r, 'subject'); body = t.get(r, 'email_1'); break; }
   }
@@ -837,7 +837,7 @@ function withLock_(fn) {
 function alert_(subject, body) {
   var S = settings_();
   var to = S.ALERT_EMAILS || me_();
-  try { MailApp.sendEmail({ to: to, subject: subject, body: body, name: 'HireMinds BD' }); } catch (err) { console.error(err); }
+  try { MailApp.sendEmail({ to: to, subject: subject, body: body, name: 'Tevrix BD' }); } catch (err) { console.error(err); }
   var hook = PropertiesService.getScriptProperties().getProperty('CHAT_WEBHOOK');
   if (hook) {
     try {
@@ -848,7 +848,7 @@ function alert_(subject, body) {
 }
 
 function toast_(msg) {
-  try { SpreadsheetApp.getActive().toast(msg, 'HireMinds BD', 6); } catch (e) { /* running from a trigger */ }
+  try { SpreadsheetApp.getActive().toast(msg, 'Tevrix BD', 6); } catch (e) { /* running from a trigger */ }
 }
 
 // For tests under Node (ignored by Apps Script).

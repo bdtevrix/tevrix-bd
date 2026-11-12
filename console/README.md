@@ -1,6 +1,6 @@
-# HireMinds BD Console
+# Tevrix BD Console
 
-A web app over the "HireMinds BD — Outreach" Sheet. It runs as an Apps Script web app inside your Google Workspace, so it costs nothing, needs no server, and only people at tevrixai.com can reach it.
+A web app over the "Tevrix BD — Outreach" Sheet. It runs as an Apps Script web app inside your Google Workspace, so it costs nothing, needs no server, and only people at tevrixai.com can reach it.
 
 Everything you do in the console writes to the Sheet and is logged with your name in the Log tab. The Sheet stays the single source of truth. You can still edit it by hand.
 
