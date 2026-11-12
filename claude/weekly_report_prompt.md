@@ -1,6 +1,11 @@
-# Monday report — scheduled task, Mondays 09:00 IST (BD account)
+# Monday report — scheduled task, Mondays 08:45 IST (BD account)
 
-Read the Google Sheet **HireMinds BD — Outreach** (ID `1cDZcswzXjaxnZSlheKE-OulPlAy2Yzj3sPAlrv-qM7k`) with the Google Sheets connector. Map columns by header name. Never send email. The only change you may make to the Sheet is appending rows to the **Playbook** tab (step 5); everything else is read only.
+Read the Google Sheet **Tevrix BD — Outreach** (ID `1cDZcswzXjaxnZSlheKE-OulPlAy2Yzj3sPAlrv-qM7k`) with the Google Sheets connector. Map columns by header name. Never send email. The only change you may make to the Sheet is appending rows to the **Playbook** tab (step 5); everything else is read only.
+
+The Sheet holds two programmes:
+- **HireMinds** outreach (the AI interviewer, product work): every Outreach row whose `angle` is not `partner`, and every Leads row whose `source` is not `partner_scan`.
+- **Partner** outreach (Tevrix services work: recruiting commission-based sales agents for Tevrix AI's AI, website and automation services): Outreach rows with `angle` = `partner` and Leads rows with `source` = `partner_scan`. The "BD partner recruitment" task writes these.
+Items 1–5 cover HireMinds only: leave partner rows out of every number in them. Item 6 covers the partner programme.
 
 For the last 7 days and for all time, report:
 1. First emails sent (`sent_1_at`), follow-ups sent (`sent_2_at`, `sent_3_at`), replies (`replied_at`), reply rate (replies ÷ first emails), interested (`reply_label` = interested), demos (`stage` = demo), beta clients (`stage` = beta), bounces (`bounced_at`) and bounce rate.
@@ -15,7 +20,7 @@ For the last 7 days and for all time, report:
    - from edits: 3 or more drafts edited the same way;
    - from reply numbers: at least 30 first emails in each group compared, and a clear gap (for example one group at twice the other's reply rate);
    - retiring a rule: an approved rule whose drafts have 30+ sends and a reply rate under half of everyone else's. Propose a new row that says "Retire <id>: <why>", type `other`.
-   Do not propose a rule that repeats or contradicts one already in the tab with status `proposed`, `approved` or `rejected` (a rejected rule stays rejected unless the numbers have clearly changed: then say so in `evidence`). A rule must never ask the morning research to break its hard rules: the country rule for email, Do not contact, guessed addresses, invented facts, or claims about the product.
+   Do not propose a rule that repeats or contradicts one already in the tab with status `proposed`, `approved` or `rejected` (a rejected rule stays rejected unless the numbers have clearly changed: then say so in `evidence`). A rule must never ask the morning research to break its hard rules: the country rule for email, Do not contact, guessed addresses, invented facts, or claims about the product. Never base a Playbook rule on partner rows: the Playbook steers HireMinds research only.
    Each row, in the tab's header order:
    - `id`: `P-` + today as YYMMDD + `-` + a number from 1 (e.g. P-261116-1)
    - `added_at`: now in IST as YYYY-MM-DD HH:MM
@@ -24,7 +29,8 @@ For the last 7 days and for all time, report:
    - `evidence`: one line with the numbers, e.g. "7 of 9 UK agency skips in 28 days were 'size', all under 20 staff"
    - `source`: `skips`, `edits` or `monday report` (for reply-rate rules)
    - `status`: `proposed`; leave `decided_at` and `decided_by` blank. Only a founder approves, in the console.
+6. **Partner programme (commission agents)**, last 7 days and all time: agents found (Leads `source` = partner_scan) by country, how many were LinkedIn only (Leads `status` = linkedin), partner drafts approved vs skipped (with the top `skip_reason`), drafts still waiting, first emails sent, replies, reply rate, interested (`reply_label` = interested), bounces, and LinkedIn requests sent and accepted for partner `lead_id`s. Then two short lines: what kind of agent replies best so far (what they sell, country) or "too early to call" under 30 sends, and any question interested agents keep asking (from `reviewer_notes`) that a founder should answer once, such as the commission rate.
 
-Before any email has been sent, report only the lead and draft numbers in item 3 and the skips and edits in item 4, and say that reply data starts once sending begins.
+Before any email has been sent, report only the lead and draft numbers in items 3 and 6 and the skips and edits in item 4, and say that reply data starts once sending begins.
 
-Write the report as plain text under 350 words, ending with the rules you proposed (or "no new rules: not enough evidence yet") and a reminder that they wait in the console's Playbook screen. If the Gmail connector is available, also save it as a **draft** (never send) to the addresses in Settings `ALERT_EMAILS` with subject "Tevrix BD weekly report".
+Write the report as plain text under 450 words, with the partner programme as its own short section after the HireMinds numbers, ending with the rules you proposed (or "no new rules: not enough evidence yet") and a reminder that they wait in the console's Playbook screen. If the Gmail connector is available, also save it as a **draft** (never send) to the addresses in Settings `ALERT_EMAILS` with subject "Tevrix BD weekly report".

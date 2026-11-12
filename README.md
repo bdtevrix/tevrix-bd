@@ -1,6 +1,6 @@
 # tevrix-bd
 
-Lead intake for HireMinds outreach. GitHub Actions finds companies that are hiring and recruitment agencies, finds and verifies a contact, and appends rows to the **Leads** tab of the Google Sheet *HireMinds BD — Outreach*. Nothing here sends email: the Apps Script in `apps-script/` sends only what a founder approved in the Sheet.
+Lead intake for HireMinds outreach. GitHub Actions finds companies that are hiring and recruitment agencies, finds and verifies a contact, and appends rows to the **Leads** tab of the Google Sheet *Tevrix BD — Outreach*. Nothing here sends email: the Apps Script in `apps-script/` sends only what a founder approved in the Sheet.
 
 ```
 Apps Script (01:00 IST) ──dispatch──▶ intake.yml / agencies.yml ──▶ Leads tab (status new)

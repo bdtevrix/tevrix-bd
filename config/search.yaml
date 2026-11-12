@@ -1,6 +1,6 @@
 # tevrix-bd search configuration. Edit freely; the code reads everything from here.
 
-# The Google Sheet "HireMinds BD — Outreach" (not secret: only accounts it is shared with can open it).
+# The Google Sheet "Tevrix BD — Outreach" (not secret: only accounts it is shared with can open it).
 sheet_id: 1cDZcswzXjaxnZSlheKE-OulPlAy2Yzj3sPAlrv-qM7k
 
 # Wave 1 markets. country_indeed must be the exact name JobSpy expects.

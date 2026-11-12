@@ -1,7 +1,7 @@
 /**
- * HireMinds BD Console — server side of the dashboard web app.
+ * Tevrix BD Console — server side of the dashboard web app.
  *
- * Lives in the Apps Script project bound to the "HireMinds BD — Outreach" Sheet,
+ * Lives in the Apps Script project bound to the "Tevrix BD — Outreach" Sheet,
  * next to the automation script (Code.gs). It only reads and writes the Sheet and,
  * for the Run buttons, calls the automation's public functions when they exist.
  *
@@ -47,11 +47,11 @@ function doGet() {
   var me = uiUser_();
   if (!uiAllowed_(me)) {
     return HtmlService.createHtmlOutput(uiNoAccessHtml_(me))
-      .setTitle('HireMinds BD Console')
+      .setTitle('Tevrix BD Console')
       .addMetaTag('viewport', 'width=device-width, initial-scale=1');
   }
   return HtmlService.createHtmlOutputFromFile('Dashboard')
-    .setTitle('HireMinds BD Console')
+    .setTitle('Tevrix BD Console')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 
@@ -90,9 +90,9 @@ function uiGuard_() {
 function uiNoAccessHtml_(me) {
   var who = me ? me.replace(/[<>&"]/g, '') : 'this account';
   return '<div style="font:16px/1.5 system-ui,sans-serif;max-width:520px;margin:12vh auto;padding:0 20px;color:#0B0B12">' +
-    '<p style="font:500 12px/1 monospace;letter-spacing:.12em;text-transform:uppercase;color:#5A5866">HireMinds BD Console</p>' +
+    '<p style="font:500 12px/1 monospace;letter-spacing:.12em;text-transform:uppercase;color:#5A5866">Tevrix BD Console</p>' +
     '<h1 style="font-size:32px;line-height:1.05;letter-spacing:-.03em;margin:12px 0">No access for ' + who + '</h1>' +
-    '<p>This console is open to people who can edit the HireMinds BD Sheet. Ask a founder to share the Sheet with you, ' +
+    '<p>This console is open to people who can edit the Tevrix BD Sheet. Ask a founder to share the Sheet with you, ' +
     'or to add your address to <b>DASHBOARD_USERS</b> in the Settings tab, then reload this page.</p></div>';
 }
 
