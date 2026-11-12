@@ -430,6 +430,87 @@
   .pb-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; }
   .pb-rule { margin: 0; font-size: 16px; font-weight: 600; }
   .pb-ev { margin: 0; font-size: 14px; }
+
+  /* ---------- programmes: HireMinds (the product) and Tevrix services (agency work) */
+  :root { --c-hm: #5B2EE6; --c-ts: #C2410C; --prog-c: var(--c-hm); }
+  :root[data-prog="services"] {
+    --prog-c: var(--c-ts);
+    --accent: #C2410C; --accent-text: #B03A0B; --accent-tint: #FCEBDD; --accent-tint-text: #8A3208; --focus: #C2410C;
+    --warn-text: #B42318; --warn-tint: #FDE4E1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --c-hm: #8B6CF6; --c-ts: #D9550F; }
+    :root[data-prog="services"]:not([data-theme="light"]) {
+      --accent: #C2410C; --accent-text: #FDBA74; --accent-tint: #33190D; --accent-tint-text: #FED7AA; --focus: #FDBA74;
+      --warn-text: #FCA5A5; --warn-tint: #3B1212;
+    }
+  }
+  :root[data-theme="dark"] { --c-hm: #8B6CF6; --c-ts: #D9550F; }
+  :root[data-theme="dark"][data-prog="services"] {
+    --accent: #C2410C; --accent-text: #FDBA74; --accent-tint: #33190D; --accent-tint-text: #FED7AA; --focus: #FDBA74;
+    --warn-text: #FCA5A5; --warn-tint: #3B1212;
+  }
+  .vh { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .prog { display: grid; gap: 6px; }
+  .prog-seg { display: grid; grid-template-columns: 1fr; border: 1px solid var(--line-strong); }
+  .prog-seg button { display: flex; align-items: center; justify-content: flex-start; gap: 8px; min-width: 0; min-height: 38px; padding: 8px 10px; border: 0; background: transparent; cursor: pointer; font-weight: 700; font-size: 13px; letter-spacing: -0.01em; color: var(--ink-soft); transition: background var(--fast) var(--ease), color var(--fast) var(--ease); }
+  .prog-seg button + button { border-top: 1px solid var(--line-strong); }
+  .prog-seg button:hover { background: var(--hover); color: var(--ink); }
+  .prog-seg button.on { background: var(--ink); color: var(--bg); }
+  .sw { width: 9px; height: 9px; flex: none; display: inline-block; }
+  .sw.hm { background: var(--c-hm); }
+  .sw.ts { background: var(--c-ts); }
+  .prog-seg .pn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .prog-seg .ps { display: none; font: 600 11px/1 var(--mono); letter-spacing: 0.04em; }
+  .prog-seg .pc { margin-left: auto; font: 500 10px/1 var(--mono); padding: 2px 5px; border: 1px solid currentColor; border-radius: 999px; }
+  .prog-tag { display: inline-flex; align-items: center; gap: 6px; }
+  @media (min-width: 861px) {
+    .app.collapsed .prog { width: 100%; }
+    .app.collapsed .prog-seg button { justify-content: center; padding: 8px 0; }
+    .app.collapsed .prog-seg .pn, .app.collapsed .prog-seg .pc { display: none; }
+    .app.collapsed .prog-seg .ps { display: inline; }
+  }
+  @media (max-width: 860px) {
+    .prog-seg { grid-template-columns: 1fr 1fr; }
+    .prog-seg button { min-height: 36px; padding: 6px; justify-content: center; }
+    .prog-seg button + button { border-top: 0; border-left: 1px solid var(--line-strong); }
+    .prog-seg .pc { margin-left: 0; }
+  }
+
+  /* ---------- home charts */
+  .spark-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .spark { display: grid; gap: 10px; min-width: 0; padding: 0 22px; border-left: 1px solid var(--line); align-content: start; }
+  .spark:first-child { padding-left: 0; border-left: 0; }
+  .spark:last-child { padding-right: 0; }
+  .spark-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .spark .v { font-weight: 800; font-size: 30px; letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums; }
+  .spark svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .spark .bar { fill: var(--prog-c); transition: opacity var(--fast) var(--ease); }
+  .spark .zero { fill: var(--bar-track); }
+  .spark .base { stroke: var(--line); stroke-width: 1; }
+  .spark g.d:hover .bar, .spark g.d:focus .bar { opacity: 0.72; }
+  .spark g.d:focus { outline: none; }
+  .spark g.d:focus .hit { stroke: var(--focus); stroke-width: 1.5; }
+  .spark .hit { fill: transparent; }
+  .spark-axis { display: flex; justify-content: space-between; font: 400 11px/1 var(--mono); color: var(--muted); }
+  .spark-tip { min-height: 18px; font: 400 12px/1.4 var(--mono); color: var(--ink-soft); }
+  .cmp { display: grid; gap: 14px; }
+  .cmp-legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--ink-soft); }
+  .cmp-legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .cmp-row { display: grid; grid-template-columns: minmax(110px, 150px) minmax(0, 1fr); gap: 12px; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+  .cmp-row:last-child { border-bottom: 0; padding-bottom: 0; }
+  .cmp-bars { display: grid; gap: 2px; }
+  .cmp-bar { display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 10px; align-items: center; }
+  .cmp-bar .track { height: 10px; background: var(--bar-track); position: relative; }
+  .cmp-bar .track i { position: absolute; inset: 0 auto 0 0; border-radius: 0 4px 4px 0; }
+  .cmp-bar.hm i { background: var(--c-hm); }
+  .cmp-bar.ts i { background: var(--c-ts); }
+  .cmp-bar .n { font: 500 13px/1 var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
+  @media (max-width: 860px) {
+    .spark-grid { grid-template-columns: 1fr; gap: 22px; }
+    .spark { padding: 0; border-left: 0; }
+    .cmp-row { grid-template-columns: 1fr; gap: 6px; }
+  }
 </style>
 
 <div class="preview-bar" id="previewBar" hidden>
@@ -444,6 +525,7 @@
         <svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="13"/><path d="M7.5 3.5v13M13.5 8l-2 2 2 2"/></svg>
       </button>
     </div>
+    <div class="prog" id="prog"></div>
     <nav class="nav" id="nav" aria-label="Sections"></nav>
     <div class="side-foot" id="sideFoot"></div>
   </aside>
@@ -474,6 +556,15 @@
   };
   var LABELS = { interested: 'Interested', not_now: 'Not now', wrong_person: 'Wrong person', unsubscribe: 'Unsubscribe', out_of_office: 'Out of office', other: 'Other' };
   var WAIT_STAGES = ['Asked', 'Talked', 'Committed to pay', 'Not a fit'];
+  // Two programmes share one Sheet: HireMinds (the product) and Tevrix services (agency work sold through commission agents).
+  var PROGS = {
+    hireminds: { name: 'HireMinds', btn: 'HireMinds', short: 'HM', sw: 'hm', sub: 'Product · AI interviewer' },
+    services: { name: 'Tevrix services', btn: 'Tevrix', short: 'TS', sw: 'ts', sub: 'Agency work · commission agents' }
+  };
+  var PROG_ROUTES = ['home', 'review', 'replies', 'pipeline', 'leads', 'linkedin'];
+  var STAGE_HM = { demo: 'Demo booked', beta: 'Beta client', won: 'Paying' };
+  var STAGE_TS = { demo: 'Call booked', beta: 'Agent signed', won: 'Deal closed' };
+  var FUNNEL_TS = { found: 'Agents found', demo: 'Call booked', beta: 'Agent signed', won: 'Deal closed' };
   var LI_LIMIT = 300;
   var ICONS = {
     home: '<rect x="3" y="4" width="14" height="13"/><path d="M3 8h14M7 2v4M13 2v4"/>',
@@ -537,7 +628,7 @@
   // ================================================================ state
   var S = null;
   var ui = {
-    route: 'home', loading: true, error: null, lastLoad: 0, pending: false, drawer: null, flash: null, logAll: false,
+    route: 'home', prog: savedProg(), loading: true, error: null, lastLoad: 0, pending: false, drawer: null, flash: null, logAll: false,
     review: { tab: 'todo', sel: null, q: '', sort: 'score', angle: '', mobile: false, view: 'edit' },
     replies: { sel: null, mobile: false },
     pipe: { q: '', closed: false, view: 'board', needs: false, angle: '', country: '', filters: false, mstage: '', sort: { k: 'next', dir: 1 } },
@@ -549,6 +640,45 @@
     live: { checks: {}, phrase: '' },
     drafts: {}
   };
+
+  function savedProg() { try { var p = localStorage.getItem('tb-prog'); return PROGS[p] ? p : 'hireminds'; } catch (e) { return 'hireminds'; } }
+  function progOf(x) {
+    if (x && x.prog) return x.prog;
+    return x && (x.angle === 'partner' || x.source === 'partner_scan' || x.segment === 'partner') ? 'services' : 'hireminds';
+  }
+  function mine(x) { return progOf(x) === ui.prog; }
+  function isTS() { return ui.prog === 'services'; }
+  // Rows and numbers for the programme picked in the sidebar.
+  function OUT() { return S ? S.outreach.filter(mine) : []; }
+  function LEADS() { return S ? S.leads.filter(mine) : []; }
+  function LI() { return S ? S.linkedin.filter(mine) : []; }
+  var SHARED_LOG = ['pause', 'resume', 'setting', 'test_email', 'cap_reached', 'send_blocked', 'bounce_pause', 'install_triggers', 'dnc_add'];
+  function LOGS() {
+    if (!S) return [];
+    return S.log.filter(function (r) {
+      if (r.prog) return r.prog === ui.prog;
+      return !isTS() || SHARED_LOG.indexOf(str(r.action)) !== -1;
+    });
+  }
+  function M(p) { return S ? ((S.metricsBy && S.metricsBy[p || ui.prog]) || S.metrics) : {}; }
+  function applyProgLabels() {
+    var L = isTS() ? STAGE_TS : STAGE_HM;
+    Object.keys(L).forEach(function (k) { STAGE[k] = L[k]; COL_NAME[k] = L[k]; });
+  }
+  function setProg(p) {
+    if (!PROGS[p] || p === ui.prog) return;
+    ui.prog = p;
+    try { localStorage.setItem('tb-prog', p); } catch (e) {}
+    document.documentElement.setAttribute('data-prog', p);
+    applyProgLabels();
+    ui.review.sel = null; ui.review.angle = ''; ui.replies.sel = null;
+    ui.pipe.angle = ''; ui.pipe.country = ''; ui.pipe.mstage = '';
+    ui.leads.status = p === 'services' ? 'all' : 'new'; ui.leads.adding = false;
+    closeDrawer();
+    render(true);
+    toast('Showing ' + PROGS[p].name);
+  }
+  function progTag() { var P = PROGS[ui.prog]; return '<span class="prog-tag"><i class="sw ' + P.sw + '" aria-hidden="true"></i>' + esc(P.name) + '</span>'; }
 
   function byId(id) {
     if (!S) return null;
@@ -575,15 +705,15 @@
   }
   function dailyCap() { return (Number(setting('DAILY_CAP_PER_MAILBOX')) || 0) * Math.max(1, mailboxes().length); }
 
-  function draftsAll() { return S ? S.outreach.filter(function (o) { return (!o.stage || o.stage === 'drafted') && !o.decision; }) : []; }
-  function approvedAll() { return S ? S.outreach.filter(function (o) { return o.stage === 'approved'; }) : []; }
+  function draftsAll() { return OUT().filter(function (o) { return (!o.stage || o.stage === 'drafted') && !o.decision; }); }
+  function approvedAll() { return OUT().filter(function (o) { return o.stage === 'approved'; }); }
   function repliesOpen() {
-    return S ? S.outreach.filter(function (o) { return o.stage === 'replied' && !o.reply_sent_at; })
-      .sort(function (a, b) { return str(b.replied_at).localeCompare(str(a.replied_at)); }) : [];
+    return OUT().filter(function (o) { return o.stage === 'replied' && !o.reply_sent_at; })
+      .sort(function (a, b) { return str(b.replied_at).localeCompare(str(a.replied_at)); });
   }
   function repliesDone() {
-    return S ? S.outreach.filter(function (o) { return o.reply_sent_at || (o.replied_at && o.stage !== 'replied'); })
-      .sort(function (a, b) { return str(b.replied_at).localeCompare(str(a.replied_at)); }).slice(0, 30) : [];
+    return OUT().filter(function (o) { return o.reply_sent_at || (o.replied_at && o.stage !== 'replied'); })
+      .sort(function (a, b) { return str(b.replied_at).localeCompare(str(a.replied_at)); }).slice(0, 30);
   }
   function reviewQueue() {
     var q = ui.review.q.trim().toLowerCase();
@@ -600,7 +730,7 @@
   }
   function counts() {
     if (!S) return {};
-    return { review: draftsAll().length, replies: repliesOpen().length, linkedin: S.metrics.linkedinToSend, leads: S.metrics.leadsNew,
+    return { review: draftsAll().length, replies: repliesOpen().length, linkedin: M().linkedinToSend, leads: M().leadsNew,
       playbook: (S.playbook || []).filter(function (r) { return r.status === 'proposed'; }).length };
   }
 
@@ -670,7 +800,18 @@
   }
   function autosize(el) { el.style.height = 'auto'; el.style.height = (el.scrollHeight + 2) + 'px'; }
 
+  function renderProg() {
+    var box = $('#prog');
+    if (!box) return;
+    box.innerHTML = '<div class="prog-seg" role="group" aria-label="Programme">' + Object.keys(PROGS).map(function (p) {
+      var P = PROGS[p], mp = M(p), n = S ? (mp.drafts || 0) + (mp.repliesWaiting || 0) : 0, on = ui.prog === p;
+      return '<button data-act="prog" data-v="' + p + '" class="' + (on ? 'on' : '') + '" aria-pressed="' + on + '" title="' + esc(P.name + ' · ' + P.sub + (n ? ' · ' + n + ' waiting' : '') + '  (P)') + '">' +
+        '<i class="sw ' + P.sw + '" aria-hidden="true"></i><span class="pn">' + esc(P.name) + '</span><span class="ps" aria-hidden="true">' + P.short + '</span>' +
+        (n ? '<span class="pc num" aria-label="' + n + ' waiting">' + n + '</span>' : '') + '</button>';
+    }).join('') + '</div>';
+  }
   function renderNav() {
+    renderProg();
     var c = counts();
     $('#nav').innerHTML = ROUTES.map(function (r, i) {
       var n = c[r];
@@ -714,6 +855,7 @@
   }
 
   function head(eyebrow, title, lede, right) {
+    if (PROG_ROUTES.indexOf(ui.route) !== -1) eyebrow = (eyebrow ? eyebrow + ' · ' : '') + progTag();
     return '<header class="page-head"><div class="page-head-row"><div style="display:grid;gap:12px;min-width:0">' +
       (eyebrow ? '<span class="label">' + eyebrow + '</span>' : '') + '<h1 class="h1">' + title + '</h1></div>' + (right || '') + '</div>' +
       (lede ? '<p class="lede">' + lede + '</p>' : '') + '</header>';
@@ -749,7 +891,7 @@
 
   // ================================================================ screen: today
   function homeView() {
-    var m = S.metrics, st = sendState(), c = counts();
+    var m = M(), st = sendState(), c = counts(), ts = isTS();
     var hour = new Date().getHours();
     var hello = (hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening');
     var name = firstName(S.me);
@@ -757,13 +899,14 @@
     if (c.review) waiting.push(plural(c.review, 'draft'));
     if (c.replies) waiting.push(plural(c.replies, 'reply', 'replies'));
     if (c.linkedin) waiting.push(plural(c.linkedin, 'LinkedIn request'));
-    var lede = (waiting.length ? waiting.join(', ').replace(/, ([^,]*)$/, ' and $1') + ' need you. ' : 'Nothing needs you right now. ') +
+    var lede = (ts ? 'Tevrix services: commission agents who bring you AI, website and automation clients. ' : 'HireMinds: outreach for the AI interviewer. ') +
+      (waiting.length ? waiting.join(', ').replace(/, ([^,]*)$/, ' and $1') + ' need you. ' : 'Nothing needs you right now. ') +
       (st.key === 'test' ? 'Sending is in test mode, so nothing reaches real people yet.' : st.key === 'paused' ? 'Sending is paused.' : 'Sending is live.');
 
     var needs = [
-      ['review', c.review, 'Drafts to review', 'Approve or skip what Claude wrote'],
+      ['review', c.review, 'Drafts to review', ts ? 'Approve or skip Claude\'s emails to agents' : 'Approve or skip what Claude wrote'],
       ['replies', c.replies, 'Replies to answer', 'Claude has drafted each answer'],
-      ['linkedin', c.linkedin, 'LinkedIn to send', 'By hand, from your own account'],
+      ['linkedin', c.linkedin, 'LinkedIn to send', ts ? 'Agents with no published email' : 'By hand, from your own account'],
       ['pipeline', m.approved, 'Approved, not sent', 'The next send run sends up to ' + (Number(setting('MAX_SENDS_PER_RUN')) || 3)]
     ].map(function (n) {
       return '<button class="need' + (n[1] ? '' : ' zero') + '" data-act="go" data-to="' + n[0] + '">' +
@@ -772,14 +915,21 @@
     }).join('');
 
     var bouncePause = Number(setting('BOUNCE_PAUSE_PCT')) || 3;
-    var tiles = [
-      ['Sent today', m.sentToday + '<span class="muted" style="font-size:18px;letter-spacing:-0.02em"> / ' + dailyCap() + '</span>', plural(mailboxes().length || 1, 'mailbox', 'mailboxes') + ' · ' + esc(str(setting('SEND_DAYS'))) + ' ' + esc(str(setting('SEND_START_HOUR'))) + ':00–' + esc(str(setting('SEND_END_HOUR'))) + ':00'],
+    var common = [
+      ['Sent today', m.sentToday + '<span class="muted" style="font-size:18px;letter-spacing:-0.02em"> / ' + dailyCap() + '</span>', ts ? 'The daily cap is shared with HireMinds' : plural(mailboxes().length || 1, 'mailbox', 'mailboxes') + ' · ' + esc(str(setting('SEND_DAYS'))) + ' ' + esc(str(setting('SEND_START_HOUR'))) + ':00–' + esc(str(setting('SEND_END_HOUR'))) + ':00'],
       ['Reply rate · 30 days', m.sent30 ? pct(m.replyRate30) : '—', m.sent30 ? (m.replyRate30 >= 0.03 ? '<span class="chip good">At or above 3%</span>' : '<span class="chip warn">Below the 3% target</span>') : 'No first emails in 30 days'],
-      ['Bounce rate', m.firstSent ? pct(m.bounceRate) : '—', m.bounceRate * 100 >= bouncePause ? '<span class="chip warn">Over the ' + bouncePause + '% pause line</span>' : 'Sending pauses itself at ' + bouncePause + '%'],
+      ['Bounce rate', m.firstSent ? pct(m.bounceRate) : '—', m.bounceRate * 100 >= bouncePause ? '<span class="chip warn">Over the ' + bouncePause + '% pause line</span>' : 'Sending pauses itself at ' + bouncePause + '%']
+    ];
+    var own = ts ? [
+      ['Interested agents', m.interested, plural(m.replies, 'reply', 'replies') + ' in total'],
+      ['Calls booked', m.demos, m.beta ? plural(m.beta, 'agent') + ' signed' : 'Booked from replies'],
+      ['Agents found', m.leadsTotal, m.linkedinToSend + ' to send on LinkedIn']
+    ] : [
       ['Interested', m.interested, plural(m.replies, 'reply', 'replies') + ' in total'],
       ['Demos', m.demos, m.beta ? plural(m.beta, 'beta client') : 'Booked from replies'],
       ['Paying', m.won, '$250 a month each']
-    ].map(function (t) {
+    ];
+    var tiles = common.concat(own).map(function (t) {
       return '<div class="tile"><span class="label">' + t[0] + '</span><span class="v">' + t[1] + '</span><span class="sub">' + t[2] + '</span></div>';
     }).join('');
 
@@ -787,22 +937,88 @@
     var funnel = m.funnel.map(function (f, i) {
       var prev = i ? m.funnel[i - 1].n : 0;
       var rate = i && prev ? pct(f.n / prev, 0) + ' of prev' : '';
-      return '<div class="fun-row" title="' + esc(f.label + ': ' + f.n) + '"><span class="name">' + esc(f.label) + '</span>' +
-        '<span class="bar" role="img" aria-label="' + esc(f.label + ' ' + f.n) + '"><i style="width:' + (f.n / max * 100).toFixed(1) + '%"></i></span>' +
+      var label = (ts && FUNNEL_TS[f.key]) || f.label;
+      return '<div class="fun-row" title="' + esc(label + ': ' + f.n) + '"><span class="name">' + esc(label) + '</span>' +
+        '<span class="bar" role="img" aria-label="' + esc(label + ' ' + f.n) + '"><i style="width:' + (f.n / max * 100).toFixed(1) + '%"></i></span>' +
         '<span class="n">' + f.n + '</span><span class="rate">' + rate + '</span></div>';
     }).join('');
 
+    var activity = '<div class="card"><div class="card-head"><h2 class="h3">Recent activity</h2><button class="btn link" data-act="go" data-to="controls">Full log</button></div>' + logList(LOGS().slice(0, 8)) + '</div>';
     return '<div class="page">' +
       head(esc(fmtDay.format(new Date())) + ' · ' + esc(S.tz), hello + (name ? ', ' + esc(name) : '') + '.', esc(lede)) +
       '<section class="hair needs" aria-label="Needs you">' + needs + '</section>' +
       '<section class="hair tiles" aria-label="Numbers">' + tiles + '</section>' +
+      trendCard(m) +
       '<section class="grid2">' +
         '<div class="card"><div class="card-head"><h2 class="h3">Funnel</h2><span class="label">All time</span></div><div class="funnel">' + funnel + '</div></div>' +
-        gatesCard() +
+        compareCard() +
       '</section>' +
-      '<section class="grid2">' + splitTable('Which angle is working', 'Angle', m.angles) + splitTable('Where replies come from', 'Country', m.countries) + '</section>' +
-      '<section class="card"><div class="card-head"><h2 class="h3">Recent activity</h2><button class="btn link" data-act="go" data-to="controls">Full log</button></div>' + logList(S.log.slice(0, 8)) + '</section>' +
+      (ts
+        ? '<section class="grid2">' + splitTable('Where agent replies come from', 'Country', m.countries) + activity + '</section>'
+        : '<section class="grid2">' + splitTable('Which angle is working', 'Angle', m.angles) + splitTable('Where replies come from', 'Country', m.countries) + '</section>' +
+          '<section class="grid2">' + gatesCard() + activity + '</section>') +
       '</div>';
+  }
+
+  // ---- charts on Today: one small bar chart per measure, one bar per day, in the programme's colour
+  function dayName(d) { return d ? day(d + 'T12:00:00') : ''; }
+  function sparkSvg(series, key, noun) {
+    var W = 280, H = 84, n = series.length || 1, slot = W / n, bw = Math.max(4, slot - 6);
+    var max = Math.max.apply(null, series.map(function (d) { return d[key] || 0; }).concat([1]));
+    var bars = series.map(function (d, i) {
+      var v = d[key] || 0, x = +(i * slot + (slot - bw) / 2).toFixed(2), h = v ? Math.max(3, v / max * (H - 6)) : 0, y = +(H - h).toFixed(2);
+      var r = Math.min(4, bw / 2, h);
+      var mark = v
+        ? '<path class="bar" d="M' + x + ' ' + H + 'V' + (y + r) + 'Q' + x + ' ' + y + ' ' + (x + r) + ' ' + y + 'H' + (x + bw - r) + 'Q' + (x + bw) + ' ' + y + ' ' + (x + bw) + ' ' + (y + r) + 'V' + H + 'Z"/>'
+        : '<rect class="zero" x="' + x + '" y="' + (H - 2) + '" width="' + bw + '" height="2"/>';
+      var tip = dayName(d.day) + ': ' + plural(v, noun[0], noun[1]);
+      return '<g class="d" tabindex="0" data-tip="' + esc(tip) + '" aria-label="' + esc(tip) + '"><title>' + esc(tip) + '</title>' +
+        '<rect class="hit" x="' + (i * slot).toFixed(2) + '" y="0" width="' + slot.toFixed(2) + '" height="' + H + '"/>' + mark + '</g>';
+    }).join('');
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" aria-hidden="false" role="group">' + bars +
+      '<line class="base" x1="0" y1="' + H + '" x2="' + W + '" y2="' + H + '"/></svg>';
+  }
+  function spark(title, series, key, noun) {
+    var total = 0, best = null;
+    series.forEach(function (d) { var v = d[key] || 0; total += v; if (v && (!best || v >= best[key])) best = d; });
+    var dflt = total ? 'Busiest: ' + dayName(best.day) + ' · ' + best[key] : 'None in the last 14 days';
+    var table = '<table class="vh"><caption>' + esc(title) + ', last 14 days</caption><tbody>' +
+      series.map(function (d) { return '<tr><th scope="row">' + esc(dayName(d.day)) + '</th><td>' + (d[key] || 0) + '</td></tr>'; }).join('') + '</tbody></table>';
+    return '<div class="spark"><div class="spark-top"><span class="label">' + esc(title) + '</span><span class="v">' + total + '</span></div>' +
+      sparkSvg(series, key, noun) +
+      '<div class="spark-axis" aria-hidden="true"><span>' + esc(dayName(series[0] && series[0].day)) + '</span><span>Today</span></div>' +
+      '<div class="spark-tip" aria-live="polite" data-default="' + esc(dflt) + '">' + esc(dflt) + '</div>' + table + '</div>';
+  }
+  function trendCard(m) {
+    var d = m.daily || [];
+    if (!d.length) return '';
+    var ts = isTS();
+    return '<section class="card" aria-label="Last 14 days"><div class="card-head"><h2 class="h3">Last 14 days</h2><span class="label">' + progTag() + ' · One bar per day</span></div>' +
+      '<div class="spark-grid">' +
+        spark(ts ? 'Agents found' : 'Leads found', d, 'leads', ts ? ['agent found', 'agents found'] : ['lead found', 'leads found']) +
+        spark('Emails sent', d, 'sent', ['email sent', 'emails sent']) +
+        spark('Replies', d, 'replies', ['reply', 'replies']) +
+      '</div></section>';
+  }
+  function sparkTip(g, on) {
+    var box = g.closest('.spark'), tip = box && $('.spark-tip', box);
+    if (tip) tip.textContent = on ? g.getAttribute('data-tip') : tip.getAttribute('data-default');
+  }
+  function compareCard() {
+    if (!S.metricsBy) return '';
+    var a = S.metricsBy.hireminds || {}, b = S.metricsBy.services || {};
+    var rows = [['Leads found', 'leadsTotal'], ['Drafts to review', 'drafts'], ['First emails sent', 'firstSent'], ['Replies', 'replies'], ['Interested', 'interested']];
+    var body = rows.map(function (r) {
+      var x = a[r[1]] || 0, y = b[r[1]] || 0, top = Math.max(x, y, 1);
+      function bar(cls, v, who) {
+        return '<div class="cmp-bar ' + cls + '" title="' + esc(who + ' · ' + r[0] + ': ' + v) + '"><span class="track" role="img" aria-label="' + esc(who + ' ' + r[0] + ' ' + v) + '"><i style="width:' + (v / top * 100).toFixed(1) + '%"></i></span><span class="n">' + v + '</span></div>';
+      }
+      return '<div class="cmp-row"><span class="soft" style="font-size:14px">' + r[0] + '</span><div class="cmp-bars">' + bar('hm', x, 'HireMinds') + bar('ts', y, 'Tevrix services') + '</div></div>';
+    }).join('');
+    return '<div class="card"><div class="card-head"><h2 class="h3">Both programmes</h2><span class="label">All time</span></div>' +
+      '<div class="cmp-legend"><span><i class="sw hm" aria-hidden="true"></i>HireMinds</span><span><i class="sw ts" aria-hidden="true"></i>Tevrix services</span></div>' +
+      '<div class="cmp">' + body + '</div>' +
+      '<p class="muted" style="font-size:12.5px;margin:0">Each row is scaled to its own larger number. For services, leads are agents.</p></div>';
   }
 
   function splitTable(title, colName, rows) {
@@ -864,7 +1080,7 @@
   }
 
   // ================================================================ screen: review
-  function skippedAll() { return S ? S.outreach.filter(function (o) { return o.stage === 'skipped' && !o.sent_1_at; }) : []; }
+  function skippedAll() { return OUT().filter(function (o) { return o.stage === 'skipped' && !o.sent_1_at; }); }
   function reviewList() {
     if (ui.review.tab === 'todo') return reviewQueue();
     var q = ui.review.q.trim().toLowerCase();
@@ -915,8 +1131,8 @@
     var nAppr = approvedAll().length;
     return '<div class="detail-body"><div class="empty"><span class="label">' + (any ? 'No match' : 'All clear') + '</span>' +
       '<h2 class="h2">' + (any ? 'No drafts match that search.' : 'Nothing to review.') + '</h2>' +
-      '<p class="soft">' + (any ? 'Clear the search or pick another angle.' : 'Claude drafts new emails after each lead run. New leads land in the Leads tab first.') + '</p>' +
-      (any ? '' : '<div class="btn-row"><button class="btn primary" data-act="run" data-a="intake"' + (ready ? '' : ' disabled') + '>Find leads now</button><button class="btn quiet" data-act="go" data-to="leads">See leads</button>' +
+      '<p class="soft">' + (any ? 'Clear the search or pick another angle.' : isTS() ? 'Claude looks for commission agents every weekday evening at 6:17 pm and drafts up to 5 emails. Agents with no published email go to LinkedIn.' : 'Claude drafts new emails after each lead run. New leads land in the Leads tab first.') + '</p>' +
+      (any ? '' : '<div class="btn-row">' + (isTS() ? '' : '<button class="btn primary" data-act="run" data-a="intake"' + (ready ? '' : ' disabled') + '>Find leads now</button>') + '<button class="btn quiet" data-act="go" data-to="leads">See ' + (isTS() ? 'agents' : 'leads') + '</button>' +
         (nAppr ? '<button class="btn quiet" data-act="review-tab" data-v="approved">See ' + nAppr + ' approved</button>' : '') + '</div>') +
       '</div></div>';
   }
@@ -971,7 +1187,7 @@
       ['Email', o.email || '—'],
       ['Open roles', lead.open_roles ? lead.open_roles + (lead.roles_sample ? ' · ' + lead.roles_sample : '') : '—'],
       ['Size', lead.company_size || '—']
-    ].map(function (f) { return '<div class="fact"><span class="label">' + f[0] + '</span><span class="val">' + esc(f[1]) + '</span></div>'; }).join('');
+    ].filter(function (f) { return !(f[0] === 'Open roles' && progOf(o) === 'services'); }).map(function (f) { return '<div class="fact"><span class="label">' + f[0] + '</span><span class="val">' + esc(f[1]) + '</span></div>'; }).join('');
 
     var editor;
     if (ui.review.view === 'sent') editor = asSent(o);
@@ -1068,7 +1284,7 @@
     var labels = Object.keys(LABELS).map(function (k) {
       return '<button class="chip' + (o.reply_label === k ? ' on' : '') + '" data-act="set-label" data-id="' + esc(o.lead_id) + '" data-label="' + k + '"' + (o.reply_label === k ? ' aria-pressed="true"' : '') + '>' + LABELS[k] + '</button>';
     }).join('');
-    var outcomes = [['demo', 'Demo booked'], ['beta', 'Beta client'], ['won', 'Paying'], ['finished', 'Not now'], ['lost', 'Lost']].map(function (s) {
+    var outcomes = [['demo', STAGE.demo], ['beta', STAGE.beta], ['won', STAGE.won], ['finished', 'Not now'], ['lost', 'Lost']].map(function (s) {
       return '<button class="btn small' + (o.stage === s[0] ? '' : ' quiet') + '" data-act="set-stage" data-id="' + esc(o.lead_id) + '" data-stage="' + s[0] + '"' + (o.stage === s[0] ? ' aria-pressed="true"' : '') + '>' + s[1] + '</button>';
     }).join('') + '<button class="btn small danger" data-arm data-act="set-stage" data-id="' + esc(o.lead_id) + '" data-stage="dnc">Do not contact</button>';
     var booking = str(setting('BOOKING_LINK'));
@@ -1172,7 +1388,8 @@
     return list.slice().sort(by[stage] || seq);
   }
   function colSub(stage, n) {
-    var m = S.metrics;
+    var m = M();
+    if (isTS() && (stage === 'demo' || stage === 'beta' || stage === 'won')) return { demo: 'Agree terms on the call', beta: 'Agreement signed', won: 'Brought a paying client' }[stage];
     return {
       approved: 'Next run sends up to ' + (Number(setting('MAX_SENDS_PER_RUN')) || 3),
       sent_1: 'Follow-up 1 after ' + (Number(setting('FOLLOWUP_1_AFTER_DAYS')) || 4) + ' days',
@@ -1186,7 +1403,7 @@
   }
   function pipeRows() {
     var q = ui.pipe.q.trim().toLowerCase();
-    return S.outreach.filter(function (o) {
+    return OUT().filter(function (o) {
       if (!ORDER[o.stage]) return false;
       if (ui.pipe.angle && o.angle !== ui.pipe.angle) return false;
       if (ui.pipe.country && o.country !== ui.pipe.country) return false;
@@ -1261,7 +1478,7 @@
 
   function pipelineView() {
     var phone = !isDesktop();
-    var all = S.outreach.filter(function (o) { return ORDER[o.stage]; });
+    var all = OUT().filter(function (o) { return ORDER[o.stage]; });
     var rows = pipeRows();
     var flagged = all.filter(function (o) { return attention(o); });
     var kinds = { reply: 0, stale: 0, late: 0 };
@@ -1272,7 +1489,7 @@
       return '<option value="">' + none + '</option>' + Object.keys(obj).sort().map(function (v) { return '<option' + (cur === v ? ' selected' : '') + '>' + esc(v) + '</option>'; }).join('');
     }
     var open = all.filter(function (o) { return CLOSED.indexOf(o.stage) === -1; }).length;
-    var mrr = S.metrics.won * PRICE_USD;
+    var mrr = isTS() ? 0 : M().won * PRICE_USD;
     var nFilters = (ui.pipe.angle ? 1 : 0) + (ui.pipe.country ? 1 : 0);
     var mbar = '<div class="pipe-mbar">' +
       '<div class="pipe-mbar-row"><input type="search" placeholder="Search" aria-label="Search the pipeline" data-input="pipe-q" value="' + esc(ui.pipe.q) + '" style="flex:1 1 150px;width:auto">' +
@@ -1304,7 +1521,7 @@
       body =
         '<section class="band"><div class="band-head"><div><h2 class="h3">Sequence</h2><span class="muted" style="font-size:13px">Runs by itself. Follow-ups stop the moment someone replies.</span></div></div>' + laneHtml(SEQ, rows, false) + '</section>' +
         '<section class="band"><div class="band-head"><div><h2 class="h3">Conversations</h2><span class="muted" style="font-size:13px">Yours to move. Drag a card to a column, or open it.</span></div>' +
-          '<span class="label">' + (mrr ? '$' + mrr.toLocaleString() + '/mo paying' : 'No paying clients yet') + '</span></div>' + laneHtml(CONV, rows, true) +
+          '<span class="label">' + (isTS() ? (M().won ? plural(M().won, 'deal') + ' closed through agents' : 'No deals closed through agents yet') : mrr ? '$' + mrr.toLocaleString() + '/mo paying' : 'No paying clients yet') + '</span></div>' + laneHtml(CONV, rows, true) +
           '<div class="drop-close"><div class="drop-zone" data-drop="finished">Drop here: not now</div><div class="drop-zone" data-drop="lost">Drop here: lost</div></div></section>' +
         '<section class="band"><div class="band-head"><button class="btn quiet" data-act="pipe-closed" aria-expanded="' + ui.pipe.closed + '">' + (ui.pipe.closed ? 'Hide' : 'Show') + ' closed · ' + closed.length + '</button>' +
           '<span class="muted" style="font-size:13px">' + (closed.length ? CLOSED.filter(function (c) { return byClosed[c]; }).map(function (c) { return byClosed[c] + ' ' + (STAGE[c] || c).toLowerCase(); }).join(' · ') : 'Nothing closed yet') + '</span></div>' +
@@ -1366,13 +1583,14 @@
   function leadsView() {
     var q = ui.leads.q.trim().toLowerCase(), f = ui.leads.status;
     var byStatus = {};
-    S.leads.forEach(function (l) { byStatus[l.status || 'new'] = (byStatus[l.status || 'new'] || 0) + 1; });
-    var rows = S.leads.filter(function (l) {
+    var mineLeads = LEADS();
+    mineLeads.forEach(function (l) { byStatus[l.status || 'new'] = (byStatus[l.status || 'new'] || 0) + 1; });
+    var rows = mineLeads.filter(function (l) {
       if (f !== 'all' && (l.status || 'new') !== f) return false;
       return !q || [l.company, l.domain, l.country, l.contact_name, l.signal, l.segment].join(' ').toLowerCase().indexOf(q) !== -1;
     });
-    var filters = ['new', 'queued', 'parked', 'duplicate', 'all'].map(function (s) {
-      var n = s === 'all' ? S.leads.length : (byStatus[s] || 0);
+    var filters = (isTS() ? ['new', 'queued', 'linkedin', 'parked', 'all'] : ['new', 'queued', 'parked', 'duplicate', 'all']).map(function (s) {
+      var n = s === 'all' ? mineLeads.length : (byStatus[s] || 0);
       return '<button class="chip' + (f === s ? ' on' : '') + '" data-act="leads-filter" data-v="' + s + '">' + s + ' · ' + n + '</button>';
     }).join('');
     var body = rows.slice(0, 200).map(function (l) {
@@ -1388,20 +1606,21 @@
         '<td class="muted" style="white-space:nowrap">' + esc(l.source) + '<br>' + esc(rel(l.found_at)) + '</td>' +
         '<td><span class="chip' + (st === 'new' ? ' accent' : '') + '">' + esc(st) + '</span></td><td>' + action + '</td></tr>';
     }).join('');
-    var form = ui.leads.adding ? '<form class="card" data-form="lead-add"><div class="card-head"><h2 class="h3">Add a lead by hand</h2><span class="muted" style="font-size:13px">For referrals and inbound. Claude researches it and drafts on the next run.</span></div>' +
+    var form = ui.leads.adding && !isTS() ? '<form class="card" data-form="lead-add"><div class="card-head"><h2 class="h3">Add a lead by hand</h2><span class="muted" style="font-size:13px">For referrals and inbound. Claude researches it and drafts on the next run.</span></div>' +
       '<div class="fields">' +
       [['company', 'Company *', true], ['website', 'Website'], ['country', 'Country'], ['contact_name', 'Contact name'], ['contact_title', 'Contact title'], ['email', 'Email (only if you know it is right)'], ['signal', 'Why now'], ['notes', 'Notes']]
         .map(function (x) { return '<div class="field"><label class="label" for="nl-' + x[0] + '">' + x[1] + '</label><input id="nl-' + x[0] + '" name="' + x[0] + '" type="text"' + (x[2] ? ' required' : '') + '></div>'; }).join('') +
       '</div><div class="btn-row"><button class="btn primary" type="submit">Add lead</button><button class="btn quiet" type="button" data-act="lead-add-toggle">Cancel</button></div></form>' : '';
     return '<div class="page">' +
-      head('Leads', 'Companies Claude found', 'New leads are what Claude drafts next. Park any you do not want, and Claude leaves them alone.',
-        '<button class="btn primary" data-act="lead-add-toggle">' + (ui.leads.adding ? 'Close form' : 'Add a lead') + '</button>') +
+      (isTS() ? head('Leads', 'Agents Claude found', 'Commission-based sales agents from the daily partner search. Queued ones have an email draft in Review; the rest are on the LinkedIn list.')
+        : head('Leads', 'Companies Claude found', 'New leads are what Claude drafts next. Park any you do not want, and Claude leaves them alone.',
+        '<button class="btn primary" data-act="lead-add-toggle">' + (ui.leads.adding ? 'Close form' : 'Add a lead') + '</button>')) +
       form +
       '<div class="page-head-row"><div class="chips">' + filters + '</div><input type="search" class="search" placeholder="Search leads" aria-label="Search leads" data-input="leads-q" value="' + esc(ui.leads.q) + '"></div>' +
       (rows.length ? '<div class="table-wrap"><table><thead><tr><th>Company</th><th>Country</th><th>Signal</th><th>Contact</th><th>Email</th><th>Found</th><th>Status</th><th></th></tr></thead><tbody>' + body + '</tbody></table></div>' +
         (rows.length > 200 ? '<p class="muted">Showing the first 200 of ' + rows.length + '. Search to narrow it down.</p>' : '')
         : '<div class="card"><p class="muted" style="margin:0">No leads here.</p></div>') +
-      (S.metrics.leadsTotal > S.leads.length ? '<p class="muted" style="font-size:13px">The console shows the newest ' + S.leads.length + ' of ' + S.metrics.leadsTotal + ' leads. The rest are in the Sheet.</p>' : '') +
+      (M().leadsTotal > mineLeads.length ? '<p class="muted" style="font-size:13px">The console shows the newest ' + mineLeads.length + ' of ' + M().leadsTotal + ' leads. The rest are in the Sheet.</p>' : '') +
       '</div>';
   }
 
@@ -1409,14 +1628,15 @@
   function liSent(l) { return bool(l.sent); }
   function linkedinView() {
     var f = ui.li.filter;
-    var rows = S.linkedin.filter(function (l) {
+    var mineLi = LI();
+    var rows = mineLi.filter(function (l) {
       if (f === 'todo') return !liSent(l);
       if (f === 'sent') return liSent(l) && !bool(l.accepted);
       if (f === 'accepted') return bool(l.accepted);
       return true;
     });
-    var n = { todo: 0, sent: 0, accepted: 0, all: S.linkedin.length };
-    S.linkedin.forEach(function (l) { if (!liSent(l)) n.todo++; else if (bool(l.accepted)) n.accepted++; else n.sent++; });
+    var n = { todo: 0, sent: 0, accepted: 0, all: mineLi.length };
+    mineLi.forEach(function (l) { if (!liSent(l)) n.todo++; else if (bool(l.accepted)) n.accepted++; else n.sent++; });
     var filters = [['todo', 'To send'], ['sent', 'Sent'], ['accepted', 'Accepted'], ['all', 'All']].map(function (x) {
       return '<button class="chip' + (f === x[0] ? ' on' : '') + '" data-act="li-filter" data-v="' + x[0] + '">' + x[1] + ' · ' + n[x[0]] + '</button>';
     }).join('');
@@ -1491,7 +1711,7 @@
     var active = pb.filter(function (r) { return r.status === 'approved'; });
     var old = pb.filter(function (r) { return r.status === 'rejected' || r.status === 'retired'; });
     var skips = {};
-    S.outreach.forEach(function (o) { if (o.stage === 'skipped' && o.skip_reason) skips[o.skip_reason] = (skips[o.skip_reason] || 0) + 1; });
+    S.outreach.forEach(function (o) { if (progOf(o) === 'hireminds' && o.stage === 'skipped' && o.skip_reason) skips[o.skip_reason] = (skips[o.skip_reason] || 0) + 1; });
     var skipLine = Object.keys(skips).length ? Object.keys(skips).sort(function (a, b) { return skips[b] - skips[a]; }).map(function (k) { return esc(SKIP[k] || k) + ' ' + skips[k]; }).join(' · ') : 'No skip reasons yet.';
     var opts = Object.keys(PB_TYPES).map(function (k) { return '<option value="' + k + '">' + PB_TYPES[k] + '</option>'; }).join('');
     var form = ui.pb.adding ? '<form class="card" data-form="pb-add"><h2 class="h3">Add a rule yourself</h2><div class="fields">' +
@@ -1620,7 +1840,7 @@
   function showHelp() {
     var h = $('#help');
     h.innerHTML = '<div class="modal-card" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts"><div class="drawer-top"><h2 class="h2">Shortcuts</h2><button class="btn small quiet" data-act="help-x">Close <span class="k">Esc</span></button></div><div class="keys">' +
-      [['1–9', 'Go to Today, Review, Replies, Pipeline, Leads, LinkedIn, Waitlist, Playbook, Controls'], ['J / K', 'Next / previous draft or reply'], ['A', 'Approve the draft'], ['S', 'Skip the draft, then 1–6 for the reason'], ['L', 'Send it on LinkedIn instead'], ['E', 'Edit the first email'], ['Ctrl S', 'Save edits'], ['R', 'Refresh from the Sheet'], ['[', 'Collapse or open the sidebar'], ['?', 'This list'], ['Esc', 'Close panels']]
+      [['1–9', 'Go to Today, Review, Replies, Pipeline, Leads, LinkedIn, Waitlist, Playbook, Controls'], ['J / K', 'Next / previous draft or reply'], ['A', 'Approve the draft'], ['S', 'Skip the draft, then 1–6 for the reason'], ['L', 'Send it on LinkedIn instead'], ['E', 'Edit the first email'], ['Ctrl S', 'Save edits'], ['R', 'Refresh from the Sheet'], ['P', 'Switch between HireMinds and Tevrix services'], ['[', 'Collapse or open the sidebar'], ['?', 'This list'], ['Esc', 'Close panels']]
         .map(function (k) { return '<span><kbd>' + k[0] + '</kbd></span><span>' + k[1] + '</span>'; }).join('') + '</div></div>';
     h.hidden = false;
   }
@@ -1649,6 +1869,8 @@
     applySide(c);
   }
   applySide(sideCollapsed());
+  document.documentElement.setAttribute('data-prog', ui.prog);
+  applyProgLabels();
 
   // ================================================================ navigation
   function go(route, push) {
@@ -1803,6 +2025,7 @@
 
   var ACTIONS = {
     'go': function (el) { go(el.getAttribute('data-to')); },
+    'prog': function (el) { setProg(el.getAttribute('data-v')); },
     'retry': function () { ui.error = null; load(); },
     'refresh': function () { load(true).then(function () { toast('Up to date.'); }); },
     'theme': function () {
@@ -2012,6 +2235,13 @@
     }
   });
 
+  document.addEventListener('mouseover', function (e) { var g = e.target.closest && e.target.closest('.spark g.d'); if (g) sparkTip(g, true); });
+  document.addEventListener('mouseout', function (e) {
+    var g = e.target.closest && e.target.closest('.spark g.d');
+    if (g && !(e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('.spark g.d'))) sparkTip(g, false);
+  });
+  document.addEventListener('focusin', function (e) { var g = e.target.closest && e.target.closest('.spark g.d'); if (g) sparkTip(g, true); });
+  document.addEventListener('focusout', function (e) { var g = e.target.closest && e.target.closest('.spark g.d'); if (g) sparkTip(g, false); });
   document.addEventListener('keydown', function (e) {
     var tgt = e.target;
     if ((e.key === 'Enter' || e.key === ' ') && tgt && tgt.getAttribute && tgt.getAttribute('role') === 'button' && tgt.hasAttribute('data-act') && tgt.tagName !== 'BUTTON') {
@@ -2036,6 +2266,7 @@
     if (e.key === '?') { showHelp(); return; }
     if (e.key === '[') { toggleSide(); return; }
     if (k === 'r') { ACTIONS.refresh(); return; }
+    if (k === 'p') { setProg(isTS() ? 'hireminds' : 'services'); return; }
     if (ui.drawer) return;
     if (ui.route === 'review') {
       var list = reviewList(), i = -1, todo = ui.review.tab === 'todo';

@@ -197,6 +197,52 @@
     ['SIG_WEBSITE', 'www.tevrix.example', ''], ['LOGO_URL', '', ''], ['DASHBOARD_USERS', '', 'Extra people who can open the console']
   ];
 
+  // ---- Tevrix services: commission-based sales agents (separate from HireMinds)
+  var agentLi = [];
+  var agents = [
+    { company: 'Fernhill Sales Partners', domain: 'fernhillsales.example', country: 'UK', contact_name: 'Gareth Hughes', contact_title: 'Independent sales agent', score: 5,
+      signal: '"I sell on commission only for software and digital firms" (fernhillsales.example/how-i-work)', stage: 'drafted',
+      e1: 'Hi Gareth,\n\nI saw you sell on commission for software and digital firms across the North West. Tevrix AI builds AI solutions, websites and automations for businesses, and we are looking for commission-based agents: 15% of the first project, paid when the client pays, no fees or targets, and we handle the technical side.\n\nWould a 20-minute call to see if it fits your portfolio be useful?' },
+    { company: 'Marlowe Business Development', domain: 'marlowebd.example', country: 'Ireland', contact_name: 'Aoife Byrne', contact_title: 'Owner', score: 4,
+      signal: '"Pay-on-results new business for B2B service firms" (marlowebd.example)', stage: 'drafted',
+      e1: 'Hi Aoife,\n\nMarlowe wins new business for B2B service firms on a pay-on-results basis. Tevrix AI builds AI solutions, websites and automations, and we pay agents 15% of the first project once the client pays, with no fees or targets. We handle all the technical work.\n\nWould a 20-minute call to see if it fits make sense?' },
+    { company: 'Desert Rose Ventures', domain: 'desertroseventures.example', country: 'UAE', contact_name: 'Omar Haddad', contact_title: 'Founder, sales agency', score: 4,
+      signal: '"Commission-based sales for tech companies entering the Gulf" (desertroseventures.example)', stage: 'drafted',
+      e1: 'Hi Omar,\n\nI saw Desert Rose sells on commission for tech companies entering the Gulf. Tevrix AI builds AI solutions, websites and automations, and we are looking for agents: 15% of the first project, paid when the client pays, no fees or targets.\n\nWould a 20-minute call be useful?' },
+    { company: 'Kiwi Growth Agents', domain: 'kiwigrowth.example', country: 'New Zealand', contact_name: 'Hemi Walker', contact_title: 'Commission sales agent', score: 4,
+      signal: '"I only get paid when you do" (kiwigrowth.example)', stage: 'sent_1', sent: 3 },
+    { company: 'Lionsgate Referrals', domain: 'lionsgatereferrals.example', country: 'Singapore', contact_name: 'Grace Tan', contact_title: 'Referral agent', score: 5,
+      signal: '"Success-fee introductions for IT and SaaS vendors" (lionsgatereferrals.example)', stage: 'replied', sent: 5, replied: 1 }
+  ];
+  agents.forEach(function (a, i) {
+    var lid = id(a.domain), email = (a.contact_name.split(' ')[0]).toLowerCase() + '@' + a.domain;
+    out.push(row('Outreach', { stage: a.stage, company: a.company, country: a.country, contact_name: a.contact_name, contact_title: a.contact_title,
+      email: email, email_status: 'safe', signal: a.signal, score: a.score, angle: 'partner', subject: 'commission partnership',
+      email_1: a.e1 || 'Hi ' + a.contact_name.split(' ')[0] + ',\n\nTevrix AI builds AI solutions, websites and automations, and we pay agents 15% of the first project.\n\nWould a 20-minute call be useful?',
+      follow_up_1: 'One more detail: repeat work from the same client earns 10% for 12 months, and you keep your other principals.',
+      follow_up_2: 'Closing the loop. If it is not a fit, no problem.',
+      linkedin_note: 'Hi ' + a.contact_name.split(' ')[0] + ', saw you sell on commission for B2B firms. Would you consider Tevrix AI as a principal?',
+      dossier: a.company + ': ' + a.contact_title + ', ' + a.country + '.\n' + a.signal, fit_reason: 'Works on commission for B2B service firms.',
+      reviewer_notes: 'PARTNER outreach (commission terms provisional)', lead_id: lid,
+      decision: a.sent ? 'approve' : '', mailbox: a.sent ? MB : '', decided_at: a.sent ? ago(a.sent + 1, 0) : '',
+      sent_1_at: a.sent ? ago(a.sent, 2) : '', replied_at: a.replied ? ago(a.replied, 3) : '',
+      reply_label: a.replied ? 'interested' : '', reply_text: a.replied ? 'Hi, yes, this could work for a couple of my SaaS clients. What size are your typical projects?' : '',
+      reply_draft: a.replied ? 'Thanks Grace, glad it could fit. A founder will confirm typical project sizes on a call. Would Tuesday or Wednesday afternoon suit you for 20 minutes?' : '' }));
+    leads.push(row('Leads', { lead_id: lid, found_at: ago(a.sent ? a.sent + 1 : i % 3, 3), source: 'partner_scan', segment: 'partner', company: a.company, domain: a.domain,
+      website: 'https://' + a.domain, country: a.country, company_size: '1 (solo)', signal: a.signal, contact_name: a.contact_name, contact_title: a.contact_title,
+      email: email, email_source: 'published', email_status: 'safe', status: 'queued', notes: 'partner scan: commission agent' }));
+    agentLi.push(row('LinkedIn', { date: ago(i % 3, 1), founder: 'Founder A', name: a.contact_name, title: a.contact_title, company: a.company,
+      note: 'Hi ' + a.contact_name.split(' ')[0] + ', saw you sell on commission for B2B firms. Would you consider Tevrix AI as a principal?', sent: i > 2, accepted: false, lead_id: lid }));
+  });
+  [['Northstar Agency Co', 'northstaragents.example', 'Australia', 'Liam Carter'], ['Pacific Rep Group', 'pacificrep.example', 'US', 'Jordan Reyes']].forEach(function (a, k) {
+    var lid = id(a[1]);
+    leads.push(row('Leads', { lead_id: lid, found_at: ago(k, 5), source: 'partner_scan', segment: 'partner', company: a[0], domain: a[1], website: 'https://' + a[1],
+      country: a[2], company_size: '1 (solo)', signal: '"Commission-only sales for B2B firms" (' + a[1] + ')', contact_name: a[3], contact_title: 'Independent sales agent',
+      status: 'linkedin', notes: 'partner scan: no email published; contact form: https://' + a[1] + '/contact' }));
+    agentLi.push(row('LinkedIn', { date: ago(k, 4), founder: 'Founder A', name: a[3], title: 'Independent sales agent', company: a[0],
+      note: 'Hi ' + a[3].split(' ')[0] + ', saw you sell on commission for B2B firms. Would you consider Tevrix AI as a principal?', sent: false, accepted: false, lead_id: lid }));
+  });
+
   var sheets = {
     Outreach: [H.Outreach].concat(out),
     Leads: [H.Leads].concat(leads),
@@ -206,7 +252,7 @@
       row('LinkedIn', { date: ago(2, 5), founder: '', name: 'Fatima Noor', title: 'HR Manager', company: 'Arcadia Fitness', note: 'Hi Fatima, saw Arcadia is hiring 9 trainers for the new club. HireMinds screens and runs first interviews for roles like these. Happy to connect.', sent: false, accepted: false, lead_id: '' }),
       row('LinkedIn', { date: ago(4, 0), founder: 'Founder B', name: 'Ravi Menon', title: 'Founder', company: 'Peregrine Software', note: 'Hi Ravi, saw you are hiring five engineers yourself. HireMinds takes first-round calls off founders. Glad to connect.', sent: true, accepted: false, lead_id: '' }),
       row('LinkedIn', { date: ago(7, 0), founder: 'Founder A', name: 'Claire Dubois', title: 'People Director', company: 'Solstice Wellness', note: 'Hi Claire, saw Solstice is hiring 12 therapists across three states. HireMinds runs first interviews at that volume. Happy to connect.', sent: true, accepted: true, lead_id: '' })
-    ]),
+    ].concat(agentLi)),
     'Do not contact': [H['Do not contact']].concat([
       row('Do not contact', { value: '@paragonstaffing.example', reason: 'Competitor', added_at: ago(20, 0), source: 'founder@tevrix.example' }),
       row('Do not contact', { value: 'jane@oldclient.example', reason: 'Asked to stop', added_at: ago(11, 0), source: 'reply' })
