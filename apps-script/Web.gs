@@ -329,6 +329,87 @@ function uiApplyEdits_(t, i, edits) {
 // ---------------------------------------------------------------- read
 
 /** Everything the console shows, in one call. */
+/** Which programme a row belongs to: Tevrix services (commission agents) or HireMinds (the product). */
+var UI_PROGS = ['hireminds', 'services'];
+function uiProgOfLead_(source, segment) {
+  return uiStr_(source) === 'partner_scan' || uiStr_(segment) === 'partner' ? 'services' : 'hireminds';
+}
+function uiProgOfOut_(o, leadProg) {
+  if (uiStr_(o.angle) === 'partner') return 'services';
+  return leadProg[uiStr_(o.lead_id)] || 'hireminds';
+}
+
+/** The numbers for one programme (or for all rows). */
+function uiMetrics_(outreach, leadInfo, leads, linkedin, today, d30, days) {
+  var m = {
+    byStage: {}, drafts: 0, approved: 0, inSequence: 0, repliesWaiting: 0,
+    sentToday: 0, firstToday: 0, firstSent: 0, replies: 0, interested: 0, bounced: 0,
+    demos: 0, beta: 0, won: 0, sent30: 0, replies30: 0
+  };
+  var angles = {}, countries = {};
+  var daily = {};
+  days.forEach(function (d) { daily[d] = { day: d, leads: 0, sent: 0, replies: 0 }; });
+  outreach.forEach(function (o) {
+    var st = o.stage || 'drafted';
+    m.byStage[st] = (m.byStage[st] || 0) + 1;
+    if (st === 'drafted' && !o.decision) m.drafts++;
+    if (st === 'approved') m.approved++;
+    if (st === 'sent_1' || st === 'sent_2' || st === 'sent_3') m.inSequence++;
+    if (st === 'replied' && !o.reply_sent_at) m.repliesWaiting++;
+    ['sent_1_at', 'sent_2_at', 'sent_3_at'].forEach(function (k) {
+      var d = uiToDate_(o[k]);
+      if (!d) return;
+      var dd = uiDay_(d);
+      if (dd === today) m.sentToday++;
+      if (daily[dd]) daily[dd].sent++;
+    });
+    var s1 = uiToDate_(o.sent_1_at), rp = uiToDate_(o.replied_at);
+    if (s1) { m.firstSent++; if (uiDay_(s1) === today) m.firstToday++; if (s1 >= d30) m.sent30++; }
+    if (rp) { m.replies++; if (rp >= d30) m.replies30++; if (daily[uiDay_(rp)]) daily[uiDay_(rp)].replies++; }
+    if (o.reply_label === 'interested') m.interested++;
+    if (o.bounced_at) m.bounced++;
+    var pastDemo = st === 'demo' || st === 'beta' || st === 'won';
+    if (pastDemo) m.demos++;
+    if (st === 'beta' || st === 'won') m.beta++;
+    if (st === 'won') m.won++;
+
+    var a = o.angle || 'No angle';
+    var c = o.country || 'Unknown';
+    [[angles, a], [countries, c]].forEach(function (pair) {
+      var g = pair[0][pair[1]] || (pair[0][pair[1]] = { name: pair[1], sent: 0, replies: 0, interested: 0, demos: 0 });
+      if (s1) g.sent++;
+      if (rp) g.replies++;
+      if (o.reply_label === 'interested') g.interested++;
+      if (pastDemo) g.demos++;
+    });
+  });
+  leadInfo.forEach(function (l) { if (l.day && daily[l.day]) daily[l.day].leads++; });
+  m.replyRate = m.firstSent ? m.replies / m.firstSent : 0;
+  m.replyRate30 = m.sent30 ? m.replies30 / m.sent30 : 0;
+  m.bounceRate = m.firstSent ? m.bounced / m.firstSent : 0;
+  m.leadsNew = leads.filter(function (l) { return l.status === 'new'; }).length;
+  m.leadsTotal = leadInfo.length;
+  m.linkedinToSend = linkedin.filter(function (l) { return l.sent !== true && String(l.sent).toUpperCase() !== 'TRUE'; }).length;
+  m.funnel = [
+    { key: 'found', label: 'Leads found', n: m.leadsTotal },
+    { key: 'drafted', label: 'Drafted by Claude', n: outreach.length },
+    { key: 'approved', label: 'Approved by you', n: outreach.filter(function (o) { return o.decision === 'approve'; }).length },
+    { key: 'sent', label: 'First email sent', n: m.firstSent },
+    { key: 'replied', label: 'Replied', n: m.replies },
+    { key: 'demo', label: 'Demo booked', n: m.demos },
+    { key: 'beta', label: 'Beta client', n: m.beta },
+    { key: 'won', label: 'Paying', n: m.won }
+  ];
+  function rank(obj) {
+    return Object.keys(obj).map(function (k) { return obj[k]; })
+      .sort(function (a, b) { return b.sent - a.sent || b.replies - a.replies; }).slice(0, 12);
+  }
+  m.angles = rank(angles);
+  m.countries = rank(countries);
+  m.daily = days.map(function (d) { return daily[d]; });
+  return m;
+}
+
 function uiGetState() {
   var me = uiGuard_();
   var ss = SpreadsheetApp.getActive();
@@ -346,19 +427,35 @@ function uiGetState() {
     outreach.push(o);
   });
 
-  var leadsT = uiTable_(UI_TABS.LEADS), leads = [];
+  var leadsT = uiTable_(UI_TABS.LEADS), leads = [], leadProg = {}, leadInfo = [];
   leadsT.rows.forEach(function (r, i) {
     if (!uiStr_(r[leadsT.col.company])) return;
-    leads.push(uiObj_(leadsT, i));
+    var prog = uiProgOfLead_(r[leadsT.col.source], r[leadsT.col.segment]);
+    var lid = uiStr_(r[leadsT.col.lead_id]);
+    if (lid) leadProg[lid] = prog;
+    var found = leadsT.col.found_at !== undefined ? uiToDate_(r[leadsT.col.found_at]) : null;
+    leadInfo.push({ prog: prog, day: found ? uiDay_(found) : '' });
+    var l = uiObj_(leadsT, i);
+    l.prog = prog;
+    leads.push(l);
   });
-  // Newest first, at most 400 rows to keep the page quick.
+  // Newest first, at most 400 rows per programme to keep the page quick.
   leads.reverse();
-  leads = leads.slice(0, 400);
+  var leadKept = { hireminds: 0, services: 0 };
+  leads = leads.filter(function (l) { return ++leadKept[l.prog] <= 400; });
+
+  outreach.forEach(function (o) { o.prog = uiProgOfOut_(o, leadProg); if (o.lead_id) leadProg[uiStr_(o.lead_id)] = o.prog; });
 
   var liT = uiTable_(UI_TABS.LI), linkedin = [];
-  liT.rows.forEach(function (r, i) { if (uiStr_(r[liT.col.name])) linkedin.push(uiObj_(liT, i)); });
+  liT.rows.forEach(function (r, i) {
+    if (!uiStr_(r[liT.col.name])) return;
+    var li = uiObj_(liT, i);
+    li.prog = leadProg[uiStr_(li.lead_id)] || 'hireminds';
+    linkedin.push(li);
+  });
   linkedin.reverse();
-  linkedin = linkedin.slice(0, 300);
+  var liKept = { hireminds: 0, services: 0 };
+  linkedin = linkedin.filter(function (l) { return ++liKept[l.prog] <= 300; });
 
   var waitlist = [];
   var wSheet = ss.getSheetByName(UI_TABS.WAIT);
@@ -387,73 +484,24 @@ function uiGetState() {
     var t = uiToDate_(r[logT.col.time]), lid = uiStr_(r[logT.col.lead_id]);
     if (action === 'stage' && detail === 'demo' && t && t >= d30) demoLog[lid] = 1;
     if (action === 'stage' && t && lid && (!stageAt[lid] || t > stageAt[lid])) stageAt[lid] = t;
-    log.push(uiObj_(logT, i));
+    var entry = uiObj_(logT, i);
+    if (lid && leadProg[lid]) entry.prog = leadProg[lid];
+    log.push(entry);
   });
   // When each lead last changed stage by hand, so the Pipeline can flag deals that have gone quiet.
   outreach.forEach(function (o) { if (stageAt[o.lead_id]) o.stage_at = stageAt[o.lead_id].toISOString(); });
   log.reverse();
   log = log.slice(0, 80);
 
-  // ---- metrics
-  var m = {
-    byStage: {}, drafts: 0, approved: 0, inSequence: 0, repliesWaiting: 0,
-    sentToday: 0, firstToday: 0, firstSent: 0, replies: 0, interested: 0, bounced: 0,
-    demos: 0, beta: 0, won: 0, sent30: 0, replies30: 0
-  };
-  var angles = {}, countries = {};
-  outreach.forEach(function (o) {
-    var st = o.stage || 'drafted';
-    m.byStage[st] = (m.byStage[st] || 0) + 1;
-    if (st === 'drafted' && !o.decision) m.drafts++;
-    if (st === 'approved') m.approved++;
-    if (st === 'sent_1' || st === 'sent_2' || st === 'sent_3') m.inSequence++;
-    if (st === 'replied' && !o.reply_sent_at) m.repliesWaiting++;
-    ['sent_1_at', 'sent_2_at', 'sent_3_at'].forEach(function (k) {
-      var d = uiToDate_(o[k]);
-      if (d && uiDay_(d) === today) m.sentToday++;
-    });
-    var s1 = uiToDate_(o.sent_1_at), rp = uiToDate_(o.replied_at);
-    if (s1) { m.firstSent++; if (uiDay_(s1) === today) m.firstToday++; if (s1 >= d30) m.sent30++; }
-    if (rp) { m.replies++; if (rp >= d30) m.replies30++; }
-    if (o.reply_label === 'interested') m.interested++;
-    if (o.bounced_at) m.bounced++;
-    var pastDemo = st === 'demo' || st === 'beta' || st === 'won';
-    if (pastDemo) m.demos++;
-    if (st === 'beta' || st === 'won') m.beta++;
-    if (st === 'won') m.won++;
-
-    var a = o.angle || 'No angle';
-    var c = o.country || 'Unknown';
-    [[angles, a], [countries, c]].forEach(function (pair) {
-      var g = pair[0][pair[1]] || (pair[0][pair[1]] = { name: pair[1], sent: 0, replies: 0, interested: 0, demos: 0 });
-      if (s1) g.sent++;
-      if (rp) g.replies++;
-      if (o.reply_label === 'interested') g.interested++;
-      if (pastDemo) g.demos++;
-    });
+  // ---- metrics: for all rows, and for each programme
+  var days = [];
+  for (var k = 13; k >= 0; k--) days.push(uiDay_(new Date(now.getTime() - k * 864e5)));
+  function only(list, prog) { return list.filter(function (x) { return x.prog === prog; }); }
+  var m = uiMetrics_(outreach, leadInfo, leads, linkedin, today, d30, days);
+  var metricsBy = { all: m };
+  UI_PROGS.forEach(function (p) {
+    metricsBy[p] = uiMetrics_(only(outreach, p), only(leadInfo, p), only(leads, p), only(linkedin, p), today, d30, days);
   });
-  m.replyRate = m.firstSent ? m.replies / m.firstSent : 0;
-  m.replyRate30 = m.sent30 ? m.replies30 / m.sent30 : 0;
-  m.bounceRate = m.firstSent ? m.bounced / m.firstSent : 0;
-  m.leadsNew = leads.filter(function (l) { return l.status === 'new'; }).length;
-  m.leadsTotal = leadsT.rows.filter(function (r) { return uiStr_(r[leadsT.col.company]); }).length;
-  m.linkedinToSend = linkedin.filter(function (l) { return l.sent !== true && String(l.sent).toUpperCase() !== 'TRUE'; }).length;
-  m.funnel = [
-    { key: 'found', label: 'Leads found', n: m.leadsTotal },
-    { key: 'drafted', label: 'Drafted by Claude', n: outreach.length },
-    { key: 'approved', label: 'Approved by you', n: outreach.filter(function (o) { return o.decision === 'approve'; }).length },
-    { key: 'sent', label: 'First email sent', n: m.firstSent },
-    { key: 'replied', label: 'Replied', n: m.replies },
-    { key: 'demo', label: 'Demo booked', n: m.demos },
-    { key: 'beta', label: 'Beta client', n: m.beta },
-    { key: 'won', label: 'Paying', n: m.won }
-  ];
-  function rank(obj) {
-    return Object.keys(obj).map(function (k) { return obj[k]; })
-      .sort(function (a, b) { return b.sent - a.sent || b.replies - a.replies; }).slice(0, 12);
-  }
-  m.angles = rank(angles);
-  m.countries = rank(countries);
 
   var committed = waitlist.filter(function (w) { return w.stage === 'Committed to pay'; }).length;
   var asked = waitlist.filter(function (w) { return w.stage !== 'Not a fit'; }).length;
@@ -474,7 +522,7 @@ function uiGetState() {
 
   return {
     me: me, now: now.toISOString(), today: today, tz: Session.getScriptTimeZone(),
-    sheetUrl: ss.getUrl(), settings: settings, settingNotes: settingNotes, metrics: m, gates: gates, actions: actions,
+    sheetUrl: ss.getUrl(), settings: settings, settingNotes: settingNotes, metrics: m, metricsBy: metricsBy, gates: gates, actions: actions,
     outreach: outreach, leads: leads, linkedin: linkedin, waitlist: waitlist,
     hasWaitlist: !!wSheet, playbook: playbook, hasPlaybook: !!pbSheet, skipReasons: UI_SKIP_REASONS, dnc: dnc.slice(0, 100), dncCount: dnc.length, log: log
   };

@@ -4,11 +4,22 @@ A web app over the "Tevrix BD — Outreach" Sheet. It runs as an Apps Script web
 
 Everything you do in the console writes to the Sheet and is logged with your name in the Log tab. The Sheet stays the single source of truth. You can still edit it by hand.
 
+## Two programmes
+
+The switch at the top of the sidebar picks which programme you are working on. Every screen that lists leads or emails follows it, and the console remembers your choice. Press `P` to flip between them.
+
+| Programme | What it is | How its rows are marked |
+|---|---|---|
+| **HireMinds** (violet) | Outreach for the AI interviewer, the product | every row that is not a partner row |
+| **Tevrix services** (orange) | Commission-based sales agents who bring AI, website and automation clients | Outreach `angle` = `partner`; Leads `source` = `partner_scan` or `segment` = `partner` |
+
+Today, Review, Replies, Pipeline, Leads and LinkedIn are filtered. Under Tevrix services the stages read Call booked, Agent signed and Deal closed instead of Demo booked, Beta client and Paying. Waitlist, Playbook and Controls are shared (the Playbook steers HireMinds research only). Today shows three 14-day bar charts (leads or agents found, emails sent, replies) in the programme's colour, and a card that puts both programmes side by side.
+
 ## What it does
 
 | Screen | What you do there |
 |---|---|
-| Today | What needs you, sent today against the cap, reply rate (30 days, against the 3% target), bounce rate, the funnel, the Run on AI gates, which angle and country is working, and recent activity |
+| Today | Three 14-day charts and a side-by-side of both programmes, what needs you, sent today against the cap, reply rate (30 days, against the 3% target), bounce rate, the funnel, the Run on AI gates, which angle and country is working, and recent activity |
 | Review | Three tabs: To review, Approved (waiting for the next send run) and Skipped. Go through Claude's drafts one by one. Edit the subject, email and follow-ups. Approve, skip, or send it on LinkedIn instead. Live checks show subject length, word count, links, and whether the email has a question. "As sent" shows the email with the signature, in test mode or live |
 | Replies | Read each reply and fix Claude's label. Edit the drafted answer, add the booking link, send it, and mark the outcome: demo, beta, paying, not now, lost or do not contact |
 | Pipeline | Two lanes. Sequence (Approved, Email 1, Follow-up 1, Follow-up 2) runs by itself and shows each lead's next send date. Conversations (Replied, Demo booked, Beta client, Paying) are yours: drag a card to change its stage, or drop it on Not now or Lost. Every column scrolls on its own. Cards flag what needs you: replies you haven't answered, deals with no update in 10+ days, and emails that are late. Filter by angle, country or Needs you, or switch to List for a sortable table. On a phone you pick one stage at a time from a strip that stays pinned under the menu, and you move cards from their details panel |
@@ -18,7 +29,7 @@ Everything you do in the console writes to the Sheet and is logged with your nam
 | Playbook | The rules Claude follows on top of its instructions. Every Monday Claude proposes rules from your skip reasons, your edits to its drafts and the reply numbers. Approve, reject or retire them, or add your own. Nothing changes until a founder approves it |
 | Controls | Pause or resume sending. Test mode has a go-live checklist. Run any step now. Edit the limits, sender, signature and access. Manage do not contact. Full activity log |
 
-Keys: `1`–`9` switch screens. In Review, `J`/`K` move, `A` approves, `S` skips (then `1`–`6` picks why), `L` sends on LinkedIn, `E` edits and `Ctrl S` saves. `R` refreshes, `[` collapses or opens the sidebar, `?` lists the keys, and `Esc` closes panels. The sidebar remembers whether you left it open.
+Keys: `1`–`9` switch screens. In Review, `J`/`K` move, `A` approves, `S` skips (then `1`–`6` picks why), `L` sends on LinkedIn, `E` edits and `Ctrl S` saves. `R` refreshes, `P` switches between HireMinds and Tevrix services, `[` collapses or opens the sidebar, `?` lists the keys, and `Esc` closes panels. The sidebar remembers whether you left it open.
 
 Safety built in:
 - Only addresses marked `safe` can be approved.
