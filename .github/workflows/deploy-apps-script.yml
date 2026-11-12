@@ -1,0 +1,84 @@
+# Puts apps-script/ live in the Apps Script project bound to the "Tevrix BD — Outreach" Sheet,
+# then moves the console's web app to the new version (same URL). No more pasting files by hand.
+#
+# One-time setup (see SETUP.md, "Auto-deploy"):
+#   - secret   CLASPRC_JSON   = the BD account's ~/.clasprc.json from `npx @google/clasp@2.4.2 login`
+#   - variable APPS_SCRIPT_ID = Apps Script → Project Settings → Script ID
+# Until both exist, this workflow only runs the tests and says what is missing.
+name: deploy-apps-script
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps-script/**"
+      - ".github/workflows/deploy-apps-script.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-apps-script
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  # The console's web app deployment (the URL bookmarked by the founders and used by console.tevrixai.com).
+  DEPLOYMENT_ID: AKfycbyVW5TpOQVkhRZwT40ev7evEjycDi37MFau-33KYoDMoHuZiOeGbfeHNYfsam5GU4lAsw
+  CLASP: "@google/clasp@2.4.2"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # Nothing reaches Apps Script unless the tests pass.
+      - run: pip install -r requirements.txt
+      - run: python -m pytest -q
+      - run: node console/tests/test_server.js
+
+      - name: Check the one-time setup
+        id: ready
+        env:
+          CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+          SCRIPT_ID: ${{ vars.APPS_SCRIPT_ID }}
+        run: |
+          missing=""
+          [ -n "$CLASPRC_JSON" ] || missing="$missing secret CLASPRC_JSON,"
+          [ -n "$SCRIPT_ID" ] || missing="$missing variable APPS_SCRIPT_ID,"
+          if [ -n "$missing" ]; then
+            echo "::warning::Not deployed. Missing:${missing%,}. See SETUP.md, Auto-deploy."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Push the code to Apps Script
+        if: steps.ready.outputs.ok == 'true'
+        env:
+          CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+          SCRIPT_ID: ${{ vars.APPS_SCRIPT_ID }}
+        run: |
+          umask 077
+          printf '%s' "$CLASPRC_JSON" > "$HOME/.clasprc.json"
+          printf '{"scriptId":"%s","rootDir":"apps-script"}' "$SCRIPT_ID" > .clasp.json
+          # Push only what Apps Script runs: the three code files and the manifest.
+          printf '**/**\n!Code.gs\n!Web.gs\n!Dashboard.html\n!appsscript.json\n' > apps-script/.claspignore
+          npx -y "$CLASP" push --force
+
+      - name: Move the console to the new version (same URL)
+        if: steps.ready.outputs.ok == 'true'
+        run: npx -y "$CLASP" deploy --deploymentId "$DEPLOYMENT_ID" --description "auto ${GITHUB_SHA::7}"
+
+      - name: Remove the credentials
+        if: always()
+        run: rm -f "$HOME/.clasprc.json" .clasp.json apps-script/.claspignore

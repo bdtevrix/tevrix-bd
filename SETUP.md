@@ -55,3 +55,14 @@ Do these in order. Nothing sends to a real lead until step 17 (TEST_MODE stays T
     5. Reply to that thread from TEST_RECIPIENT → *Check replies now* → `stage` = replied, `reply_text` fills in, and an alert email arrives.
     6. Write something in `reply_draft`, set `reply_decision` = send → *Send now* → the reply arrives in the thread.
     7. Delete the test row. Then, and only once warm-up is done, set **TEST_MODE = FALSE**.
+
+### Auto-deploy (once): GitHub puts every change live in Apps Script
+After this, merging a pull request that touches `apps-script/` updates the Apps Script project and moves the console to the new version by itself (workflow `deploy-apps-script`, tests first). Nothing to paste.
+1. Signed in as the BD account, open script.google.com/home/usersettings and switch **Google Apps Script API** on.
+2. On your computer (needs Node.js), run `npx @google/clasp@2.4.2 login`, sign in as the BD account in the browser that opens, and allow. Then copy the token file: PowerShell `Get-Content $HOME\.clasprc.json | Set-Clipboard`, Mac `pbcopy < ~/.clasprc.json`.
+3. GitHub repo → *Settings → Secrets and variables → Actions*:
+   - *Secrets* → **New repository secret**: name `CLASPRC_JSON`, value = what you copied.
+   - *Variables* → **New repository variable**: name `APPS_SCRIPT_ID`, value = Apps Script → *Project Settings* → **Script ID** (Copy).
+4. *Actions → deploy-apps-script → Run workflow* to check it: the run ends green and the console shows the latest version.
+
+`appsscript.json` from the repo replaces the one in the project on every deploy, so change scopes or services in the repo, not in the editor. Script Properties and triggers are not touched.
