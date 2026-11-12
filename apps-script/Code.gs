@@ -309,6 +309,7 @@ function sigParts_(S, isReply) {
     name: perAccount_(S.SENDER_NAME),
     title: perAccount_(S.SENDER_TITLE),
     company: String(S.COMPANY_LINE || '').trim(),
+    email: perAccount_(S.SIG_EMAIL),
     website: String(S.SIG_WEBSITE || '').trim(),
     linkedin: String(S.SIG_LINKEDIN || '').trim(),
     whatsapp: wa && (isReply || truthy_(S.WHATSAPP_ON_ALL_EMAILS)) ? wa : '',
@@ -323,6 +324,7 @@ function withSignature_(body, S, isReply) {
   lines.push(g.name);
   if (g.title) lines.push(g.title);
   if (g.company) lines.push(g.company);
+  if (g.email) lines.push(g.email);
   if (g.website) lines.push(g.website);
   if (g.linkedin) lines.push('LinkedIn: ' + g.linkedin);
   if (g.whatsapp) lines.push('WhatsApp: ' + waUrl_(g.whatsapp));
@@ -346,6 +348,7 @@ function htmlEmail_(body, S, isReply) {
   sig.push('<div style="font-weight:bold;color:#1F1F1F">' + esc_(g.name) + '</div>');
   if (g.title) sig.push('<div>' + esc_(g.title) + '</div>');
   if (g.company) sig.push('<div>' + esc_(g.company) + '</div>');
+  if (g.email) sig.push('<div>' + link('mailto:' + g.email, g.email) + '</div>');
   var links = [];
   if (g.website) links.push(link(/^https?:/i.test(g.website) ? g.website : 'https://' + g.website, g.website.replace(/^https?:\/\//i, '')));
   if (g.linkedin) links.push(link(g.linkedin, 'LinkedIn'));

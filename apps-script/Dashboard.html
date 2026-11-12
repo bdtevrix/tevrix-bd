@@ -1025,7 +1025,7 @@
   function asSent(o) {
     var test = bool(setting('TEST_MODE'));
     var from = str(setting('SEND_AS')) || o.mailbox || mailboxes()[0] || 'team@';
-    var sig = [setting('SENDER_NAME'), setting('SENDER_TITLE'), setting('COMPANY_LINE'), setting('SIG_WEBSITE'), setting('SIG_LINKEDIN')]
+    var sig = [setting('SENDER_NAME'), setting('SENDER_TITLE'), setting('COMPANY_LINE'), setting('SIG_EMAIL'), setting('SIG_WEBSITE'), setting('SIG_LINKEDIN')]
       .concat(bool(setting('WHATSAPP_ON_ALL_EMAILS')) ? [setting('SIG_WHATSAPP')] : []).map(str).filter(Boolean);
     function mail(label, subject, body) {
       return '<div class="mail"><div class="mail-head"><span class="label">' + label + '</span>' +
@@ -1526,7 +1526,7 @@
       ['SENDER_NAME', 'Name'], ['SENDER_TITLE', 'Title'], ['COMPANY_LINE', 'Company line'], ['POSTAL_ADDRESS', 'Postal address'], ['BOOKING_LINK', 'Booking link'],
       ['SEND_AS', 'Send as'], ['MAILBOXES', 'Mailboxes, comma separated'], ['TEST_RECIPIENT', 'Test emails go to']] },
     { title: 'Signature', note: 'WhatsApp shows only in replies unless you turn it on for every email.', keys: [
-      ['SIG_WEBSITE', 'Website line'], ['SIG_LINKEDIN', 'LinkedIn link'], ['SIG_WHATSAPP', 'WhatsApp link'], ['WHATSAPP_ON_ALL_EMAILS', 'WhatsApp on every email'],
+      ['SIG_EMAIL', 'Email shown in the signature'], ['SIG_WEBSITE', 'Website line'], ['SIG_LINKEDIN', 'LinkedIn link'], ['SIG_WHATSAPP', 'WhatsApp link'], ['WHATSAPP_ON_ALL_EMAILS', 'WhatsApp on every email'],
       ['LOGO_URL', 'Logo link (blank uses the built-in logo)'], ['FOUNDERS', 'Founders, comma separated']] },
     { title: 'Access and alerts', note: 'People who can edit the Sheet can always open this console.', keys: [
       ['DASHBOARD_USERS', 'Extra people who can open the console'], ['ALERT_EMAILS', 'Alerts go to']] },
