@@ -52,6 +52,9 @@ var WATCH_STAGES = ['sent_1', 'sent_2', 'sent_3', 'finished'];
 var HANDLERS = ['sendTick', 'checkTick', 'dispatchIntake', 'dailySummary', 'cioSync'];
 var IST = 'Asia/Kolkata';
 var PROCESSED_LABEL = 'bd-processed';
+// Tevrix AI logo (144x135 JPEG) sent inside each email under the signature when Settings LOGO_URL is blank.
+var LOGO_CID = 'tevrix-logo';
+var LOGO_JPEG_B64 = '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCACHAJADASIAAhEBAxEB/8QAHAABAAIDAQEBAAAAAAAAAAAAAAEGAwUHBAII/8QAQxAAAQMDAgMGBAIGBQ0AAAAAAQIDBAAFEQYhEjFBBxMUUWFxIjKBkRWxIzZCdKHRJVJUssEWFyQzQ0RigoSTwtLw/8QAGgEBAAMBAQEAAAAAAAAAAAAAAAMEBQIGAf/EAC8RAAEEAQIEBQMEAwEAAAAAAAEAAgMRBCExBRJBURMiYXGBFJGxMqHh8MHR8TP/2gAMAwEAAhEDEQA/AP2XSlKIlKg56UwfOiKaUqFGiKaZGa1d+vlqscfxF0mtRkH5Qo5Ur2A3NVSf2n2lDC3LfbrlMCBkr7gobHuT/Kqs2bBAakcAp4sWab9DSVf6ZFUaHdNe3FhuVFtdnaYeSFoUt8qyDuDsa17+ub5BnvWiXZor9xawSWHzwcPmeeDVZ/FoIwHPBAPUg6qZnD5pDysontYXSaVz6F2iO8QTN0/MRjdSo6g4APPG1W2wXy2XuOXrfJS6B86OS0H1TzFTY/EMfINRu1+35Uc2HPBq9tLaE4pUYB65qTV1VkpTelESlKURM+VN6UoiVHF6GpxQgURfJVsTVDv2r7tLu0qzaShMPuQx/pk+QvDEc9R6kf4Vn7T9Vu2aIm0WhC375OQRHQkf6pPIuHyxvj19qotouKWbRB7PkW2TbZ10eAmS3nUKDqVZKzxJJPErh4QDisfNzfP4LHUetd+gC1cTCd4fjPbY6X26kjsFj05KnC4t6rvrQviVFQUFoypDWdnW0nbzPDjl61fLyJV9imW0ltu0BkrQtSwEqRjdWPavNrVuFp3TQhxBiVLHdJX1SgfNjyGMD61SNNT50hB0Yw+34O4PDdS8dyB8S0D0Vjl0yfOsUvGM440hu9fnsStXwzkt+qiFBpr4G5AVp0Xf3LPpZIlqV4dEdSmyrmnAPCfqMbVqdLxzG0+3d5g4XZ4XJdeWd1DiO5P8frXu1hZEm/af06p9S257xXJSn4R3aN8D+Ne3tOmQWn7RYEsp8MlfE+0j4R3aR8Le3IHAz6Cj45BGfFP/AJ6D3NfgflcskYZB4Isv1PsL/J/CaXttzkuImi4vWpieFGOGmUFakjlkqG3EPiA8qxTNNQE6nRFiXa4tzVg8csODIcIyBhIH196z3/WLwtraGILQfU4hMXhWdl52I9AM59M1Tbm/dFvqU9PcTIceCSWvgAUpXMdevnXGRkYkbGsaOetev9C+4+NlSvc955b/AL8/K6Vpq+Tod2VpvUTg8YBmLJxhMlH/ALVcAd65HbodnnQ34U63rburQx4hDy1L4v2VjiJ2PpV07Nrw5dNOpRJe45kVZZf4j8WQdifcfka2eGZxcRE83d139j6hZWbiFoMgFVv216j0KtBIFOLyoADvzqdq3FlpSlKIhGaYpSiKDUK+UmvqoO6TRFxe+3SMntKv91lLV3cBhuG0gbqWojJSkeZOa2Fkh2m5aKlPvyv6WumJIkobJ8O4k5aSk+SCB9eLzrX69tzVr7VW5YQO7ucUuIJHyvJ2UR6kAfetZHuAsMqS2oLMKVxLbCElXcu9dh0Vz9xXi5Z3Y+S/nAOp/deybijJxo/DJ2H7aEffVba2d5r/AFTwX2ei1mKylvwKF4eeOMrUgnbgKs7jJ9q9XaPCh2m72GFamERG47D7qQ0MEKygA56nbmaqM+42SQyPFB0hHxJX3K0qQfMKxkH2rY6dsuqdauMSJN4VDittKbivSU8T7jRVkkYxxcvmJqKPJ8djo2MuR3X+7LuXF+ne2SR1RtsUfbp3WzvWq4v+V+nL1NUEqiRHhIT/AMeCBj32+9aBTt61Nd0TIMFbinFqcS7IWG0LztsT0FXZeidK6Vji43LvrzN/2SZSspUr0QNsepzWoXfI3fuPzZaFSHSAhloFS+EckpQnJA8hXWXDLfLkO3N0PYbn4UeNNGPNit0Aqz7k6D5WCRZL/ZHI869x4ymhltkNO8XdqO5J26isbDJvV/t0OI0pT5eDjqeiUJyeInoOlb5Teq71aHIUSzupiLAUhyesN8JG4KU/Nn3xUaXvUHTcFbUe2rckr+KTIfdAU4oeeBsB0HSuTiRCRtktj9d/hBlyujNAOk2029yt7FtseFryCjZS2ra666s9crSB9BvVR0lOVa9VW+Sl7Cbm4tEhsn+ss8Jx7kVgu2qbndbou4RGGGm3GBHCCtWVoCirIPTJNfKG4a9PWy9l1Kro9c2iUdW2wogIA68sk+ddy5DJJAYNA03f2CgjxZIoz4+pcKrfuV21ByKY3onl9anNe2XlQlKUoiUoaCiJShNN+lEVc1vpK36rgtszFOsvMEqYfaOFtk8/cctvSuYztAa2gP8AhoiId1YG6H+9DSv+YHr7ZruFSRWdl8MgyjzOFHuFo4fFcnEHKw2OxX5zn2S5xNTWy2arjIjxXsvd2w7xd+E/sFXTPL2NdCvus4TNuaYRaVBYIREQ05hYVjbgwNsfbFWDtI0qnU9mDbKgzcYyu9hvZxwr8j6HH5GuXSXdRWjh/HdMTmwj/eI6O9R6nKeX3rCmx5eHOc2IeU9atbkc8PE2tdMfO3Srr5H4XsYlMXe6qXradPc4cJS1DPAykDocfEfU1aLxF0o1prvtNmDGWw6lfGwQl3HI5J+Lr1rm7ZvV8ekvWKyzZTaeJSnltFCAB0GeZ9BXkgWeXerO5cUzFSVgK/RJISGlDopNUW5ssbSHR2T16/dXX8Pie4ObLQbWg2+yuTHaJOtS+7cuLM1Kf2Vp4z9xvWnudzl6lmuy4NhuBhBeZSI6CrK8Zxy2B54quQZaDCUYcRHfobyo7AJPmBzUf4VYbPfblGtLMd25TbdbyniQYTSQledypTgyviPXOKqNy3zjw5nnl/vdWZcJuM7ngYOb7fsF6G7zEhKSmTbp0RXL9Kxg/wAa3fZnYZd1uES5S462rZBUtyNxjHfLKiQQPIZ58tq0KIce+zmLTaMzJcv4nZbrinSy2D8SiVcv/vOu62+MiHDZit/Iy2ltOfIDArV4Rg/USmRx8rdvU/wsfiuaYIxGP1O39B/KzgbVNKjevZLyimlKURKUpREoSBUHOajGedEX1mlAMVBznaiIfKo2ztTBJ3r6AxRF8lAxiub9onZ+h1idetOKdh3JTalOsMn9HJHUcPRRHlzP3rpJzUEedV8nFjyGcjx/CsY2TJjSCSM6/n3X5rfix5ujmr3EQWH4jyWZBbGFJQeRI9P8KvNm7LJjqUeI1Ms2xYDiURmuFSwrfmSQM/WsmotDX5Gpbixp3wzVovaMzFPAER1ZyrhHPJ5jHmeVdJ0/b/wqyw7aH1yBGZS0HFjdWBjJrz+FwdhlcJmaD8/yFv53GX+G3wX72a6gf4o38Ly6Z01ZtOx1NWuIlorx3jiiVLXjzUa3KTQDepr0scbY28rBQXmnvc93M42UpkedQfKgSK7XKmlKjfNETO9M4qaGiKpSe0XSkeS7HcnuBxpZQsBhZwoHBHLzFYj2maR3/pB0Y846/wCVfevLJaG9K3iW3a4SZHhnF96GE8XFjnnGc1qeyOz2qbo5t2ZbYchzxDqeNxlKjgHYZIrHdNmDIENt1BOx/wBrVZFiHHMxDtCBuP8ASt9zv9tt1mReJbykQ1hBSsIJzxfLsN+taL/ObpAHh/EHM/u6/wCVebtoQhnQam20pQhMhlISkYAAOwFVrTerNBxLFCiXG1JdmNMpS8vwKF5UOZyedc5OfJHkeFzNboDr/wBX3GwmSY/i8rnGyNP+Lo+ntT2m/ofVa3lvBjHeZbKcZzjnz5Gp07qa0X9b6LZJLq45AdSpBQU5z0I9DWHRsyy3K1mdY4aIzDjhScMBskp23AqhTkp0Z2tNywSiBdc8WNgnjOFfZeD7Gp5MqSJkb3UQTRI9diFBFjMmfIxtggWAfTcFdVmymIcR2XJWG2WUFa1nkEgZJrw2G/22+QFzrc4tyO2ooKlNqRuBk8xvVQ7abs4zZ49iiZVJuLgSUJ5lAI2+qsD71aNP2hux6VZtjeCWWDxq/rLIJUfvmpRkufkOjbs0a+52UbsdrIGyO3cdPYblag9pWketwcH/AE6/5VsrDrLTt6lCLb7ghb5GUtrSUKV7ZG/0rmfZFO03EiXFN+cgIWt1Ba8SgKyMHOMjzrLqz8KuusrOjRzbKpCVhTzkVHCgYUCCcDGwzk1mR8Tn8JspLTZ/T13rutOXhsIldEA4UP1dNr7Lq99vMGyW9U+4uKaYSoJKgkqOScDYVLF3hvWUXhkuORFM98lSWyVFOM54ef0qsds36jO5/tDX96tv2fjOibR+6I/KtIZLzkmLoGg/KzDA0Ywm6kkfsvTpzUdp1BHcetUnvktKCVgpKSkkZGx6etYbxquzWm6R7ZLkq8ZIx3bTbSlqOTgchtmueaviyez/AFY3qC0JbMGaVIdjFWBnmU+2fiB6HI61tOyqyv3GS7rS9LS/MlKV4fqEDkVeh6AdB71VZnzPkGPXnB17V3+VbkwYmRfUX5CNO99vhdLTvvU5qE8qmtlZKUpSiLQ6/wD1LvH7m5+VaXsVOdEt/vLv51d1oStJSsBSTsQRkGvltptpPC2hKE+SQAKqnHvIE17ClYE9Y5hrc2qR23fqO5vt4lr+9Vf0zr7Stu0/BgyoEhx9hlKHFJjoIKgNzkneurutIdHC4hK0+ShkVi8DD/srH/bT/Kq02FK6czRuA0rUWrEOXG2DwZGk63oa/wALQ6M1VaNRLkM2ph5oRwlSwtsJHxZ5YPpXg7XrH+KaVclNN8UmCS83gblOPjH23+lXBllhknumkIJ58KQM/asigFJwRseeasOxnSQGKU3artnEUwliFUuN9mwmat1k3ebke8btkZCEnmCsDCfr8yvfFddlA+FdGT8ivyrx3K5WiwtNuTHmIaHnA2j4ccSj7Cs92uMO2wVTJzwZYQQFLIJAJOBy9TUWHjtxoyxzrPU+6ky8g5Mge1tDYBco7GLFaLzCuarnAYllp1CUFYzwgpJIFfWvLdE0lrKxz7O14Fl1Q70IUQk4WkEfVJ3FddjtNN57ptCAdzwpAzUvMMvY71tC8cuJIOPvVccJYMdsYrmGt1rvasHib3ZDpTsdKvTalTO2Yg6GdJIA8Qz/AHq2GjZceF2e22ZKdS0wzBSta1HYACrG6004ngWhK0+RAIoWGi13RQkt4xw8Ixj2q6MYiczA7ilUOQDAISNja5DaYT/aXqp67XFLrdkh5bZaCscXknPn+0o+wr701Lkdn2r3dP3N1SrTMXxx3lHZJOwV/wCKvXBrrjTTbSeFtCUJ8kjAr5djsvY71pteOXEkHH3qo3hhaRIHee7J7+nsrTuI84MZb5KoDt633WRBynIoc9KkDAwKVrLMSlKURKUpvREpSlEQDFDypvQ70Rc31Mxc9RanliLakT4EFhcPhckd0A6sDiWMg5IGB6ViuEybN7L5MGe2v8RgvtRpCSMklLicK9QU4Oa6WEgZwKgoBqj9Fq48292rYyqDRy7VXwpb5fSvqoSnFSaugUKVRKVHMb1NfUSgpSiJSlKIlKUoiUpSiJSlKIlKUoiUpSiJSlKIlKUoiUpSiJSlKIv/2Q==';
 
 var OOO_RE = /(out of (the )?office|automatic reply|auto[- ]?reply|autoreply|on (annual |parental |maternity |sick )?leave|away from (my|the) (desk|office)|limited access to (my )?e-?mail|currently (away|travelling|traveling|on holiday|on vacation)|on holiday|on vacation|will be back on|returning on)/i;
 var UNSUB_RE = /(unsubscribe|remove me|take me off|opt[ -]?out|not interested|no thanks|no, thanks|do not (contact|email) me|don't (contact|email) me|^\s*stop\b)/im;
@@ -258,6 +261,7 @@ function sendSequence_(t, r, kind, S, dnc, testMode, ignoreWindow) {
     to: testMode ? S.TEST_RECIPIENT : email,
     subject: (testMode ? '[TEST] ' : '') + subject,
     body: withSignature_(String(body), S),
+    html: htmlFor_(String(body), S),
     S: S,
     threadId: kind === 'first' ? null : threadId,
     inReplyTo: kind === 'first' ? null : String(t.get(r, 'message_id'))
@@ -285,6 +289,7 @@ function sendReply_(t, r, S, dnc, testMode) {
     to: testMode ? S.TEST_RECIPIENT : to,
     subject: (testMode ? '[TEST] ' : '') + subject,
     body: withSignature_(String(t.get(r, 'reply_draft')), S, true),
+    html: htmlFor_(String(t.get(r, 'reply_draft')), S, true),
     S: S,
     threadId: threadId || null,
     inReplyTo: them ? them.messageId : String(t.get(r, 'message_id')),
@@ -296,17 +301,76 @@ function sendReply_(t, r, S, dnc, testMode) {
   return true;
 }
 
+/** The signature's parts, shared by the plain-text and HTML versions of an email. */
+function sigParts_(S, isReply) {
+  var wa = String(S.SIG_WHATSAPP || '').trim();
+  if (wa.charAt(0) === '#') wa = ''; // a broken cell such as #ERROR! never reaches an email
+  return {
+    name: perAccount_(S.SENDER_NAME),
+    title: perAccount_(S.SENDER_TITLE),
+    company: String(S.COMPANY_LINE || '').trim(),
+    website: String(S.SIG_WEBSITE || '').trim(),
+    linkedin: String(S.SIG_LINKEDIN || '').trim(),
+    whatsapp: wa && (isReply || truthy_(S.WHATSAPP_ON_ALL_EMAILS)) ? wa : '',
+    optOut: isReply ? '' : "Not relevant? Reply 'no thanks' and I won't write again.",
+    postal: String(S.POSTAL_ADDRESS || '').trim()
+  };
+}
+
 function withSignature_(body, S, isReply) {
+  var g = sigParts_(S, isReply);
   var lines = [String(body).replace(/\s+$/, ''), ''];
-  lines.push(perAccount_(S.SENDER_NAME));
-  if (perAccount_(S.SENDER_TITLE)) lines.push(perAccount_(S.SENDER_TITLE));
-  if (S.COMPANY_LINE) lines.push(S.COMPANY_LINE);
-  if (!isReply) {
-    lines.push('');
-    lines.push("Not relevant? Reply 'no thanks' and I won't write again.");
-  }
-  if (String(S.POSTAL_ADDRESS).trim()) lines.push(String(S.POSTAL_ADDRESS).trim());
+  lines.push(g.name);
+  if (g.title) lines.push(g.title);
+  if (g.company) lines.push(g.company);
+  if (g.website) lines.push(g.website);
+  if (g.linkedin) lines.push('LinkedIn: ' + g.linkedin);
+  if (g.whatsapp) lines.push('WhatsApp: ' + waUrl_(g.whatsapp));
+  if (g.optOut) { lines.push(''); lines.push(g.optOut); }
+  if (g.postal) lines.push(g.postal);
   return lines.join('\n');
+}
+
+/** The same email as HTML: the text, then the Tevrix logo with the sender's details below it. */
+function htmlEmail_(body, S, isReply) {
+  var g = sigParts_(S, isReply);
+  var logo = String(S.LOGO_URL || '').trim();
+  var paras = String(body).replace(/\s+$/, '').split(/\n\s*\n/).map(function (p) {
+    return '<p style="margin:0 0 12px">' + esc_(p).replace(/\n/g, '<br>') + '</p>';
+  }).join('');
+  var link = function (url, label) {
+    return '<a href="' + esc_(url) + '" style="color:#C2410C;text-decoration:none">' + esc_(label) + '</a>';
+  };
+  var sig = ['<img src="' + esc_(logo || 'cid:' + LOGO_CID) + '" width="72" height="68" alt="Tevrix AI" ' +
+    'style="display:block;border:0;width:72px;height:68px;margin:0 0 8px">'];
+  sig.push('<div style="font-weight:bold;color:#1F1F1F">' + esc_(g.name) + '</div>');
+  if (g.title) sig.push('<div>' + esc_(g.title) + '</div>');
+  if (g.company) sig.push('<div>' + esc_(g.company) + '</div>');
+  var links = [];
+  if (g.website) links.push(link(/^https?:/i.test(g.website) ? g.website : 'https://' + g.website, g.website.replace(/^https?:\/\//i, '')));
+  if (g.linkedin) links.push(link(g.linkedin, 'LinkedIn'));
+  if (g.whatsapp) links.push(link(waUrl_(g.whatsapp), 'WhatsApp'));
+  if (links.length) sig.push('<div style="margin-top:4px">' + links.join(' &middot; ') + '</div>');
+  var html = '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5;color:#1F1F1F">' + paras +
+    '<div style="margin-top:18px;font-size:13px;line-height:1.45;color:#444444">' + sig.join('') + '</div>';
+  var small = [g.optOut, g.postal].filter(Boolean).map(esc_);
+  if (small.length) html += '<div style="margin-top:14px;font-size:11px;color:#888888">' + small.join('<br>') + '</div>';
+  return html + '</div>';
+}
+
+/** "+91 85808 77736" or a wa.me link → a wa.me link. */
+function waUrl_(v) {
+  v = String(v || '').trim();
+  return /^https?:/i.test(v) ? v : 'https://wa.me/' + v.replace(/\D/g, '');
+}
+
+function esc_(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+/** Plain text unless Settings PLAIN_TEXT_ONLY is TRUE: then the HTML version (and the logo) is left out. */
+function htmlFor_(body, S, isReply) {
+  return truthy_(S.PLAIN_TEXT_ONLY) ? null : htmlEmail_(body, S, isReply);
 }
 
 /** Gmail API send with a raw RFC 822 message. Returns {id, threadId, messageId}. */
@@ -315,6 +379,7 @@ function sendRaw_(o) {
   var name = perAccount_(o.S.SENDER_NAME);
   var raw = buildRaw_({
     from: from, fromName: name, to: o.to, subject: o.subject, body: o.body,
+    html: o.html || null, inlineLogo: !!o.html && !String(o.S.LOGO_URL || '').trim(),
     inReplyTo: o.inReplyTo, references: o.references
   });
   var req = { raw: Utilities.base64EncodeWebSafe(raw, Utilities.Charset.UTF_8) };
@@ -325,6 +390,7 @@ function sendRaw_(o) {
   return { id: sent.id, threadId: sent.threadId, messageId: mid };
 }
 
+/** RFC 822 message: plain text alone, or text + HTML (multipart/alternative), with the logo inline when asked. */
 function buildRaw_(o) {
   var unsubTo = o.from;
   var h = [];
@@ -332,16 +398,38 @@ function buildRaw_(o) {
   h.push('To: ' + o.to);
   h.push('Subject: ' + encodeHeader_(o.subject));
   h.push('MIME-Version: 1.0');
-  h.push('Content-Type: text/plain; charset=UTF-8');
-  h.push('Content-Transfer-Encoding: base64');
   h.push('List-Unsubscribe: <mailto:' + unsubTo + '?subject=unsubscribe>');
   if (o.inReplyTo) {
     h.push('In-Reply-To: ' + o.inReplyTo);
     h.push('References: ' + ((o.references ? o.references + ' ' : '') + o.inReplyTo).trim());
   }
-  var b64 = Utilities.base64Encode(o.body, Utilities.Charset.UTF_8).replace(/(.{76})/g, '$1\r\n');
-  return h.join('\r\n') + '\r\n\r\n' + b64;
+  if (!o.html) {
+    h.push('Content-Type: text/plain; charset=UTF-8');
+    h.push('Content-Transfer-Encoding: base64');
+    return h.join('\r\n') + '\r\n\r\n' + b64Lines_(Utilities.base64Encode(o.body, Utilities.Charset.UTF_8));
+  }
+  var id = Utilities.getUuid().replace(/-/g, '');
+  var alt = 'alt_' + id, rel = 'rel_' + id;
+  var altBody = '--' + alt + '\r\n' + textPart_('text/plain', o.body) + '\r\n' +
+    '--' + alt + '\r\n' + textPart_('text/html', o.html) + '\r\n--' + alt + '--';
+  if (!o.inlineLogo) {
+    h.push('Content-Type: multipart/alternative; boundary="' + alt + '"');
+    return h.join('\r\n') + '\r\n\r\n' + altBody;
+  }
+  h.push('Content-Type: multipart/related; boundary="' + rel + '"');
+  return h.join('\r\n') + '\r\n\r\n' +
+    '--' + rel + '\r\nContent-Type: multipart/alternative; boundary="' + alt + '"\r\n\r\n' + altBody + '\r\n' +
+    '--' + rel + '\r\nContent-Type: image/jpeg; name="tevrix-logo.jpg"\r\nContent-Transfer-Encoding: base64\r\n' +
+    'Content-ID: <' + LOGO_CID + '>\r\nContent-Disposition: inline; filename="tevrix-logo.jpg"\r\n\r\n' +
+    b64Lines_(LOGO_JPEG_B64) + '\r\n--' + rel + '--';
 }
+
+function textPart_(type, content) {
+  return 'Content-Type: ' + type + '; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n' +
+    b64Lines_(Utilities.base64Encode(content, Utilities.Charset.UTF_8));
+}
+
+function b64Lines_(b64) { return String(b64).replace(/(.{76})/g, '$1\r\n'); }
 
 function encodeHeader_(s) {
   s = String(s || '');
@@ -648,7 +736,8 @@ function sendTestEmail() {
   for (var r = 2; r <= t.lastRow; r++) {
     if (t.get(r, 'email_1') && t.get(r, 'subject')) { subject = t.get(r, 'subject'); body = t.get(r, 'email_1'); break; }
   }
-  var res = sendRaw_({ to: to, subject: '[TEST] ' + subject, body: withSignature_(String(body), S), S: S });
+  var res = sendRaw_({ to: to, subject: '[TEST] ' + subject, body: withSignature_(String(body), S),
+    html: htmlFor_(String(body), S), S: S });
   log_('test_email', '', to + ' thread ' + res.threadId);
   toast_('Test email sent to ' + to + ' from ' + (perAccount_(S.SEND_AS) || me_()) + '.');
 }
@@ -854,5 +943,6 @@ function toast_(msg) {
 // For tests under Node (ignored by Apps Script).
 if (typeof module !== 'undefined') {
   module.exports = { HEADERS: HEADERS, COUNTRY_TZ: COUNTRY_TZ, stripQuoted_: stripQuoted_, OOO_RE: OOO_RE,
-    UNSUB_RE: UNSUB_RE, addr_: addr_, list_: list_, isDnc_: isDnc_, encodeHeader_: encodeHeader_ };
+    UNSUB_RE: UNSUB_RE, addr_: addr_, list_: list_, isDnc_: isDnc_, encodeHeader_: encodeHeader_,
+    withSignature_: withSignature_, htmlEmail_: htmlEmail_, buildRaw_: buildRaw_, waUrl_: waUrl_ };
 }

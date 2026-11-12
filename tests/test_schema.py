@@ -84,3 +84,50 @@ def test_apps_script_helpers():
     out = json.loads(_node(js))
     assert out == {"strip": "Yes, keen to chat.", "ooo": True, "unsub1": True, "unsub2": True, "unsub3": False,
                    "addr": "jane@acme.com", "dnc": True, "tz": "Pacific/Auckland"}
+
+
+@needs_node
+def test_email_signature_with_logo():
+    """Emails go out as text + HTML: the Tevrix logo inline, the sender's details below it."""
+    import email
+    js = f"""
+    global.Utilities = {{
+      Charset: {{ UTF_8: 'utf8' }},
+      base64Encode: (s) => Buffer.from(String(s), 'utf8').toString('base64'),
+      getUuid: () => '1234-5678',
+    }};
+    const g = require({json.dumps(str(GS))});
+    const S = {{ SENDER_NAME: 'Panshul Sharma', SENDER_TITLE: 'Founder, Tevrix AI', COMPANY_LINE: 'Tevrix AI · tevrixai.com',
+      SIG_WEBSITE: 'www.tevrixai.com', SIG_LINKEDIN: 'https://www.linkedin.com/in/someone/',
+      SIG_WHATSAPP: '+91 85808 77736', WHATSAPP_ON_ALL_EMAILS: false, LOGO_URL: '', POSTAL_ADDRESS: '' }};
+    const body = 'Hi Sam,\\n\\nOne line <b>not</b> markup.\\nSecond line.';
+    const html = g.htmlEmail_(body, S, false);
+    const raw = g.buildRaw_({{ from: 'a@x.com', fromName: 'Panshul Sharma', to: 'b@y.com', subject: 'hello',
+      body: g.withSignature_(body, S, false), html: html, inlineLogo: true }});
+    console.log(JSON.stringify({{
+      raw: raw, html: html,
+      replyHtml: g.htmlEmail_(body, S, true),
+      brokenWa: g.htmlEmail_(body, Object.assign({{}}, S, {{ SIG_WHATSAPP: '#ERROR!' }}), true),
+      urlLogo: g.htmlEmail_(body, Object.assign({{}}, S, {{ LOGO_URL: 'https://x.com/l.png' }}), false),
+      plain: g.buildRaw_({{ from: 'a@x.com', to: 'b@y.com', subject: 'hi', body: 'text only' }}),
+    }}));
+    """
+    out = json.loads(_node(js))
+    msg = email.message_from_string(out["raw"])
+    assert msg.get_content_type() == "multipart/related"
+    alt, img = msg.get_payload()
+    assert alt.get_content_type() == "multipart/alternative"
+    text, html = alt.get_payload()
+    assert text.get_content_type() == "text/plain" and html.get_content_type() == "text/html"
+    assert "Panshul Sharma" in text.get_payload(decode=True).decode()
+    assert img.get_content_type() == "image/jpeg" and img["Content-ID"] == "<tevrix-logo>"
+    assert img.get_payload(decode=True)[:3] == b"\xff\xd8\xff"  # a real JPEG
+    h = out["html"]
+    assert 'src="cid:tevrix-logo"' in h and h.index("cid:tevrix-logo") < h.index("Panshul Sharma")
+    assert "&lt;b&gt;not&lt;/b&gt;" in h and "<b>not</b>" not in h
+    assert "LinkedIn" in h and "https://www.tevrixai.com" in h and "no thanks" in h
+    assert "wa.me" not in h  # WhatsApp only in replies unless WHATSAPP_ON_ALL_EMAILS
+    assert "https://wa.me/918580877736" in out["replyHtml"] and "no thanks" not in out["replyHtml"]
+    assert "wa.me" not in out["brokenWa"] and "#ERROR" not in out["brokenWa"]
+    assert 'src="https://x.com/l.png"' in out["urlLogo"]
+    assert email.message_from_string(out["plain"]).get_content_type() == "text/plain"
