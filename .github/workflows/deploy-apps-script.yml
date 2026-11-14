@@ -1,0 +1,89 @@
+# Puts the Apps Script code live whenever it changes on main: uploads apps-script/ to the
+# "Tevrix BD" project, saves a new version, and moves the BD console deployment to it, so the
+# console link never changes. Tests run first; nothing is uploaded if they fail.
+#
+# One-time setup (see SETUP.md, "Automatic deploys"):
+#   1. business@tevrixai.com turns on "Google Apps Script API" at https://script.google.com/home/usersettings
+#   2. on any computer with Node: npx @google/clasp@2.4.2 login   (sign in as business@tevrixai.com)
+#   3. copy the contents of ~/.clasprc.json into the repo secret CLASPRC_JSON
+# Until the secret exists this workflow runs the tests and stops with a notice.
+name: deploy apps script
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps-script/**"
+      - ".github/workflows/deploy-apps-script.yml"
+  workflow_dispatch:
+    inputs:
+      note:
+        description: "Version note (optional)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-apps-script
+  cancel-in-progress: false
+
+env:
+  # The BD console web app. Updating this deployment keeps the same /exec link.
+  CONSOLE_DEPLOYMENT_ID: AKfycbyVW5TpOQVkhRZwT40ev7evEjycDi37MFau-33KYoDMoHuZiOeGbfeHNYfsam5GU4lAsw
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: pip install -r requirements.txt
+      - name: Tests (nothing is uploaded if these fail)
+        run: |
+          python -m pytest -q
+          node tests/js/test_bounces.js
+          (cd console && node tests/test_server.js)
+
+      - name: Check the login secret
+        id: secret
+        env:
+          CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+        run: |
+          if [ -z "$CLASPRC_JSON" ]; then
+            echo "::notice::CLASPRC_JSON is not set, so nothing was deployed. See SETUP.md, 'Automatic deploys'."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            printf '%s' "$CLASPRC_JSON" > "$HOME/.clasprc.json"
+            chmod 600 "$HOME/.clasprc.json"
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload, version and deploy
+        if: steps.secret.outputs.ready == 'true'
+        working-directory: apps-script
+        env:
+          NOTE: ${{ inputs.note }}
+        run: |
+          npm install -g @google/clasp@2.4.2
+          clasp push --force
+          desc="$(git log -1 --format='%h %s' | cut -c1-90)"
+          [ -n "$NOTE" ] && desc="$NOTE"
+          out="$(clasp version "$desc")"
+          echo "$out"
+          ver="$(echo "$out" | grep -oE '[0-9]+' | tail -1)"
+          [ -n "$ver" ] || { echo "::error::Could not read the new version number"; exit 1; }
+          clasp deploy --deploymentId "$CONSOLE_DEPLOYMENT_ID" --versionNumber "$ver" --description "$desc"
+          echo "::notice::Deployed version $ver to the BD console and the Sheet's script."
+
+      - name: Remove the login file
+        if: always()
+        run: rm -f "$HOME/.clasprc.json"

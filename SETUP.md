@@ -55,3 +55,25 @@ Do these in order. Nothing sends to a real lead until step 17 (TEST_MODE stays T
     5. Reply to that thread from TEST_RECIPIENT → *Check replies now* → `stage` = replied, `reply_text` fills in, and an alert email arrives.
     6. Write something in `reply_draft`, set `reply_decision` = send → *Send now* → the reply arrives in the thread.
     7. Delete the test row. Then, and only once warm-up is done, set **TEST_MODE = FALSE**.
+
+## Automatic deploys (GitHub → Apps Script)
+
+Once this is set up, every change to `apps-script/` on `main` goes live by itself: the
+`deploy apps script` workflow runs the tests, uploads the four files to the Tevrix BD Apps Script
+project, saves a new version and moves the BD console to it (same link). Nobody has to open the
+Apps Script editor. Do this once, as **business@tevrixai.com**:
+
+1. Open https://script.google.com/home/usersettings and turn **Google Apps Script API** on.
+2. On any computer with Node.js installed, run `npx @google/clasp@2.4.2 login`. A browser opens: sign in as
+   business@tevrixai.com and allow access. This writes a file called `.clasprc.json` in your home folder.
+   (Use exactly version 2.4.2: the workflow uses it, and newer versions write the file differently.)
+3. GitHub → the tevrix-bd repo → *Settings → Secrets and variables → Actions → New repository secret*:
+   name `CLASPRC_JSON`, value = the whole contents of that `.clasprc.json` file. Then delete the file from your
+   computer. Never paste it into a chat or a file in the repo: it lets its holder change business@'s Apps Script
+   projects.
+4. GitHub → *Actions → deploy apps script → Run workflow*. When it is green, the console runs the code in the repo.
+
+If the workflow later fails with an authorisation error, the login has expired or was revoked: repeat steps 2–3.
+If your Workspace admin blocks third-party apps, allow "clasp" (Google's Apps Script command-line tool) in
+*Admin → Security → API controls* first. Keep the repo private and only let founders merge to `main`, because
+anything merged there goes live.

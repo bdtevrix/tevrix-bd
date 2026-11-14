@@ -1,0 +1,6 @@
+# Only these four files are the Apps Script project. Everything else stays in GitHub.
+**/**
+!Code.gs
+!Web.gs
+!Dashboard.html
+!appsscript.json

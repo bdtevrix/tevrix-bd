@@ -23,3 +23,5 @@ jobs:
           node-version: "20"
       - run: pip install -r requirements.txt
       - run: python -m pytest -q
+      - run: node tests/js/test_bounces.js
+      - run: cd console && node tests/test_server.js
