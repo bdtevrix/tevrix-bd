@@ -380,6 +380,12 @@ test('approve: Code.gs country rules and an existing mailbox are respected', () 
   sh.data[r][h.indexOf('country')] = 'Narnia';
   assert.throws(() => c.uiDecide(o.lead_id, 'approve'), /does not know the country "Narnia"/);
   sh.data[r][h.indexOf('country')] = 'UK';
+  sh.data[r][h.indexOf('email_source')] = 'finder';
+  assert.throws(() => c.uiDecide(o.lead_id, 'approve'), /No proof that .* is real/);
+  sh.data[r][h.indexOf('email_source')] = 'published';
+  sh.data[r][h.indexOf('email_proof')] = '';
+  assert.throws(() => c.uiDecide(o.lead_id, 'approve'), /no link in email_proof/);
+  sh.data[r][h.indexOf('email_proof')] = 'https://example.example/contact';
   sh.data[r][h.indexOf('mailbox')] = 'second@tevrix.example';
   assert.strictEqual(c.uiDecide(o.lead_id, 'approve').mailbox, 'second@tevrix.example');
 });

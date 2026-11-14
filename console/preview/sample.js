@@ -13,7 +13,7 @@
   function id(domain) { return 'L-' + hex8(domain); }
 
   var H = {
-    Outreach: ['decision', 'stage', 'company', 'country', 'contact_name', 'contact_title', 'email', 'email_status', 'signal', 'score', 'angle', 'subject', 'email_1', 'follow_up_1', 'follow_up_2', 'linkedin_note', 'dossier', 'fit_reason', 'reviewer_notes', 'lead_id', 'mailbox', 'decided_at', 'thread_id', 'message_id', 'sent_1_at', 'sent_2_at', 'sent_3_at', 'replied_at', 'reply_label', 'reply_text', 'reply_draft', 'reply_decision', 'reply_sent_at', 'bounced_at', 'cio_synced_at', 'skip_reason', 'original_email'],
+    Outreach: ['decision', 'stage', 'company', 'country', 'contact_name', 'contact_title', 'email', 'email_status', 'signal', 'score', 'angle', 'subject', 'email_1', 'follow_up_1', 'follow_up_2', 'linkedin_note', 'dossier', 'fit_reason', 'reviewer_notes', 'lead_id', 'mailbox', 'decided_at', 'thread_id', 'message_id', 'sent_1_at', 'sent_2_at', 'sent_3_at', 'replied_at', 'reply_label', 'reply_text', 'reply_draft', 'reply_decision', 'reply_sent_at', 'bounced_at', 'cio_synced_at', 'skip_reason', 'original_email', 'email_source', 'email_proof', 'verify_result', 'bounce_type'],
     Leads: ['lead_id', 'found_at', 'source', 'segment', 'company', 'domain', 'website', 'country', 'company_size', 'open_roles', 'roles_sample', 'signal', 'job_urls', 'ceo_name', 'contact_name', 'contact_title', 'email', 'email_source', 'email_status', 'pattern', 'people_found', 'status', 'notes'],
     LinkedIn: ['date', 'founder', 'name', 'title', 'company', 'search_link', 'note', 'sent', 'accepted', 'lead_id'],
     'Do not contact': ['value', 'reason', 'added_at', 'source'],
@@ -22,7 +22,13 @@
     Playbook: ['id', 'added_at', 'type', 'rule', 'evidence', 'source', 'status', 'decided_at', 'decided_by'],
     Settings: ['key', 'value', 'notes']
   };
-  function row(tab, o) { return H[tab].map(function (h) { return o.hasOwnProperty(h) ? o[h] : ''; }); }
+  function row(tab, o) {
+    // Every sample Outreach address is "published" on the made-up company's contact page, as the research now requires.
+    if (tab === 'Outreach' && o.email && !o.hasOwnProperty('email_source')) {
+      o.email_source = 'published'; o.email_proof = 'https://' + o.email.split('@')[1] + '/contact';
+    }
+    return H[tab].map(function (h) { return o.hasOwnProperty(h) ? o[h] : ''; });
+  }
 
   var MB = 'team@tryhireminds.example';
   var out = [], leads = [], log = [];

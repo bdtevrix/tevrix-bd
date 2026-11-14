@@ -19,7 +19,8 @@ var HEADERS = {
     'signal', 'score', 'angle', 'subject', 'email_1', 'follow_up_1', 'follow_up_2', 'linkedin_note', 'dossier',
     'fit_reason', 'reviewer_notes', 'lead_id', 'mailbox', 'decided_at', 'thread_id', 'message_id', 'sent_1_at',
     'sent_2_at', 'sent_3_at', 'replied_at', 'reply_label', 'reply_text', 'reply_draft', 'reply_decision',
-    'reply_sent_at', 'bounced_at', 'cio_synced_at', 'skip_reason', 'original_email'],
+    'reply_sent_at', 'bounced_at', 'cio_synced_at', 'skip_reason', 'original_email',
+    'email_source', 'email_proof', 'verify_result', 'bounce_type'],
   'Leads': ['lead_id', 'found_at', 'source', 'segment', 'company', 'domain', 'website', 'country', 'company_size',
     'open_roles', 'roles_sample', 'signal', 'job_urls', 'ceo_name', 'contact_name', 'contact_title', 'email',
     'email_source', 'email_status', 'pattern', 'people_found', 'status', 'notes'],
@@ -146,6 +147,7 @@ function togglePause() {
   var paused = truthy_(settings_().SENDING_PAUSED);
   setSetting_('SENDING_PAUSED', paused ? 'FALSE' : 'TRUE');
   if (paused) setSetting_('BOUNCE_COUNT_FROM', new Date()); // resume: the bounce brake starts on a clean slate
+  if (paused) setSetting_('NEW_EMAILS_HELD', 'FALSE');
   log_(paused ? 'resume' : 'pause', '', 'by ' + me_());
   toast_(paused ? 'Sending resumed.' : 'Sending paused.');
 }
@@ -189,7 +191,7 @@ function runSends_(manual) {
     var sent1 = date_(t.get(r, 'sent_1_at'));
     var days = sent1 ? (now - sent1) / 86400000 : 0;
     if (stage === 'approved' && String(t.get(r, 'decision')) === 'approve' && !sent1) {
-      queue.push({ r: r, kind: 'first', p: 1 });
+      if (!truthy_(S.NEW_EMAILS_HELD)) queue.push({ r: r, kind: 'first', p: 1 }); // the bounce brake holds new addresses
     } else if (stage === 'sent_1' && days >= num_(S.FOLLOWUP_1_AFTER_DAYS, 4)) {
       queue.push({ r: r, kind: 'fu1', p: 2 });
     } else if (stage === 'sent_2' && days >= num_(S.FOLLOWUP_2_AFTER_DAYS, 10)) {
@@ -243,6 +245,10 @@ function sendSequence_(t, r, kind, S, dnc, testMode, ignoreWindow) {
   if (kind === 'first') {
     body = t.get(r, 'email_1'); next = 'sent_1'; stamp = 'sent_1_at';
     if (!subject || !body) return skip_(t, r, 'Subject or email_1 is empty.');
+    if (!testMode) {
+      var gate = addressGate_(t, r, email, S, dnc);
+      if (!gate.ok) return backToReview_(t, r, gate.why);
+    }
   } else {
     // A fresh reply check on the thread before any follow-up.
     if (threadId && checkThreadRow_(t, r, S, dnc)) return false;
@@ -454,6 +460,105 @@ function inWindow_(tz, S) {
     hour >= num_(S.SEND_START_HOUR, 9) && hour < num_(S.SEND_END_HOUR, 16);
 }
 
+// ------------------------------------------------------------------ address gate (before every first email)
+//
+// Bounces come from addresses, so every new address must pass these checks before email 1 goes out:
+//  1. proof: email_source is "published" (seen on the company's own site, page in email_proof) or "verified"
+//     (a verification service said valid). Finder guesses bounced 2 times out of 3 in the first week.
+//  2. the domain accepts email (MX record, via Google's public DNS).
+//  3. if a ZEROBOUNCE_API_KEY Script Property is set, the address is checked with ZeroBounce first.
+// A row that fails goes back to Review with the reason, so a founder can fix the address or skip the lead.
+// Follow-ups skip the gate: they go to an address that already accepted email 1.
+
+var EMAIL_RE = /^[a-z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/i;
+var PROOF_SOURCES = ['published', 'verified'];
+var VERIFY_BLOCK = ['invalid', 'spamtrap', 'abuse', 'do_not_mail'];
+
+function addressGate_(t, r, email, S, dnc) {
+  if (!EMAIL_RE.test(email)) return { ok: false, why: '"' + email + '" is not a valid email address.' };
+  var domain = email.split('@')[1];
+  var source = t.has('email_source') ? String(t.get(r, 'email_source')).trim().toLowerCase() : '';
+  var proof = t.has('email_proof') ? String(t.get(r, 'email_proof')).trim() : '';
+  if (t.has('email_source') && !truthy_(S.ALLOW_UNPROVEN_EMAILS)) {
+    if (PROOF_SOURCES.indexOf(source) < 0) {
+      return { ok: false, why: 'No proof this address is real (email_source is "' + (source || 'blank') +
+        '"). Set email_source to published and paste the page that shows it in email_proof, or skip the lead.' };
+    }
+    if (source === 'published' && !/^https?:\/\//i.test(proof)) {
+      return { ok: false, why: 'email_source is published but email_proof has no link. Paste the page that shows ' + email + '.' };
+    }
+  }
+  var mx = mxCheck_(domain);
+  if (mx === 'none') return { ok: false, why: domain + ' does not accept email (no mail server found).' };
+  var key = PropertiesService.getScriptProperties().getProperty('ZEROBOUNCE_API_KEY');
+  if (key) {
+    var v = zeroBounce_(email, key);
+    if (t.has('verify_result')) t.set(r, 'verify_result', v.status + (v.sub ? ' / ' + v.sub : '') + ' (' +
+      Utilities.formatDate(new Date(), IST, 'yyyy-MM-dd') + ')');
+    if (VERIFY_BLOCK.indexOf(v.status) >= 0) {
+      addDnc_(email, 'verifier: ' + v.status, 'address gate', dnc);
+      return { ok: false, why: 'ZeroBounce says ' + email + ' is ' + v.status + (v.sub ? ' (' + v.sub + ')' : '') + '. Find another address or skip.' };
+    }
+    if (v.status !== 'valid' && source !== 'published' && v.status !== 'error') {
+      return { ok: false, why: 'ZeroBounce could not confirm ' + email + ' (' + v.status + ') and it is not published on their site.' };
+    }
+  }
+  return { ok: true };
+}
+
+/** 'ok', 'none' (domain takes no email) or 'unknown' (lookup failed: we do not block on our own error). */
+function mxCheck_(domain) {
+  var cache = CacheService.getScriptCache(), ck = 'mx_' + domain;
+  var hit = cache.get(ck);
+  if (hit) return hit;
+  var res = 'unknown';
+  try {
+    var get = function (type) {
+      var resp = UrlFetchApp.fetch('https://dns.google/resolve?name=' + encodeURIComponent(domain) + '&type=' + type,
+        { muteHttpExceptions: true });
+      return resp.getResponseCode() === 200 ? JSON.parse(resp.getContentText()) : null;
+    };
+    var mx = get('MX');
+    if (mx) {
+      var answers = (mx.Answer || []).filter(function (a) { return a.type === 15; });
+      var nullMx = answers.length === 1 && /^0\s+\.?$/.test(String(answers[0].data).trim());
+      if (mx.Status === 3) res = 'none';                      // the domain does not exist
+      else if (answers.length && !nullMx) res = 'ok';
+      else if (nullMx) res = 'none';                          // RFC 7505: "this domain takes no email"
+      else {
+        var a = get('A');                                     // no MX: mail falls back to the A record
+        res = a && (a.Answer || []).some(function (x) { return x.type === 1; }) ? 'ok' : 'none';
+      }
+    }
+  } catch (err) {
+    log_('mx_error', '', domain + ': ' + String(err).slice(0, 200));
+  }
+  if (res !== 'unknown') cache.put(ck, res, 21600);
+  return res;
+}
+
+function zeroBounce_(email, key) {
+  try {
+    var resp = UrlFetchApp.fetch('https://api.zerobounce.net/v2/validate?api_key=' + encodeURIComponent(key) +
+      '&email=' + encodeURIComponent(email) + '&ip_address=', { muteHttpExceptions: true });
+    if (resp.getResponseCode() !== 200) return { status: 'error', sub: 'HTTP ' + resp.getResponseCode() };
+    var j = JSON.parse(resp.getContentText());
+    if (j.error) return { status: 'error', sub: String(j.error).slice(0, 80) };
+    return { status: String(j.status || 'unknown').toLowerCase(), sub: String(j.sub_status || '') };
+  } catch (err) {
+    return { status: 'error', sub: String(err).slice(0, 80) };
+  }
+}
+
+/** Send a draft back to Review (decision cleared) with the reason on top of its notes. */
+function backToReview_(t, r, why) {
+  t.set(r, 'decision', '');
+  t.set(r, 'stage', 'drafted');
+  note_(t, r, 'NOT SENT: ' + why);
+  log_('address_blocked', t.get(r, 'lead_id'), String(t.get(r, 'email')) + ': ' + why);
+  return false;
+}
+
 function skip_(t, r, why) {
   note_(t, r, why);
   return false;
@@ -529,6 +634,28 @@ function checkThreadRow_(t, r, S, dnc) {
   return false;
 }
 
+// Bounce types. Only real failures count towards the brake; delay notices and full mailboxes do not.
+//   not_found  the address does not exist (5.1.1 and friends)       -> bounced, Do not contact
+//   group      a group or list that refuses outside mail             -> bounced, Do not contact
+//   blocked    refused as spam or by policy: a warning about OUR      -> bounced, Do not contact, alert now
+//              reputation or setup, not about the address
+//   other      any other permanent failure                           -> bounced, Do not contact
+//   soft       delayed, mailbox full, try again later                -> logged only, the sequence carries on
+var HARD_BOUNCES = ['not_found', 'group', 'blocked', 'other'];
+
+function classifyBounce_(subject, text) {
+  // Read only the explanation: the copy of our own message's headers below it says "dmarc=pass", "spam" etc.
+  var expl = String(text).split(/-{3,}\s*original message\s*-{3,}|\n\s*(?:arc-|received:|x-received:|dkim-signature:|authentication-results:|return-path:|final-recipient:)/i)[0];
+  var s = (String(subject) + '\n' + expl).toLowerCase();
+  if (/\(delay\)|delivery (has been |is )?delayed|will (retry|keep trying)|temporar(il)?y|try again later|\b4\d\d[ -]4\.\d{1,3}\.\d{1,3}\b|mailbox (is )?full|over quota|quota exceeded|insufficient storage/.test(s)) {
+    return 'soft';
+  }
+  if (/group you tried to contact|permission to post|not allowed to post|only members can post|restricted to members/.test(s)) return 'group';
+  var notFound = /address not found|couldn.t be found|could not be found|does not exist|doesn.t exist|user unknown|unknown user|no such (user|recipient|mailbox)|invalid recipient|recipient (address )?rejected|mailbox unavailable|mailbox not found|\b5\d\d[ -]5\.1\.\d{1,3}\b/.test(s);
+  if (!notFound && /\b5\d\d[ -]5\.7\.\d{1,3}\b|spam|blocked|blacklist|blocklist|reputation|rejected for policy|policy reasons|unauthenticated|not authori[sz]ed/.test(s)) return 'blocked';
+  return notFound ? 'not_found' : 'other';
+}
+
 function checkBounces_(t, S, dnc) {
   var label = getLabel_();
   var threads = GmailApp.search('from:(mailer-daemon OR postmaster) newer_than:2d -label:' + PROCESSED_LABEL, 0, 50);
@@ -540,17 +667,30 @@ function checkBounces_(t, S, dnc) {
   }
   threads.forEach(function (th) {
     th.getMessages().forEach(function (m) {
-      var failed = String(m.getHeader('X-Failed-Recipients') || '') + ' ' + (m.getPlainBody() || '');
+      if (!/mailer-daemon|postmaster/i.test(m.getFrom())) return;
+      var body = m.getPlainBody() || '';
+      var failed = String(m.getHeader('X-Failed-Recipients') || '') + ' ' + body;
       var found = (failed.match(/[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}/g) || [])
         .map(function (x) { return x.toLowerCase(); });
+      var type = classifyBounce_(m.getSubject(), body.slice(0, 3000));
+      var seen = {};
       found.forEach(function (e) {
-        if (!(e in byEmail)) return;
-        var r = byEmail[e];
+        if (!(e in byEmail) || seen[e]) return;
+        seen[e] = true;
+        var r = byEmail[e], lid = t.get(r, 'lead_id');
+        if (type === 'soft') { log_('soft_bounce', lid, e + ' (delayed or mailbox full; the sequence carries on)'); return; }
         if (String(t.get(r, 'stage')) === 'bounced') return;
         t.set(r, 'stage', 'bounced');
         t.set(r, 'bounced_at', new Date());
-        addDnc_(e, 'bounce', 'checkTick', dnc);
-        log_('bounce', t.get(r, 'lead_id'), e);
+        if (t.has('bounce_type')) t.set(r, 'bounce_type', type);
+        addDnc_(e, 'bounce: ' + type, 'checkTick', dnc);
+        log_('bounce', lid, e + ' (' + type + (t.has('email_source') ? ', source ' + (t.get(r, 'email_source') || 'unknown') : '') + ')');
+        if (type === 'blocked') {
+          alert_('Email to ' + t.get(r, 'company') + ' was refused as spam or by policy',
+            'The receiving server refused the email to ' + e + ' as spam or by policy, not because the address is wrong. ' +
+            'This is a warning about the sending address\'s reputation or setup. Check the message in Gmail (from mailer-daemon) ' +
+            'and slow down new addresses until it is understood.\n\n' + body.slice(0, 1200));
+        }
       });
     });
     th.addLabel(label);
@@ -580,22 +720,39 @@ function checkUnsubscribes_(t, S, dnc) {
 }
 
 // Bounce brake. Looks at the last BOUNCE_WINDOW_DAYS days (default 7), not just today: at 5 sends a day a
-// "10 sends today" rule could never trigger. Pauses when there are BOUNCE_PAUSE_MIN+ bounces (default 2) and
-// they are over BOUNCE_PAUSE_PCT of sends in the window. Only bounces after BOUNCE_COUNT_FROM count, so
-// resuming after a pause starts a clean slate instead of tripping again on the bounces already dealt with.
+// "10 sends today" rule could never trigger. Trips when there are BOUNCE_PAUSE_MIN+ bounces (default 2) and they
+// are over BOUNCE_PAUSE_PCT of sends in the window. What it does is BOUNCE_ACTION:
+//   hold_new (default)  stop first emails to new addresses (NEW_EMAILS_HELD = TRUE); follow-ups and replies to
+//                       people whose address already worked keep going, since they cannot bounce the same way
+//   alert               only email the founders
+//   pause               stop all sending (SENDING_PAUSED = TRUE)
+// Only bounces after BOUNCE_COUNT_FROM count, so after a founder releases it the old bounces do not trip it again.
 function checkBouncePause_(t, S) {
   if (truthy_(S.SENDING_PAUSED)) return;
-  var w = bounceWindow_(t, S, new Date());
-  if (!bounceTrips_(w, S)) return;
+  var action = String(S.BOUNCE_ACTION || 'hold_new').trim().toLowerCase();
+  if (action === 'hold_new' && truthy_(S.NEW_EMAILS_HELD)) return;
   var now = new Date();
-  setSetting_('SENDING_PAUSED', 'TRUE');
-  setSetting_('BOUNCE_COUNT_FROM', Utilities.formatDate(now, IST, 'yyyy-MM-dd HH:mm'));
+  var w = bounceWindow_(t, S, now);
+  if (!bounceTrips_(w, S)) return;
+  var stamp = Utilities.formatDate(now, IST, 'yyyy-MM-dd HH:mm');
   var pctNow = Math.round(w.bounced / Math.max(w.sent, 1) * 100);
-  log_('auto_pause', '', w.bounced + ' bounces / ' + w.sent + ' sends in ' + w.days + ' days (' + pctNow + '%): ' + w.emails.join(', '));
-  alert_('Sending paused: ' + w.bounced + ' bounces in ' + w.days + ' days',
-    w.bounced + ' of the last ' + w.sent + ' emails bounced (' + pctNow + '%):\n' + w.emails.join('\n') +
-    '\n\nSending is paused until you set SENDING_PAUSED to FALSE (or press Resume in the console). ' +
-    'Check where those addresses came from before resuming.');
+  var what;
+  if (action === 'pause') {
+    setSetting_('SENDING_PAUSED', 'TRUE');
+    what = 'All sending is paused until you set SENDING_PAUSED to FALSE (or press Resume in the console).';
+  } else if (action === 'alert') {
+    what = 'Nothing was stopped (BOUNCE_ACTION is alert).';
+  } else {
+    setSetting_('NEW_EMAILS_HELD', 'TRUE');
+    what = 'First emails to new addresses are on hold; follow-ups and replies keep going. ' +
+      'Set NEW_EMAILS_HELD to FALSE in Settings to release them once you know why.';
+  }
+  setSetting_('BOUNCE_COUNT_FROM', stamp);
+  log_('auto_' + (action === 'pause' ? 'pause' : action === 'alert' ? 'alert' : 'hold'), '',
+    w.bounced + ' bounces / ' + w.sent + ' sends in ' + w.days + ' days (' + pctNow + '%): ' + w.emails.join(', '));
+  alert_('Bounce alert: ' + w.bounced + ' bounces in ' + w.days + ' days',
+    w.bounced + ' of the last ' + w.sent + ' emails bounced (' + pctNow + '%):\n' + w.emails.join('\n') + '\n\n' + what +
+    '\n\nLook at where those addresses came from (email_source and email_proof in Outreach) before releasing.');
 }
 
 /** Sends and bounces since max(now - BOUNCE_WINDOW_DAYS, BOUNCE_COUNT_FROM). */
@@ -608,7 +765,10 @@ function bounceWindow_(t, S, now) {
   var w = { days: days, from: from, sent: 0, bounced: 0, emails: [] };
   for (var r = 2; r <= t.lastRow; r++) {
     ['sent_1_at', 'sent_2_at', 'sent_3_at'].forEach(function (k) { if (inWin(t.get(r, k))) w.sent++; });
-    if (inWin(t.get(r, 'bounced_at'))) { w.bounced++; w.emails.push(String(t.get(r, 'email'))); }
+    if (inWin(t.get(r, 'bounced_at'))) {
+      w.bounced++;
+      w.emails.push(String(t.get(r, 'email')) + (t.has && t.has('bounce_type') && t.get(r, 'bounce_type') ? ' (' + t.get(r, 'bounce_type') + ')' : ''));
+    }
   }
   return w;
 }
@@ -762,6 +922,7 @@ function table_(name) {
   }
   return {
     sheet: sh, header: header, lastRow: lastRow,
+    has: function (col) { return col in idx; },
     col: function (col) { return ci(col) + 1; },
     get: function (r, col) { var v = values[r - 1] && values[r - 1][ci(col)]; return v === undefined || v === null ? '' : v; },
     set: function (r, col, v) {

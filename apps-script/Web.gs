@@ -283,6 +283,19 @@ function uiSendable_(t, i, company) {
   if (typeof US_COUNTRIES !== 'undefined' && US_COUNTRIES.indexOf(country) !== -1 && !uiStr_(uiSettings_().POSTAL_ADDRESS)) {
     throw new Error('US leads need POSTAL_ADDRESS in Settings before they can be emailed.');
   }
+  // Same proof rule as the sender's address gate (Code.gs addressGate_), so a founder hears it now, not at send time.
+  if (t.col.email_source !== undefined && !/^(true|yes|1)$/i.test(uiStr_(uiSettings_().ALLOW_UNPROVEN_EMAILS))) {
+    var src = uiStr_(uiGet_(t, i, 'email_source')).toLowerCase();
+    var proof = t.col.email_proof !== undefined ? uiStr_(uiGet_(t, i, 'email_proof')) : '';
+    if (src !== 'published' && src !== 'verified') {
+      throw new Error('No proof that ' + uiStr_(uiGet_(t, i, 'email')) + ' is real (source: ' + (src || 'unknown') +
+        '). Guessed addresses bounced 2 times out of 3. Send ' + company + ' on LinkedIn instead, or in the Sheet set ' +
+        'email_source to published with the page in email_proof.');
+    }
+    if (src === 'published' && !/^https?:\/\//i.test(proof)) {
+      throw new Error(company + ': the address is marked published but there is no link in email_proof. Add the page that shows it.');
+    }
+  }
 }
 
 // Which draft fields may still change, given what has already gone out.
@@ -828,7 +841,7 @@ function uiSetSetting(key, value) {
     t.rows.forEach(function (r, i) { if (uiStr_(r[t.col.key]) === key) idx = i; });
     if (idx < 0) throw new Error('"' + key + '" is not in the Settings tab.');
     var cur = uiGet_(t, idx, 'value'), v = value;
-    if (typeof cur === 'boolean' || key === 'SENDING_PAUSED' || key === 'TEST_MODE') {
+    if (typeof cur === 'boolean' || key === 'SENDING_PAUSED' || key === 'TEST_MODE' || key === 'NEW_EMAILS_HELD') {
       v = value === true || String(value).toUpperCase() === 'TRUE';
     } else if (typeof cur === 'number') {
       if (value === '' || isNaN(Number(value))) throw new Error(key + ' needs a number.');
@@ -839,7 +852,7 @@ function uiSetSetting(key, value) {
     uiSet_(t, idx, 'value', v);
     if (key === 'DASHBOARD_USERS') CacheService.getScriptCache().remove('ui_allowed');
     // Resuming starts the bounce brake on a clean slate: bounces from before the pause have been dealt with.
-    if (key === 'SENDING_PAUSED' && v === false) {
+    if ((key === 'SENDING_PAUSED' || key === 'NEW_EMAILS_HELD') && v === false) {
       t.rows.forEach(function (r, i) {
         if (uiStr_(r[t.col.key]) === 'BOUNCE_COUNT_FROM') uiSet_(t, i, 'value', new Date());
       });
@@ -895,6 +908,11 @@ function uiRunSummary_(action, sh, start) {
       : 'Nothing was due. Emails go out on ' + (s.SEND_DAYS || 'weekdays') + ' between ' + (s.SEND_START_HOUR || 9) +
         ':00 and ' + (s.SEND_END_HOUR || 16) + ':00 in each lead\'s time zone, up to ' + (s.DAILY_CAP_PER_MAILBOX || 20) + ' a day.';
     if (c('cap_reached')) msg += ' Today\'s cap is used up.';
+    if (c('address_blocked')) msg += ' ' + many(c('address_blocked'), 'draft was', 'drafts were') +
+      ' sent back to Review because the address could not be proven: see the note on the draft.';
+    if (String(s.NEW_EMAILS_HELD).toUpperCase() === 'TRUE' || s.NEW_EMAILS_HELD === true) {
+      msg += ' First emails to new addresses are on hold after bounces (NEW_EMAILS_HELD); follow-ups still go.';
+    }
     if (c('send_error')) msg += ' ' + many(c('send_error'), 'send failed', 'sends failed') + ': see the Log tab.';
     return msg;
   }

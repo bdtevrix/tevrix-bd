@@ -61,7 +61,8 @@ def test_prompts_only_mention_real_columns():
         cols = set(re.findall(r"`([a-z]+_[a-z_0-9]+)`", p.read_text(encoding="utf-8")))
         settings = {c for c in cols if c.isupper()}
         values = {"hn_whoishiring", "recruiter_hire", "walk_in", "plant_hiring", "founder_list",
-                  "news_scan", "partner_scan"}   # cell values (sources, angles), not columns
+                  "news_scan", "partner_scan", "not_found",
+                  "address_blocked"}   # cell values (sources, angles, bounce types, Log actions), not columns
         assert cols - settings - values <= allc, (p.name, cols - allc - values)
 
 
