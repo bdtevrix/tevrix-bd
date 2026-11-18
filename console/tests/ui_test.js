@@ -40,7 +40,7 @@ async function noOverflow(page, label) {
   await page.waitForSelector('.q-item.on');
   const firstCo = await page.textContent('.detail h2');
   check(firstCo === 'Northwind Freight', 'Review opens on the best-fit draft');
-  check((await page.$$('[data-checks] .chip')).length === 6, 'six email checks shown');
+  check((await page.$$('[data-checks] .chip')).length === 7, 'seven email checks shown');
   await page.screenshot({ path: path.join(shots, 'review-light.png') });
   await page.fill('#f-subject', 'Warehouse hiring at Northwind');
   check((await page.textContent('[data-dirty]')).includes('Unsaved'), 'edit marks unsaved');

@@ -263,11 +263,13 @@ function sendSequence_(t, r, kind, S, dnc, testMode, ignoreWindow) {
     subject = /^re:/i.test(subject) ? subject : 'Re: ' + subject;
   }
 
+  var angle = String(t.get(r, 'angle'));
+  body = withProduct_(String(body), S, angle);
   var res = sendRaw_({
     to: testMode ? S.TEST_RECIPIENT : email,
     subject: (testMode ? '[TEST] ' : '') + subject,
-    body: withSignature_(String(body), S),
-    html: htmlFor_(String(body), S),
+    body: withSignature_(body, S, false, angle),
+    html: htmlFor_(body, S, false, angle),
     S: S,
     threadId: kind === 'first' ? null : threadId,
     inReplyTo: kind === 'first' ? null : String(t.get(r, 'message_id'))
@@ -294,8 +296,8 @@ function sendReply_(t, r, S, dnc, testMode) {
   var res = sendRaw_({
     to: testMode ? S.TEST_RECIPIENT : to,
     subject: (testMode ? '[TEST] ' : '') + subject,
-    body: withSignature_(String(t.get(r, 'reply_draft')), S, true),
-    html: htmlFor_(String(t.get(r, 'reply_draft')), S, true),
+    body: withSignature_(String(t.get(r, 'reply_draft')), S, true, String(t.get(r, 'angle'))),
+    html: htmlFor_(String(t.get(r, 'reply_draft')), S, true, String(t.get(r, 'angle'))),
     S: S,
     threadId: threadId || null,
     inReplyTo: them ? them.messageId : String(t.get(r, 'message_id')),
@@ -308,7 +310,8 @@ function sendReply_(t, r, S, dnc, testMode) {
 }
 
 /** The signature's parts, shared by the plain-text and HTML versions of an email. */
-function sigParts_(S, isReply) {
+function sigParts_(S, isReply, angle) {
+  var prod = product_(S, angle);
   var wa = String(S.SIG_WHATSAPP || '').trim();
   if (wa.charAt(0) === '#') wa = ''; // a broken cell such as #ERROR! never reaches an email
   return {
@@ -318,19 +321,21 @@ function sigParts_(S, isReply) {
     email: perAccount_(S.SIG_EMAIL),
     website: String(S.SIG_WEBSITE || '').trim(),
     linkedin: String(S.SIG_LINKEDIN || '').trim(),
+    product: prod,
     whatsapp: wa && (isReply || truthy_(S.WHATSAPP_ON_ALL_EMAILS)) ? wa : '',
     optOut: isReply ? '' : "Not relevant? Reply 'no thanks' and I won't write again.",
     postal: String(S.POSTAL_ADDRESS || '').trim()
   };
 }
 
-function withSignature_(body, S, isReply) {
-  var g = sigParts_(S, isReply);
-  var lines = [String(body).replace(/\s+$/, ''), ''];
+function withSignature_(body, S, isReply, angle) {
+  var g = sigParts_(S, isReply, angle);
+  var lines = [plainText_(body).replace(/\s+$/, ''), ''];
   lines.push(g.name);
   if (g.title) lines.push(g.title);
   if (g.company) lines.push(g.company);
   if (g.email) lines.push(g.email);
+  if (g.product) lines.push(g.product.name + ': ' + g.product.url);
   if (g.website) lines.push(g.website);
   if (g.linkedin) lines.push('LinkedIn: ' + g.linkedin);
   if (g.whatsapp) lines.push('WhatsApp: ' + waUrl_(g.whatsapp));
@@ -340,11 +345,11 @@ function withSignature_(body, S, isReply) {
 }
 
 /** The same email as HTML: the text, then the Tevrix logo with the sender's details below it. */
-function htmlEmail_(body, S, isReply) {
-  var g = sigParts_(S, isReply);
+function htmlEmail_(body, S, isReply, angle) {
+  var g = sigParts_(S, isReply, angle);
   var logo = String(S.LOGO_URL || '').trim();
   var paras = String(body).replace(/\s+$/, '').split(/\n\s*\n/).map(function (p) {
-    return '<p style="margin:0 0 12px">' + esc_(p).replace(/\n/g, '<br>') + '</p>';
+    return '<p style="margin:0 0 12px">' + inlineHtml_(p).replace(/\n/g, '<br>') + '</p>';
   }).join('');
   var link = function (url, label) {
     return '<a href="' + esc_(url) + '" style="color:#C2410C;text-decoration:none">' + esc_(label) + '</a>';
@@ -356,6 +361,7 @@ function htmlEmail_(body, S, isReply) {
   if (g.company) sig.push('<div>' + esc_(g.company) + '</div>');
   if (g.email) sig.push('<div>' + link('mailto:' + g.email, g.email) + '</div>');
   var links = [];
+  if (g.product) links.push(link(g.product.url, g.product.name));
   if (g.website) links.push(link(/^https?:/i.test(g.website) ? g.website : 'https://' + g.website, g.website.replace(/^https?:\/\//i, '')));
   if (g.linkedin) links.push(link(g.linkedin, 'LinkedIn'));
   if (g.whatsapp) links.push(link(waUrl_(g.whatsapp), 'WhatsApp'));
@@ -378,8 +384,50 @@ function esc_(s) {
 }
 
 /** Plain text unless Settings PLAIN_TEXT_ONLY is TRUE: then the HTML version (and the logo) is left out. */
-function htmlFor_(body, S, isReply) {
-  return truthy_(S.PLAIN_TEXT_ONLY) ? null : htmlEmail_(body, S, isReply);
+function htmlFor_(body, S, isReply, angle) {
+  return truthy_(S.PLAIN_TEXT_ONLY) ? null : htmlEmail_(body, S, isReply, angle);
+}
+
+// ------------------------------------------------------------------ product link and formatting
+//
+// HireMinds emails carry the product page (Settings PRODUCT_URL, e.g. https://hireminds.tevrixai.com):
+// in the signature of every HireMinds email and reply, and in the body of every sequence email. Drafts can
+// mark text **bold**; the HTML version shows it bold and turns web addresses into links, the plain-text
+// version drops the asterisks. Partner outreach (angle = partner) is about Tevrix services, so it gets neither.
+
+/** {name, url, host} for HireMinds emails, or null (partner emails, or no PRODUCT_URL). */
+function product_(S, angle) {
+  var url = String(S.PRODUCT_URL || '').trim();
+  if (!url || String(angle || '').toLowerCase() === 'partner') return null;
+  if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  return { name: String(S.PRODUCT_NAME || 'HireMinds').trim(), url: url,
+    host: url.replace(/^https?:\/\//i, '').replace(/\/+$/, '') };
+}
+
+/** The body, with a bold line pointing to the product page when the draft does not mention it already. */
+function withProduct_(body, S, angle) {
+  var p = product_(S, angle);
+  body = String(body);
+  if (!p || body.toLowerCase().indexOf(p.host.toLowerCase()) >= 0) return body;
+  return body.replace(/\s+$/, '') + '\n\n**See how ' + p.name + ' works: ' + p.host + '**';
+}
+
+function plainText_(s) {
+  return String(s).replace(/\*\*([^*\n][^*]*?)\*\*/g, '$1');
+}
+
+/** One paragraph as HTML: escaped, web addresses linked, **bold** in bold. */
+function inlineHtml_(s) {
+  var out = esc_(s).replace(/\b(https?:\/\/[^\s<*]+|(?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:com|ai|io|co|in|uk|ie|app)(?:\/[^\s<*]*)?)/gi,
+    function (m, g1, at, whole) {
+      if (at > 0 && /[@.\w\/-]/.test(whole.charAt(at - 1))) return m; // part of an email address or a longer word
+      var trail = (m.match(/[.,;:!?)]+$/) || [''])[0];
+      var u = trail ? m.slice(0, -trail.length) : m;
+      if (!/\./.test(u)) return m;
+      var href = /^https?:/i.test(u) ? u : 'https://' + u;
+      return '<a href="' + href + '" style="color:#C2410C">' + u + '</a>' + trail;
+    });
+  return out.replace(/\*\*([^*\n][^*]*?)\*\*/g, '<strong>$1</strong>');
 }
 
 /** Gmail API send with a raw RFC 822 message. Returns {id, threadId, messageId}. */
@@ -899,8 +947,9 @@ function sendTestEmail() {
   for (var r = 2; r <= t.lastRow; r++) {
     if (t.get(r, 'email_1') && t.get(r, 'subject')) { subject = t.get(r, 'subject'); body = t.get(r, 'email_1'); break; }
   }
-  var res = sendRaw_({ to: to, subject: '[TEST] ' + subject, body: withSignature_(String(body), S),
-    html: htmlFor_(String(body), S), S: S });
+  body = withProduct_(String(body), S, '');
+  var res = sendRaw_({ to: to, subject: '[TEST] ' + subject, body: withSignature_(body, S),
+    html: htmlFor_(body, S), S: S });
   log_('test_email', '', to + ' thread ' + res.threadId);
   toast_('Test email sent to ' + to + ' from ' + (perAccount_(S.SEND_AS) || me_()) + '.');
 }

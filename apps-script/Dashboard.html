@@ -928,11 +928,40 @@
     return [
       [subj.length > 0 && subj.length <= 60, 'Subject ' + subj.length + ' chars', 'Under 60 shows in full on a phone'],
       [w > 0 && w <= 90, w + ' words', 'Email 1 stays at 90 words or fewer'],
-      [!/https?:\/\/|www\./i.test(body), 'No links', 'Links in a first email hurt delivery'],
+      linkCheck(o, body),
+      (prod(o) ? [new RegExp('\\*\\*[^*]*' + prod(o).name, 'i').test(body), prod(o).name + ' in bold', 'Say what ' + prod(o).name + ' does for them in one bold sentence'] : [true, 'Partner email', 'No product link in partner outreach']),
       [!co || body.toLowerCase().indexOf(co) !== -1, 'Names the company', 'Shows the email was written for them'],
       [/\?/.test(body), 'Asks a question', 'One clear question to reply to'],
       [!/!/.test(subj + body), 'No exclamation marks', 'Tevrix voice']
     ];
+  }
+  // HireMinds emails carry one link, the product page; partner emails carry none (same rule as Code.gs).
+  function prod(o) {
+    var url = str(setting('PRODUCT_URL'));
+    if (!url || str(o.angle).toLowerCase() === 'partner') return null;
+    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+    return { name: str(setting('PRODUCT_NAME')) || 'HireMinds', url: url, host: url.replace(/^https?:\/\//i, '').replace(/\/+$/, '') };
+  }
+  function linkCheck(o, body) {
+    var p = prod(o);
+    var found = (body.match(/https?:\/\/[^\s*]+|\b(?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:com|ai|io|co|in|uk|ie|app)\b/gi) || [])
+      .filter(function (u) { return body.charAt(body.indexOf(u) - 1) !== '@'; });
+    if (!p) return [!found.length, 'No links', 'Links in a first email hurt delivery'];
+    var other = found.filter(function (u) { return u.toLowerCase().indexOf(p.host.toLowerCase()) === -1; });
+    return [!other.length, other.length ? 'Other links' : 'Only the ' + p.name + ' link', 'One link per email, to ' + p.host + ': more links hurt delivery'];
+  }
+  function withProduct(o, body) {
+    var p = prod(o);
+    if (!p || !str(body) || str(body).toLowerCase().indexOf(p.host.toLowerCase()) !== -1) return body;
+    return str(body).replace(/\s+$/, '') + '\n\n**See how ' + p.name + ' works: ' + p.host + '**';
+  }
+  /** The email text as it will look: **bold** in bold, web addresses as links (mirrors Code.gs inlineHtml_). */
+  function rich(t) {
+    return esc(t).replace(/\b(https?:\/\/[^\s<*]+|(?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:com|ai|io|co|in|uk|ie|app)(?:\/[^\s<*]*)?)/gi, function (m, g, at, whole) {
+      if (at > 0 && /[@.\w\/-]/.test(whole.charAt(at - 1))) return m;
+      var trail = (m.match(/[.,;:!?)]+$/) || [''])[0], u = trail ? m.slice(0, -trail.length) : m;
+      return '<a href="' + (/^https?:/i.test(u) ? u : 'https://' + u) + '" target="_blank" rel="noopener">' + u + '</a>' + trail;
+    }).replace(/\*\*([^*\n][^*]*?)\*\*/g, '<strong>$1</strong>');
   }
   function checksHtml(o) {
     return emailChecks(o).map(function (c) {
@@ -1026,15 +1055,16 @@
   function asSent(o) {
     var test = bool(setting('TEST_MODE'));
     var from = str(setting('SEND_AS')) || o.mailbox || mailboxes()[0] || 'team@';
-    var sig = [setting('SENDER_NAME'), setting('SENDER_TITLE'), setting('COMPANY_LINE'), setting('SIG_EMAIL'), setting('SIG_WEBSITE'), setting('SIG_LINKEDIN')]
+    var p = prod(o);
+    var sig = [setting('SENDER_NAME'), setting('SENDER_TITLE'), setting('COMPANY_LINE'), setting('SIG_EMAIL'), p ? p.name + ': ' + p.url : '', setting('SIG_WEBSITE'), setting('SIG_LINKEDIN')]
       .concat(bool(setting('WHATSAPP_ON_ALL_EMAILS')) ? [setting('SIG_WHATSAPP')] : []).map(str).filter(Boolean);
     function mail(label, subject, body) {
       return '<div class="mail"><div class="mail-head"><span class="label">' + label + '</span>' +
         '<div><span class="muted">From</span><span>' + esc(str(setting('SENDER_NAME'))) + ' &lt;' + esc(from) + '&gt;</span></div>' +
         '<div><span class="muted">To</span><span>' + (test ? esc(setting('TEST_RECIPIENT')) + ' <span class="chip warn">Test mode</span>' : esc(o.email)) + '</span></div>' +
         '<div><span class="muted">Subject</span><b>' + esc(subject) + '</b></div></div>' +
-        '<div class="mail-body"><div class="pre">' + esc(body) + '</div>' +
-        '<div class="mail-sig pre">' + esc(sig.join('\n')) + '</div>' +
+        '<div class="mail-body"><div class="pre">' + rich(withProduct(o, body)) + '</div>' +
+        '<div class="mail-sig pre">' + rich(sig.join('\n')) + '</div>' +
         '<div class="mail-foot">' + esc(str(setting('POSTAL_ADDRESS')) || 'Postal address goes here (Settings › POSTAL_ADDRESS)') + '<br>Logo and one-click unsubscribe link are added when sent</div></div></div>';
     }
     var s = dv(o, 'subject');

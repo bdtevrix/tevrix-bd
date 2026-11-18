@@ -57,7 +57,7 @@
       signal: '22 teaching roles open for the January term, most posted 6+ weeks ago.',
       fit: 'Long-open roles before a hard term start date. Speed is what she needs.',
       subject: 'January term roles at Brightpath',
-      e1: 'Hi Sara,\n\nBrightpath still has 22 teaching roles open for January, and most have been live for over six weeks. With term dates fixed, every week counts.\n\nHireMinds screens applicants the day they apply and runs the first interview, so good teachers do not sit in the queue.\n\nWould it help to see it on your Maths teacher role?',
+      e1: 'Hi Sara,\n\nBrightpath still has 22 teaching roles open for January, and most have been live for over six weeks. With term dates fixed, every week counts.\n\n**HireMinds (hireminds.example) interviews every applicant for your teaching roles the day they apply and gives you a scored shortlist with transcripts.**\n\nWould it help to see it on your Maths teacher role?',
       f1: 'Sara, following up before the term rush. Happy to run one role through HireMinds so you can judge the shortlist yourself. Shall I?',
       f2: 'Last one from me. If January hiring is sorted, all good. If not, reply and I will set up the test role.',
       li: 'Hi Sara, saw Brightpath is hiring 22 teachers for January. HireMinds runs first-round interviews so roles fill faster. Would love to connect.',
@@ -75,7 +75,7 @@
       signal: '31 seasonal roles for the winter season across 4 properties.',
       fit: 'Seasonal volume, high applicant counts per role.',
       subject: 'Winter hiring at Harbor & Pine',
-      e1: 'Hi Megan,\n\nHarbor & Pine has 31 seasonal roles up for winter across four properties. Front desk and housekeeping roles like these often pull hundreds of applicants each.\n\nHireMinds screens every one of them and runs a short first interview, so your managers only meet the people worth meeting.\n\nWould a walkthrough on your front desk role help?',
+      e1: 'Hi Megan,\n\nHarbor & Pine has 31 seasonal roles up for winter across four properties. Front desk and housekeeping roles like these often pull hundreds of applicants each.\n\n**HireMinds (hireminds.example) runs a short first interview with every front desk and housekeeping applicant, so your managers only meet a scored shortlist.**\n\nWould a walkthrough on your front desk role help?',
       f1: 'Megan, following up on winter hiring. Happy to run one property\'s roles through HireMinds as a test. Interested?',
       f2: 'Last note from me. If the season is staffed, enjoy the quiet. If not, reply and I will send the walkthrough.',
       li: 'Hi Megan, saw Harbor & Pine is hiring 31 roles for winter. HireMinds handles first-round screening at volume. Happy to connect.',
@@ -200,7 +200,7 @@
     ['ALERT_EMAILS', 'founders@tevrix.example', ''], ['GITHUB_OWNER', 'tevrix-ai', ''], ['GITHUB_REPO', 'tevrix-bd', ''], ['INTAKE_WORKFLOW', 'intake.yml', ''],
     ['AGENCIES_WORKFLOW', 'agencies.yml', ''], ['AGENCIES_DAY', 'Mon', ''], ['CIO_REGION', 'us', ''],
     ['FOUNDERS', 'Founder A, Founder B', ''], ['SIG_LINKEDIN', 'https://www.linkedin.com/in/example', ''], ['SIG_WHATSAPP', '#ERROR!', ''], ['WHATSAPP_ON_ALL_EMAILS', false, ''],
-    ['SIG_WEBSITE', 'www.tevrix.example', ''], ['LOGO_URL', '', ''], ['DASHBOARD_USERS', '', 'Extra people who can open the console']
+    ['SIG_WEBSITE', 'www.tevrix.example', ''], ['PRODUCT_NAME', 'HireMinds', ''], ['PRODUCT_URL', 'https://hireminds.example', 'Linked in every HireMinds email'], ['LOGO_URL', '', ''], ['DASHBOARD_USERS', '', 'Extra people who can open the console']
   ];
 
   var sheets = {

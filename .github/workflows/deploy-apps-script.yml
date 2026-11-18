@@ -51,6 +51,7 @@ jobs:
         run: |
           python -m pytest -q
           node tests/js/test_bounces.js
+          node tests/js/test_email_format.js
           (cd console && node tests/test_server.js)
 
       - name: Check the login secret
